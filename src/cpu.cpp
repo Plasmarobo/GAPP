@@ -19,22 +19,31 @@ Location CPU::MapLocation(unsigned char offset)
 	}
 }
 
+void CPU::StackPush(unsigned char byte)
+{
+	m_regs.DecSP();
+	WriteMem(m_regs.SP(), byte);
+}
+
 void CPU::PushPC()
 {
 	unsigned short pc = m_regs.PC();
-	WriteMem(m_regs.SP(), (unsigned char) pc); //LSB
-	m_regs.DecSP();
-	WriteMem(m_regs.SP(), (unsigned char) (pc >> 8)); //MSB
-	m_regs.DecSP();
+	StackPush(pc);
+	StackPush(pc >> 8);
+}
+
+unsigned char CPU::StackPop()
+{
+	unsigned char val = ReadMem(m_regs.SP(), byte);
+	m_regs.IncSP();
+	return val;
 }
 
 unsigned short CPU::PopPC()
 {
 	unsigned short pc = m_regs.PC();
-	pc = ReadMem(m_regs.SP()); //MSB
-	m_regs.IncSP();
-	pc = ReadMem(m_regs.SP()) + (pc << 8); //LSB
-	m_regs.IncSP();
+	pc = StackPop();
+	pc = StackPop() + (pc << 8); //LSB
 }
 
 InstructionPacket CPU::DecodeInstruction()
@@ -1926,20 +1935,16 @@ void CPU::ExecuteInstruction(InstructionPacket &packet)
 	case Instruction::POP:
 		{
 			unsigned short val;
-			val = ReadMem(m_regs.SP()); //MSB
-			m_regs.IncSP();
-			val = ReadMem(m_regs.SP()) + (val << 8); //LSB
-			m_regs.IncSP();
+			val = StackPop(); //MSB
+			val = StackPop() + (val << 8); //LSB
 			WriteLocation(packet.dest, packet, val);
 		}
 		break;
 	case Instruction::PUSH:
 		{
 			unsigned short val = ReadLocation(packet.source, packet);
-			WriteMem(m_regs.SP(), (unsigned char) val); //LSB
-			m_regs.DecSP();
-			WriteMem(m_regs.SP(), (unsigned char) (val >> 8)); //MSB
-			m_regs.DecSP();
+			StackPush(val); //LSB
+			StackPush(val >> 8); //MSB
 		}
 		break;
 	case Instruction::DI:
