@@ -18,6 +18,17 @@ public:
 	unsigned char Write(unsigned short value) { m_lower = value & 0xFF; m_upper = ((value >> 8) & 0xFF); return Read(); }
 };
 
+typedef union
+{
+	struct {
+		unsigned char unused : 4;
+		unsigned char carry : 1;
+		unsigned char half_carry : 1;
+		unsigned char nonzero : 1;
+		unsigned char zero : 1;
+	} bits;
+	unsigned char value;
+} Flags;
 
 class RegFile
 {
@@ -28,19 +39,10 @@ protected:
 	Register m_hl;
 	unsigned short m_pc;
 	unsigned short m_sp;
+	Flags m_flags;
 	
 public:
-	union
-	{
-		struct {
-			unsigned char unused : 4;
-			unsigned char carry : 1;
-			unsigned char half_carry : 1;
-			unsigned char subtract : 1;
-			unsigned char zero : 1;
-		} bits;
-		unsigned char value;
-	} m_flags;
+	
 	
 	
 	RegFile(){
@@ -85,19 +87,52 @@ public:
 	unsigned short SP(unsigned short value) { m_sp = value; return m_sp; }
 	unsigned short IncSP() { ++m_sp; return m_sp; }
 	unsigned short DecSP() { --m_sp; return m_sp; }
+	bool Carry() { return m_flags.bits.carry == 1; }
+	bool Half() { return m_flags.bits.half_carry == 1; }
+	bool Zero() { return m_flags.bits.zero == 1; }
+	bool Nonzero() { return m_flags.bits.nonzero == 1; }
+	void SetFlags(bool z, bool nz, bool h, bool c)
+	{
+		m_flags.bits.carry = c ? 1 : 0;
+		m_flags.bits.half_carry = h ? 1 : 0;
+		m_flags.bits.zero = z ? 1 : 0;
+		m_flags.bits.nonzero = nz ? 1 : 0;
+	}
 
+};
+
+struct InstructionPacket
+{
+	Location source;
+	Location dest;
+	int address;
+	short offset;
+	unsigned short cycles;
+	Instruction instruction;
+	Flags flag_mask;
+
+	InstructionPacket()
+	{
+		source = Location::NONE;
+		dest = Location::NONE;
+		address = -1;
+		offset = 0;
+		cycles = 0;
+		instruction = Instruction::NONE;
+		flag_mask.value = 0;
+	}
 };
 
 typedef enum Location
 {
 	NONE = 0,
-	A,
 	B,
 	C,
 	D,
 	E,
 	H,
 	L,
+	A,
 	F,
 	AF,
 	BC,
@@ -118,14 +153,7 @@ typedef enum Instruction
 {
 	NONE = 0,
 	NOP,
-	LOAD, //Load 8b
-	LOAD_AND_DEC,
-	LOAD_AND_INC,
-	LOAD_WIDE, //Load 16b
-	INC, 
-	DEC,
-	JR,
-	JP,
+	LOAD,
 	ADD,
 	ADC,
 	SUB,
@@ -137,31 +165,23 @@ typedef enum Instruction
 	XOR,
 	CP,
 	RLC,
-	RRC,
 	RL,
+	RRC,
 	RR,
-	SLA,
-	SRA,
-	SLL,
-	SRL,
-	DA,
+	SRS, //Shift right signed
+	SL,
+	SR,
+	DAA,
 	CPL,
 	SCF,
 	CCF,
-	RET,
 	POP,
 	PUSH,
-	CALL,
-	RST,
 	DI,
 	EI,
 	BIT,
 	RES,
 	SET,
-	IM,
-	NEG,
-	RETN,
-	RETI,
 	SWAP
 };
 
@@ -221,23 +241,27 @@ typedef enum BlockOp
 class CPU
 {
 	unsigned long m_cycles;
-	unsigned char m_source;
-	unsigned char m_dest;
-	unsigned short m_immediate;
-	unsigned short m_address;
-	unsigned short m_offset;
-	unsigned short m_instruction;
 	
 	Ram m_ram;
 	RegFile m_regs;
+	bool m_interrupt_enable;
+	bool m_halted;
+	bool m_stopped;
 
-	void DecodeInstruction();
-	void DecodeCB();
-	void ExecuteInstruction();
+	InstructionPacket DecodeInstruction();
+	void DecodeCB(InstructionPacket &packet);
+	void ExecuteInstruction(InstructionPacket &packet);
 	unsigned char FetchPC();
 	unsigned short FetchPC16();
+	unsigned char ReadMem(unsigned short addr); //Consumes 4 cycles
+	void WriteMem(unsigned short addr, unsigned char value); //Consumes 8 cycles
+	void PushPC();
+	unsigned short PopPC();
 
-	unsigned char RegisterTable(unsigned char index);
+	int ReadLocation(Location l, InstructionPacket &packet);
+	void WriteLocation(Location l, InstructionPacket &packet, int value);
+
+	Location RegisterTable(unsigned char index, InstructionPacket &packet);
 	Location WideRegisterTableSP(unsigned char index);
 	Location WideRegisterTableAF(unsigned char index);
 	Condition ConditionTable(unsigned char index);
