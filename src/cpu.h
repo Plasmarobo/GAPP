@@ -255,6 +255,8 @@ class CPU
 	unsigned short FetchPC16();
 	unsigned char ReadMem(unsigned short addr); //Consumes 4 cycles
 	void WriteMem(unsigned short addr, unsigned char value); //Consumes 8 cycles
+	void StackPush(unsigned char val);
+	unsigned char StackPop();
 	void PushPC();
 	unsigned short PopPC();
 
