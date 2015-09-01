@@ -1,7 +1,80 @@
 #ifndef CPU_H
 #define CPU_H
-#include "ram.h"
+#include "mem.h"
 #include "utils.h"
+
+
+typedef enum Location
+{
+	NONE = 0,
+	B,
+	C,
+	D,
+	E,
+	H,
+	L,
+	A,
+	F,
+	AF,
+	BC,
+	DE,
+	HL,
+	SP,
+	PC,
+	MEM, //Memory address 16b
+	IMM, //8b
+	WIDE_IMM, //16b
+	OFFSET, //Memory address given by FF00 + n (8b)
+	WIDE_OFFSET, //Memory address given by FF00+n (16b)
+	PORT,
+	STACK,
+};
+
+typedef enum Instruction
+{
+	NON = 0,
+	NOP,
+	LOAD,
+	ADD,
+	ADC,
+	SUB,
+	SBC,
+	STOP,
+	HALT,
+	AND,
+	OR,
+	XOR,
+	CP,
+	RLC,
+	RL,
+	RRC,
+	RR,
+	SRS, //Shift right signed
+	SL,
+	SR,
+	DAA,
+	CPL,
+	SCF,
+	CCF,
+	POP,
+	PUSH,
+	DI,
+	EI,
+	BIT,
+	RES,
+	SET,
+	SWAP
+};
+
+
+typedef enum Interrupt
+{
+	IZero,
+	IZeroOne,
+	IOne,
+	ITwo,
+};
+
 
 class Register
 {
@@ -118,131 +191,16 @@ struct InstructionPacket
 		address = -1;
 		offset = 0;
 		cycles = 0;
-		instruction = Instruction::NONE;
+		instruction = Instruction::NON;
 		flag_mask.value = 0;
 	}
 };
-
-typedef enum Location
-{
-	NONE = 0,
-	B,
-	C,
-	D,
-	E,
-	H,
-	L,
-	A,
-	F,
-	AF,
-	BC,
-	DE,
-	HL,
-	SP,
-	PC,
-	MEM, //Memory address 16b
-	IMM, //8b
-	WIDE_IMM, //16b
-	OFFSET, //Memory address given by FF00 + n (8b)
-	WIDE_OFFSET, //Memory address given by FF00+n (16b)
-	PORT,
-	STACK,
-};
-
-typedef enum Instruction
-{
-	NONE = 0,
-	NOP,
-	LOAD,
-	ADD,
-	ADC,
-	SUB,
-	SBC,
-	STOP,
-	HALT,
-	AND,
-	OR,
-	XOR,
-	CP,
-	RLC,
-	RL,
-	RRC,
-	RR,
-	SRS, //Shift right signed
-	SL,
-	SR,
-	DAA,
-	CPL,
-	SCF,
-	CCF,
-	POP,
-	PUSH,
-	DI,
-	EI,
-	BIT,
-	RES,
-	SET,
-	SWAP
-};
-
-typedef enum Condition
-{
-	NONE = 0,
-	NonZero,
-	Zero,
-	NoCarry,
-	Carry,
-};
-
-typedef enum BitwiseOp
-{
-	NONE,
-	RLC,
-	RRC,
-	RL,
-	RR,
-	SLA,
-	SRA,
-	SLL,
-	SRL,
-};
-
-typedef enum Interrupt
-{
-	NONE,
-	Zero,
-	ZeroOne,
-	One,
-	Two,
-};
-
-typedef enum BlockOp
-{
-	NONE,
-	LDI,
-	CPI,
-	INI,
-	OUTI,
-	LDD,
-	CPD,
-	IND,
-	OUTD,
-	LDIR,
-	CPIR,
-	INIR,
-	OUTIR,
-	LDDR,
-	CPDR,
-	INDR,
-	OUTDR,
-};
-
 
 class CPU
 {
 	unsigned long m_cycles;
 	
-	Ram m_ram;
+	Memory m_mem;
 	RegFile m_regs;
 	bool m_interrupt_enable;
 	bool m_halted;
@@ -258,26 +216,20 @@ class CPU
 	void StackPush(unsigned char val);
 	unsigned char StackPop();
 	void PushPC();
-	unsigned short PopPC();
+	void PopPC();
 
 	int ReadLocation(Location l, InstructionPacket &packet);
 	void WriteLocation(Location l, InstructionPacket &packet, int value);
 
 	Location RegisterTable(unsigned char index, InstructionPacket &packet);
-	Location WideRegisterTableSP(unsigned char index);
-	Location WideRegisterTableAF(unsigned char index);
-	Condition ConditionTable(unsigned char index);
-	Instruction AluTable(unsigned char index);
-	BitwiseOp BitwiseTable(unsigned char index);
-	Interrupt InterruptTable(unsigned char index);
-	BlockOp BlockTable(unsigned char a, unsigned char b);
-	bool ConditionMet(unsigned char index);
 	Location MapLocation(unsigned char offset);
 public:
 	CPU();
-	CPU();
-
-
+	~CPU();
+	void Step();
+	void RunGBFile(std::string rom_file);
+	void SaveState(std::string filename);
+	void LoadState(std::string filename);
 
 };
 

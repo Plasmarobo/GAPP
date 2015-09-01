@@ -34,16 +34,17 @@ void CPU::PushPC()
 
 unsigned char CPU::StackPop()
 {
-	unsigned char val = ReadMem(m_regs.SP(), byte);
+	unsigned char val = ReadMem(m_regs.SP());
 	m_regs.IncSP();
 	return val;
 }
 
-unsigned short CPU::PopPC()
+void CPU::PopPC()
 {
 	unsigned short pc = m_regs.PC();
 	pc = StackPop();
-	pc = StackPop() + (pc << 8); //LSB
+	pc = StackPop() + (pc << 8); //LSB\
+
 }
 
 InstructionPacket CPU::DecodeInstruction()
@@ -1388,7 +1389,7 @@ void CPU::DecodeCB(InstructionPacket &packet)
 
 unsigned char CPU::FetchPC()
 {
-	unsigned char byte = m_ram.Read(m_regs.PC());
+	unsigned char byte = m_mem.Read(m_regs.PC());
 	m_regs.IncPC();
 	m_cycles += 4;
 	return byte;
@@ -1405,13 +1406,13 @@ unsigned short CPU::FetchPC16()
 unsigned char CPU::ReadMem(unsigned short addr)
 {
 	m_cycles += 4;
-	return m_ram.Read(addr);
+	return m_mem.Read(addr);
 }
 
 void CPU::WriteMem(unsigned short addr, unsigned char value)
 {
 	m_cycles += 8;
-	m_ram.Write(addr, value);
+	m_mem.Write(addr, value);
 }
 
 Location CPU::RegisterTable(unsigned char index, InstructionPacket &packet)
@@ -1583,7 +1584,7 @@ void CPU::ExecuteInstruction(InstructionPacket &packet)
 	
 	switch (packet.instruction)
 	{
-	case Instruction::NONE:
+	case Instruction::NON:
 		Logger::RaiseError("CPU", "No Instruction!");
 		break;
 	case Instruction::NOP:

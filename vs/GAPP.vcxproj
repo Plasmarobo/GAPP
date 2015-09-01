@@ -13,13 +13,13 @@
   <ItemGroup>
     <ClCompile Include="..\src\cpu.cpp" />
     <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\ram.cpp" />
+    <ClCompile Include="..\src\mem.cpp" />
     <ClCompile Include="..\src\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\cpu.h" />
     <ClInclude Include="..\src\emulator.h" />
-    <ClInclude Include="..\src\ram.h" />
+    <ClInclude Include="..\src\mem.h" />
     <ClInclude Include="..\src\utils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
