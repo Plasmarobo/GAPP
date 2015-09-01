@@ -12,13 +12,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cpu.cpp" />
+    <ClCompile Include="..\src\display.cpp" />
+    <ClCompile Include="..\src\input.cpp" />
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\mem.cpp" />
     <ClCompile Include="..\src\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\cpu.h" />
+    <ClInclude Include="..\src\display.h" />
     <ClInclude Include="..\src\emulator.h" />
+    <ClInclude Include="..\src\input.h" />
     <ClInclude Include="..\src\mem.h" />
     <ClInclude Include="..\src\utils.h" />
   </ItemGroup>
