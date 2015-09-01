@@ -159,6 +159,6 @@ public:
 	void LoadCartFromFile(std::string rom_file);
 	void LoadState(std::string filename);
 	void SaveState(std::string filename);
-
+	void Step();
 };
 #endif

@@ -271,6 +271,12 @@ unsigned char MBC3Cart::ReadMemory(unsigned short addr)
 void MBC3Cart::Step()
 {
 	//Nop
+	UpdateTime();
+}
+
+void MBC3Cart::UpdateTime()
+{
+	m_rtc.counter++;
 }
 
 Memory::Memory()
@@ -531,4 +537,12 @@ void Memory::LoadState(std::string filename)
 void Memory::SaveState(std::string filename)
 {
 	//Unimplemented
+}
+
+void Memory::Step()
+{
+	if (m_cart != NULL)
+	{
+		m_cart->Step();
+	}
 }

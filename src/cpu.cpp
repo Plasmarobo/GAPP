@@ -1998,6 +1998,24 @@ void CPU::ExecuteInstruction(InstructionPacket &packet)
 	m_cycles += packet.cycles;
 };
 
+void CPU::Start()
+{
+	//Ignore startup sequence (we don't need no stinkin BIOS!)
+	m_regs.PC = 0x100;
+	m_regs.AF(0x01);
+	m_regs.F(0xB0);
+	m_regs.BC(0x0013);
+	m_regs.DE(0x00D8);
+	m_regs.HL(0x014D);
+	m_regs.SP(0xFFFE);
+
+}
 
 
+void CPU::Step()
+{
+	//Todo: Sync with cycles
+	m_mem.Step();
+	m_timer.Step();
+}
 
