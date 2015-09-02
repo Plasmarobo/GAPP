@@ -1998,6 +1998,22 @@ void CPU::ExecuteInstruction(InstructionPacket &packet)
 	m_cycles += packet.cycles;
 };
 
+
+void CPU::StepTimer()
+{
+
+}
+
+CPU::CPU()
+{
+
+}
+
+CPU::~CPU()
+{
+
+}
+
 void CPU::Start()
 {
 	//Ignore startup sequence (we don't need no stinkin BIOS!)
@@ -2016,6 +2032,15 @@ void CPU::Step()
 {
 	//Todo: Sync with cycles
 	m_mem.Step();
-	m_timer.Step();
+	StepTimer();
+}
+
+
+void CPU::INT(unsigned short addr)
+{
+	if (m_interrupt_enable && m_mem.IE())
+	{
+
+	}
 }
 

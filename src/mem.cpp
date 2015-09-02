@@ -513,7 +513,15 @@ void Memory::Write(unsigned short addr, unsigned char byte)
 	}
 	else if (AddrIn(addr, MemoryMap::IO, MemoryMap::UNUSED_1))
 	{
-		m_internal_memory.io_ports[addr - MemoryMap::IO] = byte;
+		if (addr == 0xFF04)
+		{
+			m_internal_memory.io_ports[4] = 0x00;
+		}
+		else
+		{
+			m_internal_memory.io_ports[addr - MemoryMap::IO] = byte;
+		}
+
 	}
 	else if (AddrIn(addr, MemoryMap::UNUSED_1, MemoryMap::INTERNAL_RAM_1))
 	{
@@ -545,4 +553,7 @@ void Memory::Step()
 	{
 		m_cart->Step();
 	}
+	//Update TIMER
+	//Update DIV
+	//Update SB (serial buffer)
 }

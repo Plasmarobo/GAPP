@@ -196,25 +196,11 @@ struct InstructionPacket
 	}
 };
 
-class Timer
-{
-protected:
-	//4096, 16384, 65536, 262144
-	unsigned int trigger;
-
-	unsigned int count;
-public:
-	Timer();
-	void SetTrigger(unsigned int trigger);
-	void Step();
-};
-
 class CPU
 {
 	unsigned long m_cycles;
 	
 	Memory m_mem;
-	Timer m_timer;
 	RegFile m_regs;
 	bool m_interrupt_enable;
 	bool m_halted;
@@ -237,12 +223,14 @@ class CPU
 
 	Location RegisterTable(unsigned char index, InstructionPacket &packet);
 	Location MapLocation(unsigned char offset);
+	void StepTimer();
+	void StepVblank();
 public:
 	CPU();
 	~CPU();
 	void Start();
 	void Step();
-	void INT(Interrupt code);
+	void INT(unsigned short addr);
 	void RunGBFile(std::string rom_file);
 	void SaveState(std::string filename);
 	void LoadState(std::string filename);

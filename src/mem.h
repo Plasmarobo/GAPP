@@ -137,7 +137,12 @@ public:
 class Memory
 {
 protected:
-		
+
+	const unsigned int Timer00_Hz = 4096;
+	const unsigned int Timer01_Hz = 262144;
+	const unsigned int Timer10_Hz = 65563;
+	const unsigned int Timer11_Hz = 16384;
+
 	struct {
 		unsigned char ram_video[0x2000];         //0x8000-0x9FFF, 8kB Video RAM
 		unsigned char ram_bank_sw[0x2000];       //0xA000-0xBFFF, 8kB switchable ram bank
@@ -160,5 +165,116 @@ public:
 	void LoadState(std::string filename);
 	void SaveState(std::string filename);
 	void Step();
+	//Softreg Functions
+	//P1 - INPUT softregs
+	unsigned char P1() { return m_internal_memory.io_ports[0]; }
+	void P1(unsigned char val) { m_internal_memory.io_ports[0] = val; }
+	bool P10() { return m_internal_memory.io_ports[0] & 0x1; }
+	bool P11() { return m_internal_memory.io_ports[0] & 0x2; }
+	bool P12() { return m_internal_memory.io_ports[0] & 0x4; }
+	bool P13() { return m_internal_memory.io_ports[0] & 0x8; }
+	bool P14() { return m_internal_memory.io_ports[0] & 0x10; }
+	bool P15() { return m_internal_memory.io_ports[0] & 0x20; }
+	bool Right() { return m_internal_memory.io_ports[0] & 0x11; }
+	bool Left() { return m_internal_memory.io_ports[0] & 0x12; }
+	bool Up() { return m_internal_memory.io_ports[0] & 0x14; }
+	bool Down() { return m_internal_memory.io_ports[0] & 0x18; }
+	bool A() { return m_internal_memory.io_ports[0] & 0x21; }
+	bool B() { return m_internal_memory.io_ports[0] & 0x22; }
+	bool Sel() { return m_internal_memory.io_ports[0] & 0x24; }
+	bool Start() { return m_internal_memory.io_ports[0] & 0x28; }
+	//SERIAL
+	void SB(unsigned char val) { m_internal_memory.io_ports[1] = val; }
+	unsigned char SB() { return m_internal_memory.io_ports[1]; }
+	void SC(unsigned char val) { m_internal_memory.io_ports[2] = val; }
+	unsigned char SC() { return m_internal_memory.io_ports[2]; }
+	void StartTransfer(bool val); //Sets bit 7
+	void InternalShiftClk(bool val); //Sets bit 0
+	//DIV
+	void DIV(unsigned char val) { m_internal_memory.io_ports[4] = 0x00; } // Writing sets to zero
+	unsigned char DIV() { return m_internal_memory.io_ports[4];	}
+	//TIMA
+	unsigned char TIMA() { return m_internal_memory.io_ports[5]; }
+	void TIMA(unsigned char val) { m_internal_memory.io_ports[5] = val; }
+	//TMA
+	unsigned char TMA() { return m_internal_memory.io_ports[6]; }
+	void TMA(unsigned char val) { m_internal_memory.io_ports[6] = val; }
+	//TAC
+	unsigned char TMA() { return m_internal_memory.io_ports[7]; }
+	void TMA(unsigned char val) { m_internal_memory.io_ports[7] = val; }
+	void StartTimer();
+	void StopTimer();
+	void SetTimerClk(unsigned char val);
+	//IF
+	unsigned char IF() { return m_internal_memory.io_ports[0xF];	}
+	void IF(unsigned char val) { m_internal_memory.io_ports[0xF] = val; }
+	unsigned char GetHPI(); //Get highest priority interrupt code from IF
+	void ResetIF() { m_internal_memory.io_ports[0xF] = 0; }
+	//Sound Mode 1 / NR 10
+	unsigned char NR10() { return m_internal_memory.io_ports[0x10]; }
+	void NR10(unsigned char val) { m_internal_memory.io_ports[0x10] = val; }
+	//Sound Mode 1 / NR 11
+	unsigned char NR11() { return m_internal_memory.io_ports[0x11]; }
+	void NR11(unsigned char val) { m_internal_memory.io_ports[0x11] = val; }
+	//Sound Mode 1 / NR 12
+	unsigned char NR12() { return m_internal_memory.io_ports[0x12]; }
+	void NR12(unsigned char val) { m_internal_memory.io_ports[0x12] = val; }
+	//Sound Mode 1 / NR 13
+	unsigned char NR13() { return m_internal_memory.io_ports[0x13]; }
+	void NR13(unsigned char val) { m_internal_memory.io_ports[0x13] = val; }
+	//Sound Mode 1 / NR 14
+	unsigned char NR14() { return m_internal_memory.io_ports[0x14]; }
+	void NR14(unsigned char val) { m_internal_memory.io_ports[0x14] = val; }
+	//Sound Mode 2 / NR 2X
+	unsigned char NR21() { return m_internal_memory.io_ports[0x16]; }
+	void NR21(unsigned char val) { m_internal_memory.io_ports[0x16] = val; }
+	unsigned char NR22() { return m_internal_memory.io_ports[0x17]; }
+	void NR22(unsigned char val) { m_internal_memory.io_ports[0x17] = val; }
+	unsigned char NR23() { return m_internal_memory.io_ports[0x18]; }
+	void NR23(unsigned char val) { m_internal_memory.io_ports[0x18] = val; }
+	unsigned char NR24() { return m_internal_memory.io_ports[0x19]; }
+	void NR24(unsigned char val) { m_internal_memory.io_ports[0x19] = val; }
+	//Sound Mode 3 / NR 3X
+	unsigned char NR30() { return m_internal_memory.io_ports[0x1A]; }
+	void NR30(unsigned char val) { m_internal_memory.io_ports[0x1A] = val; }
+	unsigned char NR31() { return m_internal_memory.io_ports[0x1B]; }
+	void NR3(unsigned char val) { m_internal_memory.io_ports[0x1B] = val; }
+	unsigned char NR32() { return m_internal_memory.io_ports[0x1C]; }
+	void NR32(unsigned char val) { m_internal_memory.io_ports[0x1C] = val; }
+	unsigned char NR33() { return m_internal_memory.io_ports[0x1D]; }
+	void NR33(unsigned char val) { m_internal_memory.io_ports[0x1D] = val; }
+	unsigned char NR34() { return m_internal_memory.io_ports[0x1E]; }
+	void NR34(unsigned char val) { m_internal_memory.io_ports[0x1E] = val; }
+	//Sound Mode 4 / NR 4X
+	unsigned char NR41() { return m_internal_memory.io_ports[0x20]; }
+	void NR41(unsigned char val) { m_internal_memory.io_ports[0x20] = val; }
+	unsigned char NR42() { return m_internal_memory.io_ports[0x21]; }
+	void NR42(unsigned char val) { m_internal_memory.io_ports[0x21] = val; }
+	unsigned char NR43() { return m_internal_memory.io_ports[0x22]; }
+	void NR43(unsigned char val) { m_internal_memory.io_ports[0x22] = val; }
+	unsigned char NR44() { return m_internal_memory.io_ports[0x23]; }
+	void NR44(unsigned char val) { m_internal_memory.io_ports[0x23] = val; }
+	//Sound Mode 5 / NR 5X
+	unsigned char NR50() { return m_internal_memory.io_ports[0x24]; }
+	void NR50(unsigned char val) { m_internal_memory.io_ports[0x24] = val; }
+	unsigned char NR51() { return m_internal_memory.io_ports[0x25]; }
+	void NR51(unsigned char val) { m_internal_memory.io_ports[0x25] = val; }
+	unsigned char NR52() { return m_internal_memory.io_ports[0x26]; }
+	void NR52(unsigned char val) { m_internal_memory.io_ports[0x26] = val; }
+	//WAVE RAM
+	unsigned char WaveRam(unsigned short offset){ return m_internal_memory.io_ports[0x30 + offset]; }
+	void WaveRam(unsigned short offset, unsigned char val) { m_internal_memory.io_ports[0x30 + offset] = val; }
+	//LCDC
+	unsigned char LCDC() { return m_internal_memory.io_ports[0x40]; }
+	void LCDC(unsigned char val) { m_internal_memory.io_ports[0x40] = val; }
+	unsigned char STAT() { return m_internal_memory.io_ports[0x41]; }
+	void STAT(unsigned char val) { m_internal_memory.io_ports[0x41] = val; }
+
+
+
+	
+	unsigned char IE() { return m_internal_memory.interrupt_enable; }
+	void IE(unsigned char val) { m_internal_memory.interrupt_enable = val; }
+
 };
 #endif
