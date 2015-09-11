@@ -156,6 +156,40 @@ protected:
 		unsigned char ram_internal_1[0x6F];      //0xFF80-0xFFFE, internal ram, fast? paged?
 		unsigned char interrupt_enable;          //0xFFFF, interrupt enable register
 	} m_internal_memory;
+	
+	enum {
+		TIMA = 0xFF05,
+		TMA,
+		TAC,
+		NR10, = 0xFF10,
+		NR11,
+		NR12,
+		NR14 = 0xFF14,
+		NR21 = 0xFF16,
+		NR22,
+		NR24 = 0xFF19,
+		NR30 = 0xFF1A,
+		NR31,
+		NR32,
+		NR33 = 0xFF1E,
+		NR41 = 0xFF20,
+		NR42,
+		NR43,
+		NR44,
+		NR50,
+		NR51,
+		NR52,
+		LCDC = 0xFF40,
+		SCY = 0xFF42,
+		SCX,
+		LYC = 0xFF45,
+		BGP = 0xFF47,
+		OBP0, //0BP0
+		OBP1, //0BP1
+		WY = 0xFF4A,
+		WX,
+		IE = 0xFFFF,
+	} softregs;
 
 	Cart *m_cart;
 public:
@@ -271,7 +305,23 @@ public:
 	void LCDC(unsigned char val) { m_internal_memory.io_ports[0x40] = val; }
 	unsigned char STAT() { return m_internal_memory.io_ports[0x41]; }
 	void STAT(unsigned char val) { m_internal_memory.io_ports[0x41] = val; }
-
+	//Video
+	unsigned char SCY() { return m_internal_memory.io_ports[0x42]; }
+	void SCY(unsigned char val) { m_internal_memory.io_ports[0x42] = val; }
+	unsigned char SCX() { return m_internal_memory.io_ports[0x43]; }
+	void SCY(unsigned char val) { m_internal_memory.io_ports[0x43] = val; }
+	unsigned char LYC() { return m_internal_memory.io_ports[0x45]; }
+	void LYC(unsigned char val) { m_internal_memory.io_ports[0x45] = val; }
+	unsigned char BGP() { return m_internal_memory.io_ports[0x47]; }
+	void BGP(unsigned char val) { m_internal_memory.io_ports[0x47] = val; }
+	unsigned char OBP0() { return m_internal_memory.io_ports[0x48]; }
+	void OBP0(unsigned char val) { m_internal_memory.io_ports[0x48] = val; }
+	unsigned char OBP1() { return m_internal_memory.io_ports[0x49]; }
+	void OBP1(unsigned char val) { m_internal_memory.io_ports[0x49] = val; }
+	unsigned char WY() { return m_internal_memory.io_ports[0x4A]; }
+	void WY(unsigned char val) { m_internal_memory.io_ports[0x4A] = val; }
+	unsigned char WX() { return m_internal_memory.io_ports[0x4B]; }
+	void WX(unsigned char val) { m_internal_memory.io_ports[0x4B] = val; }
 
 
 	

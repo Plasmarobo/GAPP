@@ -2024,7 +2024,37 @@ void CPU::Start()
 	m_regs.DE(0x00D8);
 	m_regs.HL(0x014D);
 	m_regs.SP(0xFFFE);
-
+	m_mem.TIMA(0x00);
+	m_mem.TMA(0x00);
+	m_mem.TAC(0x00);
+	m_mem.NR10(0x80);
+	m_mem.NR11(0xBF);
+	m_mem.NR12(0xF3);
+	m_mem.NR14(0xBF);
+	m_mem.NR21(0x3F);
+    m_mem.NR22(0x00);
+    m_mem.m_mem.NR24(0xBF);
+    m_mem.NR30(0x7F);
+    m_mem.NR31(0xFF);
+    m_mem.NR32(0x9F);
+    m_mem.NR33(0xBF);
+    m_mem.NR41(0xFF);
+    m_mem.NR42(0x00);
+    m_mem.NR43(0x00);
+    m_mem.NR44(0xBF);
+    m_mem.NR50(0x77);
+    m_mem.NR51(0xF3);
+    m_mem.NR52(0xF1);
+    m_mem.LCDC(0x91);
+    m_mem.SCY(0x00);
+    m_mem.SCX(0x00);
+    m_mem.LYC(0x00);
+    m_mem.BGP(0xFC);
+    m_mem.OBP0(0xFF);
+    m_mem.OBP1(0xFF);
+    m_mem.WY(0x00);
+    m_mem.WX(0x00);
+    m_mem.IE(0x00);
 }
 
 
