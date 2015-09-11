@@ -1,4 +1,5 @@
 #include "mem.h"
+#include "clk.h"
 #include "utils.h"
 #include <string.h>
 #include <fstream>
@@ -105,6 +106,7 @@ MBC3Cart::MBC3Cart() : MBC1Cart()
 
 MBC3Cart::MBC3Cart(unsigned char *rom, unsigned int rom_size, unsigned int ram_size) : MBC1Cart(rom, rom_size, ram_size)
 {
+	m_utc_timestamp = GetUtc();
 }
 
 void MBC3Cart::WriteMemory(unsigned short addr, unsigned char data)
@@ -184,6 +186,7 @@ void MBC3Cart::WriteMemory(unsigned short addr, unsigned char data)
 		else if (m_rtc.latch == m_rtc.LATCHING && data == 1)
 		{
 			m_rtc.latch = m_rtc.LATCHED;
+			m_counter_latch = m_counter;
 		}
 		else if (m_rtc.latch == m_rtc.LATCHED && data == 0)
 		{
@@ -191,7 +194,16 @@ void MBC3Cart::WriteMemory(unsigned short addr, unsigned char data)
 		}
 		else if (m_rtc.latch == m_rtc.UNLATCHING && data == 1)
 		{
+			//This could go wrong if we "power down" while processing
+			//However this is a Don't Care Condition, since a reload will resync to UTC anyway
+			//We aren't worried about slight differences in rtc
 			m_rtc.latch = m_rtc.UNLATCHED;
+			unsigned long missed = (m_counter - m_counter_latch) %	mbc3_rtc_cycles;
+			while(missed > 0)
+			{
+				--missed;
+				UpdateTime();
+			}
 		}
 	}
 	else if (addr >= 0xA000 && addr <= 0xBFFF && m_write_enable)
@@ -271,12 +283,57 @@ unsigned char MBC3Cart::ReadMemory(unsigned short addr)
 void MBC3Cart::Step()
 {
 	//Nop
-	UpdateTime();
+	m_counter++;
+	if (m_counter % mbc3_rtc_cycles == 0)
+	{
+		//One second has advanced
+		if(m_rtc.latch == m_rtc.latch::UNLATCHED)
+		{
+			UpdateTime();
+		}
+	}
 }
 
 void MBC3Cart::UpdateTime()
 {
-	m_rtc.counter++;
+	//32 machine steps
+	if(m_seconds == 59)
+	{
+		m_rtc.seconds = 0;
+		if(m_rtc.minutes == 59)
+		{
+			m_rtc.minutes = 0;
+			if(m_rtc.hours == 23)
+			{
+				m_rtc.hours = 0;
+				if(m_rtc.day_l == 255)
+				{
+					m_rtc.day_l = 0;
+					if(m_rtc.day_h.day == 1)
+					{
+						m_rtc.day_h.carry = 1;
+					}
+					m_rtc.day_h.day = ~m_rtc.day_h.day;
+				}
+				else
+				{
+					m_rtc.day_l++;
+				}
+			}
+			else
+			{
+				m_rtc.hours++;
+			}
+		}
+		else
+		{
+			m_rtc.minutes++;
+		}
+	}
+	else
+	{
+		m_rtc.seconds++;
+	}
 }
 
 Memory::Memory()
@@ -540,11 +597,15 @@ void Memory::Write(unsigned short addr, unsigned char byte)
 void Memory::LoadState(std::string filename)
 {
 	//Unimplemented
+	
+	//Handle RTC/unix timestamp
 }
 
 void Memory::SaveState(std::string filename)
 {
 	//Unimplemented
+	
+	//Write RTC/unix timestamp
 }
 
 void Memory::Step()

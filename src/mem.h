@@ -107,8 +107,10 @@ protected:
 			LATCHED,
 			UNLATCHING
 		} latch;
-		unsigned long counter;
 	}m_rtc;
+	unsigned long m_counter;
+	unsigned long m_counter_latch;
+	unsigned long m_utc_timestamp;
 	bool m_write_enable;
 
 	enum {
