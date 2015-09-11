@@ -472,6 +472,11 @@ void Memory::LoadCartFromFile(std::string rom_file)
 	}
 }
 
+void Memory::Inc(unsiged short addr)
+{
+	
+}
+
 unsigned char Memory::Read(unsigned short addr)
 {
 	unsigned char val;
@@ -606,6 +611,22 @@ void Memory::SaveState(std::string filename)
 	//Unimplemented
 	
 	//Write RTC/unix timestamp
+}
+
+void Memory::StepDiv()
+{
+	//Update DIV
+	//Set frequency
+	m_div_counter++;
+	if(m_div_counter % div_cycles)
+	{
+		
+	}
+}
+
+void Memory::StepTimer()
+{
+	
 }
 
 void Memory::Step()

@@ -69,10 +69,12 @@ typedef enum Instruction
 
 typedef enum Interrupt
 {
-	IZero,
-	IZeroOne,
-	IOne,
-	ITwo,
+	VBLANK_INT,
+	LCDC_INT,
+	TIME_INT,
+	SERIAL_INT,
+	INPUT_INT,
+	NUM_INTS
 };
 
 
@@ -205,7 +207,9 @@ class CPU
 	bool m_interrupt_enable;
 	bool m_halted;
 	bool m_stopped;
+	unsigned char m_inerrupt;
 
+	void HandleInterrupts();
 	InstructionPacket DecodeInstruction();
 	void DecodeCB(InstructionPacket &packet);
 	void ExecuteInstruction(InstructionPacket &packet);
@@ -230,7 +234,7 @@ public:
 	~CPU();
 	void Start();
 	void Step();
-	void INT(unsigned short addr);
+	void Int(unsigned short addr);
 	void RunGBFile(std::string rom_file);
 	void SaveState(std::string filename);
 	void LoadState(std::string filename);

@@ -904,6 +904,7 @@ InstructionPacket CPU::DecodeInstruction()
 
 void CPU::DecodeCB(InstructionPacket &packet)
 {
+	HandleInterrupts();
 	unsigned char op = FetchPC();
 	
 	switch (op)
@@ -2066,11 +2067,46 @@ void CPU::Step()
 }
 
 
-void CPU::INT(unsigned short addr)
+void CPU::Int(Interrupt int_code)
 {
-	if (m_interrupt_enable && m_mem.IE())
-	{
+	unsigned char int_flags = m_mem.IF();
+	int_flags |= (0x1 >> int_code);
+	m_mem.IF(in_flags);
+}
 
+void CPU::HandleInterrupts()
+{
+	if(this->m_interrupt_enable)
+	{
+		for(int int_code = VBLANK_INT; int_code < NUM_INTS; ++int_code)
+		{
+			if (((m_mem.IE() >> int_code) & 0x1) && ((m_mem.IF() >> int_code) & 0x1))
+			{
+				
+				break;
+			}
+		}
+		this->PushPC();
+		unsigned short addr = m_regs.PC();
+		switch(int_code)
+		{
+			case VBLANK_INT:
+				m_regs.PC(VBLANK_ROUTINE);
+				break;
+			case LCDC_INT:
+				m_regs.PC(LCDC_ROUTINE);
+				break;
+			case TIME_INT:
+				m_regs.PC(TIMER_ROUTINE);
+				break;
+			case INPUT_INT:
+				m_regs.PC(INPUT_ROUTINE);
+				break;
+			default:
+			break;
+		}
+		this->m_interrupt_enable = false;
 	}
+	m_mem.IF(0);
 }
 

@@ -14,11 +14,11 @@ typedef enum
 	RST_28 = 0x0028,
 	RST_30 = 0x0030,
 	RST_38 = 0x0038,
-	VBLANK_INT = 0x0040,
-	LCDC_INT = 0x0048,
-	TIMER_INT = 0x0050,
-	SERIAL_INT = 0x0058,
-	P10P13_INT = 0x0060,
+	VBLANK_ROUTINE = 0x0040,
+	LCDC_ROUTINE = 0x0048,
+	TIMER_ROUTINE = 0x0050,
+	SERIAL_ROUTINE = 0x0058,
+	INPUT_ROUTINE = 0x0060,
 } IntLocation;
 
 typedef enum
@@ -182,7 +182,9 @@ protected:
 		LCDC = 0xFF40,
 		SCY = 0xFF42,
 		SCX,
+		LY,
 		LYC = 0xFF45,
+		DMA,
 		BGP = 0xFF47,
 		OBP0, //0BP0
 		OBP1, //0BP1
@@ -190,6 +192,10 @@ protected:
 		WX,
 		IE = 0xFFFF,
 	} softregs;
+	unsigned long m_div_counter;
+	unsigned long m_timer_counter;
+	
+	void Inc(unsigned short addr);
 
 	Cart *m_cart;
 public:
@@ -201,6 +207,8 @@ public:
 	void LoadState(std::string filename);
 	void SaveState(std::string filename);
 	void Step();
+	void StepTimer();
+	void StepSerial(); //Stub for now
 	//Softreg Functions
 	//P1 - INPUT softregs
 	unsigned char P1() { return m_internal_memory.io_ports[0]; }
@@ -310,8 +318,12 @@ public:
 	void SCY(unsigned char val) { m_internal_memory.io_ports[0x42] = val; }
 	unsigned char SCX() { return m_internal_memory.io_ports[0x43]; }
 	void SCY(unsigned char val) { m_internal_memory.io_ports[0x43] = val; }
+	unsigned char LY() { return m_internal_memory.io_ports[0x44]; }
+	void LY(unsigned char val) { m_internal_memory.io_ports[0x44] = val; }
 	unsigned char LYC() { return m_internal_memory.io_ports[0x45]; }
 	void LYC(unsigned char val) { m_internal_memory.io_ports[0x45] = val; }
+	unsigned char DMA() { return m_internal_memory.io_ports[0x46]; }
+	void DMA(unsigned char val) { m_internal_memory.io_ports[0x46] = val; }
 	unsigned char BGP() { return m_internal_memory.io_ports[0x47]; }
 	void BGP(unsigned char val) { m_internal_memory.io_ports[0x47] = val; }
 	unsigned char OBP0() { return m_internal_memory.io_ports[0x48]; }

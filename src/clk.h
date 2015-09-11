@@ -12,10 +12,10 @@ unsigned long const timer_frequencies[] = {
     65536,
     262144
 }; //Hz
-
+unsigned long const div_frequency = 16384; //Hz
 
 //Abstract cycle conversions
-unsigned long const cycles_per_second = machine_frequency;
+unsigned long const cycles_per_second =    machine_frequency;
 unsigned long const vsync_cycle_interval = 17555; //Cycles til vsync 
 unsigned long const mbc3_rtc_cycles =      mbc3_rtc_frequency/4; //Cycles til tick
 unsigned long const timer_cycle_intervals[] = {
@@ -24,6 +24,7 @@ unsigned long const timer_cycle_intervals[] = {
     16,
     4
 }; //Cycles til tick
+unsigned long const div_cycles = 64;
 
 unsigned long GetUtc(); //Compiles differently on windows vs linux
 
