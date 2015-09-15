@@ -578,10 +578,13 @@ void Memory::Write(unsigned short addr, unsigned char byte)
 	{
 		switch (addr)
 		{
-		case SR_TIMA:
-		case SR_TMA:
-		case SR_TAC:
-		case SR_NR10:
+		case SR_DIV:
+			m_internal_memory.io_ports[0x00] = 0;
+			break;
+		//case SR_TIMA: //Not required, writes normally
+		//case SR_TMA: // Not required, writes normally
+		//case SR_TAC: // Not required, writes normalls
+		/*case SR_NR10:
 		case SR_NR11:
 		case SR_NR12:
 		case SR_NR14:
@@ -598,18 +601,27 @@ void Memory::Write(unsigned short addr, unsigned char byte)
 		case SR_NR44:
 		case SR_NR50:
 		case SR_NR51:
-		case SR_NR52:
-		case SR_LCDC:
+		case SR_NR52:*/
+		/*case SR_LCDC:
 		case SR_SCY:
 		case SR_SCX:
 		case SR_LY:
-		case SR_LYC:
+		case SR_LYC:*/
+
 		case SR_DMA:
-		case SR_BGP:
+			//160 microsecond DMA transfer
+			unsigned short src_addr = byte << 8;
+			unsigned short dst_addr = 0xFE00;
+			while (dst_addr < 0xFEA0)
+			{
+				Write(dst_addr++, Read(src_addr++));
+			}
+			break;
+		/*case SR_BGP:
 		case SR_OBP0:
 		case SR_OBP1:
 		case SR_WY:
-		case SR_WX:
+		case SR_WX:*/
 		default:
 			m_internal_memory.io_ports[addr - MemoryMap::IO] = byte;
 			break;
@@ -650,13 +662,50 @@ void Memory::StepDiv()
 	m_div_counter++;
 	if(m_div_counter % div_cycles)
 	{
-		
+		Inc(0xFF04);
 	}
 }
 
 void Memory::StepTimer()
 {
-	
+	m_timer_counter++;
+	unsigned char timer = Read(SR_TAC);
+	if ((timer >> 2) & 0x01)
+	{
+		timer &= 0x3;
+		unsigned int timer_mod;
+		switch (timer)
+		{
+		case 0x00:
+			timer_mod = Timer00_Hz;
+			break;
+		case 0x01:
+			timer_mod = Timer01_Hz;
+			break;
+		case 0x02:
+			timer_mod = Timer10_Hz;
+			break;
+		case 0x03:
+			timer_mod = Timer11_Hz;
+			break;
+		default:
+			Logger::RaiseError("Timer", "Unknown frequency");
+			break;
+		}
+		// Div 4 to convert to cycles from hz
+		if (m_timer_counter % (timer_mod / 4))
+		{
+			Inc(SR_TIMA);
+			if (Read(SR_TIMA) == 0)
+			{
+				//Interrupt and load TMA
+				//Obscura: This should be delayed one cycle
+				//It is not currently, TODO: Fix
+				Write(SR_TIMA, Read(SR_TMA));
+				m_interrupt_target->Int(Interrupt::TIME_INT);
+			}
+		}
+	}
 }
 
 void Memory::Step()

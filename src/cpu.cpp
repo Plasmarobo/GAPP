@@ -905,486 +905,489 @@ InstructionPacket CPU::DecodeInstruction()
 void CPU::DecodeCB(InstructionPacket &packet)
 {
 	HandleInterrupts();
-	unsigned char op = FetchPC();
-	
-	switch (op)
+	if (!m_halted)
 	{
-		//SWAP (MSB <-> LSB)
-	case 0x30: //B
-	case 0x31: //C
-	case 0x32: //D
-	case 0x33: //E
-	case 0x34: //H
-	case 0x35: //L
-	case 0x36: //MEM(HL)
-	case 0x37: //A
-		packet.source = RegisterTable(op - 0x30, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::SWAP;
-		packet.flag_mask.value = 0x01;
-		break;
-		//ROT LEFT, bit 7 to carry
-	case 0x00: //B
-	case 0x01: //C
-	case 0x02: //D
-	case 0x03: //E
-	case 0x04: //H
-	case 0x05: //L
-	case 0x06: //MEM(HL)
-	case 0x07: //A
-		packet.source = RegisterTable(op - 0x00, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::RL;
-		packet.flag_mask.value = 0x03;
-		break;
-		//ROT LEFT through carry flag
-	case 0x10: //B
-	case 0x11: //C
-	case 0x12: //D
-	case 0x13: //E
-	case 0x14: //H
-	case 0x15: //L
-	case 0x16: //MEM(HL)
-	case 0x17: //A
-		packet.source = RegisterTable(op - 0x10, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::RLC;
-		packet.flag_mask.value = 0x03;
-		break;
-		//ROT RIGHT, 0 bit to carry
-	case 0x08: //B
-	case 0x09: //C
-	case 0x0A: //D
-	case 0x0B: //E
-	case 0x0C: //H
-	case 0x0D: //L
-	case 0x0E: //MEM(HL)
-	case 0x0F: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::RR;
-		packet.flag_mask.value = 0x03;
-		break;
-		//ROT RIGHT, through carry
-	case 0x18: //B
-	case 0x19: //C
-	case 0x1A: //D
-	case 0x1B: //E
-	case 0x1C: //H
-	case 0x1D: //L
-	case 0x1E: //MEM(HL)
-	case 0x1F: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::RRC;
-		packet.flag_mask.value = 0x03;
-		break;
-		//SLA - Shift left into carry
-	case 0x20: //B
-	case 0x21: //C
-	case 0x22: //D
-	case 0x23: //E
-	case 0x24: //H
-	case 0x25: //L
-	case 0x26: //MEM(HL)
-	case 0x27: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::SL;
-		packet.flag_mask.value = 0x03;
-		break;
-		//SRA - Shift right into carry, replicate MSB
-	case 0x28: //B
-	case 0x29: //C
-	case 0x2A: //D
-	case 0x2B: //E
-	case 0x2C: //H
-	case 0x2D: //L
-	case 0x2E: //MEM(HL)
-	case 0x2F: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::SRS;
-		packet.flag_mask.value = 0x03;
-		break;
-		//SRL - shift righ into carry, set msb to 0
-	case 0x38: //B
-	case 0x39: //C
-	case 0x3A: //D
-	case 0x3B: //E
-	case 0x3C: //H
-	case 0x3D: //L
-	case 0x3E: //MEM(HL)
-	case 0x3F: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::SR;
-		packet.flag_mask.value = 0x03;
-		break;
-		//BIT 0
-	case 0x40: //B
-	case 0x41: //C
-	case 0x42: //D
-	case 0x43: //E
-	case 0x44: //H
-	case 0x45: //L
-	case 0x46: //MEM(HL)
-	case 0x47: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::BIT;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 0;
-		break;
-		//BIT 1
-	case 0x48: //B
-	case 0x49: //C
-	case 0x4A: //D
-	case 0x4B: //E
-	case 0x4C: //H
-	case 0x4D: //L
-	case 0x4E: //MEM(HL)
-	case 0x4F: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::BIT;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 1;
-		break;
-		//BIT 2
-	case 0x50: //B
-	case 0x51: //C
-	case 0x52: //D
-	case 0x53: //E
-	case 0x54: //H
-	case 0x55: //L
-	case 0x56: //MEM(HL)
-	case 0x57: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::BIT;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 2;
-		break;
-		//BIT 3
-	case 0x58: //B
-	case 0x59: //C
-	case 0x5A: //D
-	case 0x5B: //E
-	case 0x5C: //H
-	case 0x5D: //L
-	case 0x5E: //MEM(HL)
-	case 0x5F: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::BIT;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 3;
-		break;
-		//BIT 4
-	case 0x60: //B
-	case 0x61: //C
-	case 0x62: //D
-	case 0x63: //E
-	case 0x64: //H
-	case 0x65: //L
-	case 0x66: //MEM(HL)
-	case 0x67: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::BIT;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 4;
-		break;
-		//BIT 5
-	case 0x68: //B
-	case 0x69: //C
-	case 0x6A: //D
-	case 0x6B: //E
-	case 0x6C: //H
-	case 0x6D: //L
-	case 0x6E: //MEM(HL)
-	case 0x6F: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::BIT;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 5;
-		break;
-		//BIT 6
-	case 0x70: //B
-	case 0x71: //C
-	case 0x72: //D
-	case 0x73: //E
-	case 0x74: //H
-	case 0x75: //L
-	case 0x76: //MEM(HL)
-	case 0x77: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::BIT;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 6;
-		break;
-		//BIT 7
-	case 0x78: //B
-	case 0x79: //C
-	case 0x7A: //D
-	case 0x7B: //E
-	case 0x7C: //H
-	case 0x7D: //L
-	case 0x7E: //MEM(HL)
-	case 0x7F: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::BIT;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 7;
-		break;
-		//RESET b
-		//BIT 0
-	case 0x80: //B
-	case 0x81: //C
-	case 0x82: //D
-	case 0x83: //E
-	case 0x84: //H
-	case 0x85: //L
-	case 0x86: //MEM(HL)
-	case 0x87: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::RES;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 0;
-		break;
-		//BIT 1
-	case 0x88: //B
-	case 0x89: //C
-	case 0x8A: //D
-	case 0x8B: //E
-	case 0x8C: //H
-	case 0x8D: //L
-	case 0x8E: //MEM(HL)
-	case 0x8F: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::RES;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 1;
-		break;
-		//BIT 2
-	case 0x90: //B
-	case 0x91: //C
-	case 0x92: //D
-	case 0x93: //E
-	case 0x94: //H
-	case 0x95: //L
-	case 0x96: //MEM(HL)
-	case 0x97: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::RES;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 2;
-		break;
-		//BIT 3
-	case 0x98: //B
-	case 0x99: //C
-	case 0x9A: //D
-	case 0x9B: //E
-	case 0x9C: //H
-	case 0x9D: //L
-	case 0x9E: //MEM(HL)
-	case 0x9F: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::RES;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 3;
-		break;
-		//BIT 4
-	case 0xA0: //B
-	case 0xA1: //C
-	case 0xA2: //D
-	case 0xA3: //E
-	case 0xA4: //H
-	case 0xA5: //L
-	case 0xA6: //MEM(HL)
-	case 0xA7: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::RES;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 4;
-		break;
-		//BIT 5
-	case 0xA8: //B
-	case 0xA9: //C
-	case 0xAA: //D
-	case 0xAB: //E
-	case 0xAC: //H
-	case 0xAD: //L
-	case 0xAE: //MEM(HL)
-	case 0xAF: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::RES;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 5;
-		break;
-		//BIT 6
-	case 0xB0: //B
-	case 0xB1: //C
-	case 0xB2: //D
-	case 0xB3: //E
-	case 0xB4: //H
-	case 0xB5: //L
-	case 0xB6: //MEM(HL)
-	case 0xB7: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::RES;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 6;
-		break;
-		//BIT 7
-	case 0xB8: //B
-	case 0xB9: //C
-	case 0xBA: //D
-	case 0xBB: //E
-	case 0xBC: //H
-	case 0xBD: //L
-	case 0xBE: //MEM(HL)
-	case 0xBF: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::RES;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 7;
-		break;
-		//SET 
-		//BIT 0
-	case 0xC0: //B
-	case 0xC1: //C
-	case 0xC2: //D
-	case 0xC3: //E
-	case 0xC4: //H
-	case 0xC5: //L
-	case 0xC6: //MEM(HL)
-	case 0xC7: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::SET;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 0;
-		break;
-		//BIT 1
-	case 0xC8: //B
-	case 0xC9: //C
-	case 0xCA: //D
-	case 0xCB: //E
-	case 0xCC: //H
-	case 0xCD: //L
-	case 0xCE: //MEM(HL)
-	case 0xCF: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::SET;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 1;
-		break;
-		//BIT 2
-	case 0xD0: //B
-	case 0xD1: //C
-	case 0xD2: //D
-	case 0xD3: //E
-	case 0xD4: //H
-	case 0xD5: //L
-	case 0xD6: //MEM(HL)
-	case 0xD7: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::SET;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 2;
-		break;
-		//BIT 3
-	case 0xD8: //B
-	case 0xD9: //C
-	case 0xDA: //D
-	case 0xDB: //E
-	case 0xDC: //H
-	case 0xDD: //L
-	case 0xDE: //MEM(HL)
-	case 0xDF: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::SET;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 3;
-		break;
-		//BIT 4
-	case 0xE0: //B
-	case 0xE1: //C
-	case 0xE2: //D
-	case 0xE3: //E
-	case 0xE4: //H
-	case 0xE5: //L
-	case 0xE6: //MEM(HL)
-	case 0xE7: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::SET;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 4;
-		break;
-		//BIT 5
-	case 0xE8: //B
-	case 0xE9: //C
-	case 0xEA: //D
-	case 0xEB: //E
-	case 0xEC: //H
-	case 0xED: //L
-	case 0xEE: //MEM(HL)
-	case 0xEF: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::SET;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 5;
-		break;
-		//BIT 6
-	case 0xF0: //B
-	case 0xF1: //C
-	case 0xF2: //D
-	case 0xF3: //E
-	case 0xF4: //H
-	case 0xF5: //L
-	case 0xF6: //MEM(HL)
-	case 0xF7: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::SET;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 6;
-		break;
-		//BIT 7
-	case 0xF8: //B
-	case 0xF9: //C
-	case 0xFA: //D
-	case 0xFB: //E
-	case 0xFC: //H
-	case 0xFD: //L
-	case 0xFE: //MEM(HL)
-	case 0xFF: //A
-		packet.source = RegisterTable(op - 0x08, packet);
-		packet.dest = packet.source;
-		packet.instruction = Instruction::SET;
-		packet.flag_mask.value = 0x03;
-		packet.offset = 7;
-		break;
-	default:
-		break;
+		unsigned char op = FetchPC();
+
+		switch (op)
+		{
+			//SWAP (MSB <-> LSB)
+		case 0x30: //B
+		case 0x31: //C
+		case 0x32: //D
+		case 0x33: //E
+		case 0x34: //H
+		case 0x35: //L
+		case 0x36: //MEM(HL)
+		case 0x37: //A
+			packet.source = RegisterTable(op - 0x30, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::SWAP;
+			packet.flag_mask.value = 0x01;
+			break;
+			//ROT LEFT, bit 7 to carry
+		case 0x00: //B
+		case 0x01: //C
+		case 0x02: //D
+		case 0x03: //E
+		case 0x04: //H
+		case 0x05: //L
+		case 0x06: //MEM(HL)
+		case 0x07: //A
+			packet.source = RegisterTable(op - 0x00, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::RL;
+			packet.flag_mask.value = 0x03;
+			break;
+			//ROT LEFT through carry flag
+		case 0x10: //B
+		case 0x11: //C
+		case 0x12: //D
+		case 0x13: //E
+		case 0x14: //H
+		case 0x15: //L
+		case 0x16: //MEM(HL)
+		case 0x17: //A
+			packet.source = RegisterTable(op - 0x10, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::RLC;
+			packet.flag_mask.value = 0x03;
+			break;
+			//ROT RIGHT, 0 bit to carry
+		case 0x08: //B
+		case 0x09: //C
+		case 0x0A: //D
+		case 0x0B: //E
+		case 0x0C: //H
+		case 0x0D: //L
+		case 0x0E: //MEM(HL)
+		case 0x0F: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::RR;
+			packet.flag_mask.value = 0x03;
+			break;
+			//ROT RIGHT, through carry
+		case 0x18: //B
+		case 0x19: //C
+		case 0x1A: //D
+		case 0x1B: //E
+		case 0x1C: //H
+		case 0x1D: //L
+		case 0x1E: //MEM(HL)
+		case 0x1F: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::RRC;
+			packet.flag_mask.value = 0x03;
+			break;
+			//SLA - Shift left into carry
+		case 0x20: //B
+		case 0x21: //C
+		case 0x22: //D
+		case 0x23: //E
+		case 0x24: //H
+		case 0x25: //L
+		case 0x26: //MEM(HL)
+		case 0x27: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::SL;
+			packet.flag_mask.value = 0x03;
+			break;
+			//SRA - Shift right into carry, replicate MSB
+		case 0x28: //B
+		case 0x29: //C
+		case 0x2A: //D
+		case 0x2B: //E
+		case 0x2C: //H
+		case 0x2D: //L
+		case 0x2E: //MEM(HL)
+		case 0x2F: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::SRS;
+			packet.flag_mask.value = 0x03;
+			break;
+			//SRL - shift righ into carry, set msb to 0
+		case 0x38: //B
+		case 0x39: //C
+		case 0x3A: //D
+		case 0x3B: //E
+		case 0x3C: //H
+		case 0x3D: //L
+		case 0x3E: //MEM(HL)
+		case 0x3F: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::SR;
+			packet.flag_mask.value = 0x03;
+			break;
+			//BIT 0
+		case 0x40: //B
+		case 0x41: //C
+		case 0x42: //D
+		case 0x43: //E
+		case 0x44: //H
+		case 0x45: //L
+		case 0x46: //MEM(HL)
+		case 0x47: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::BIT;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 0;
+			break;
+			//BIT 1
+		case 0x48: //B
+		case 0x49: //C
+		case 0x4A: //D
+		case 0x4B: //E
+		case 0x4C: //H
+		case 0x4D: //L
+		case 0x4E: //MEM(HL)
+		case 0x4F: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::BIT;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 1;
+			break;
+			//BIT 2
+		case 0x50: //B
+		case 0x51: //C
+		case 0x52: //D
+		case 0x53: //E
+		case 0x54: //H
+		case 0x55: //L
+		case 0x56: //MEM(HL)
+		case 0x57: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::BIT;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 2;
+			break;
+			//BIT 3
+		case 0x58: //B
+		case 0x59: //C
+		case 0x5A: //D
+		case 0x5B: //E
+		case 0x5C: //H
+		case 0x5D: //L
+		case 0x5E: //MEM(HL)
+		case 0x5F: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::BIT;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 3;
+			break;
+			//BIT 4
+		case 0x60: //B
+		case 0x61: //C
+		case 0x62: //D
+		case 0x63: //E
+		case 0x64: //H
+		case 0x65: //L
+		case 0x66: //MEM(HL)
+		case 0x67: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::BIT;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 4;
+			break;
+			//BIT 5
+		case 0x68: //B
+		case 0x69: //C
+		case 0x6A: //D
+		case 0x6B: //E
+		case 0x6C: //H
+		case 0x6D: //L
+		case 0x6E: //MEM(HL)
+		case 0x6F: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::BIT;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 5;
+			break;
+			//BIT 6
+		case 0x70: //B
+		case 0x71: //C
+		case 0x72: //D
+		case 0x73: //E
+		case 0x74: //H
+		case 0x75: //L
+		case 0x76: //MEM(HL)
+		case 0x77: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::BIT;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 6;
+			break;
+			//BIT 7
+		case 0x78: //B
+		case 0x79: //C
+		case 0x7A: //D
+		case 0x7B: //E
+		case 0x7C: //H
+		case 0x7D: //L
+		case 0x7E: //MEM(HL)
+		case 0x7F: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::BIT;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 7;
+			break;
+			//RESET b
+			//BIT 0
+		case 0x80: //B
+		case 0x81: //C
+		case 0x82: //D
+		case 0x83: //E
+		case 0x84: //H
+		case 0x85: //L
+		case 0x86: //MEM(HL)
+		case 0x87: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::RES;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 0;
+			break;
+			//BIT 1
+		case 0x88: //B
+		case 0x89: //C
+		case 0x8A: //D
+		case 0x8B: //E
+		case 0x8C: //H
+		case 0x8D: //L
+		case 0x8E: //MEM(HL)
+		case 0x8F: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::RES;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 1;
+			break;
+			//BIT 2
+		case 0x90: //B
+		case 0x91: //C
+		case 0x92: //D
+		case 0x93: //E
+		case 0x94: //H
+		case 0x95: //L
+		case 0x96: //MEM(HL)
+		case 0x97: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::RES;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 2;
+			break;
+			//BIT 3
+		case 0x98: //B
+		case 0x99: //C
+		case 0x9A: //D
+		case 0x9B: //E
+		case 0x9C: //H
+		case 0x9D: //L
+		case 0x9E: //MEM(HL)
+		case 0x9F: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::RES;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 3;
+			break;
+			//BIT 4
+		case 0xA0: //B
+		case 0xA1: //C
+		case 0xA2: //D
+		case 0xA3: //E
+		case 0xA4: //H
+		case 0xA5: //L
+		case 0xA6: //MEM(HL)
+		case 0xA7: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::RES;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 4;
+			break;
+			//BIT 5
+		case 0xA8: //B
+		case 0xA9: //C
+		case 0xAA: //D
+		case 0xAB: //E
+		case 0xAC: //H
+		case 0xAD: //L
+		case 0xAE: //MEM(HL)
+		case 0xAF: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::RES;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 5;
+			break;
+			//BIT 6
+		case 0xB0: //B
+		case 0xB1: //C
+		case 0xB2: //D
+		case 0xB3: //E
+		case 0xB4: //H
+		case 0xB5: //L
+		case 0xB6: //MEM(HL)
+		case 0xB7: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::RES;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 6;
+			break;
+			//BIT 7
+		case 0xB8: //B
+		case 0xB9: //C
+		case 0xBA: //D
+		case 0xBB: //E
+		case 0xBC: //H
+		case 0xBD: //L
+		case 0xBE: //MEM(HL)
+		case 0xBF: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::RES;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 7;
+			break;
+			//SET 
+			//BIT 0
+		case 0xC0: //B
+		case 0xC1: //C
+		case 0xC2: //D
+		case 0xC3: //E
+		case 0xC4: //H
+		case 0xC5: //L
+		case 0xC6: //MEM(HL)
+		case 0xC7: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::SET;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 0;
+			break;
+			//BIT 1
+		case 0xC8: //B
+		case 0xC9: //C
+		case 0xCA: //D
+		case 0xCB: //E
+		case 0xCC: //H
+		case 0xCD: //L
+		case 0xCE: //MEM(HL)
+		case 0xCF: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::SET;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 1;
+			break;
+			//BIT 2
+		case 0xD0: //B
+		case 0xD1: //C
+		case 0xD2: //D
+		case 0xD3: //E
+		case 0xD4: //H
+		case 0xD5: //L
+		case 0xD6: //MEM(HL)
+		case 0xD7: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::SET;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 2;
+			break;
+			//BIT 3
+		case 0xD8: //B
+		case 0xD9: //C
+		case 0xDA: //D
+		case 0xDB: //E
+		case 0xDC: //H
+		case 0xDD: //L
+		case 0xDE: //MEM(HL)
+		case 0xDF: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::SET;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 3;
+			break;
+			//BIT 4
+		case 0xE0: //B
+		case 0xE1: //C
+		case 0xE2: //D
+		case 0xE3: //E
+		case 0xE4: //H
+		case 0xE5: //L
+		case 0xE6: //MEM(HL)
+		case 0xE7: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::SET;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 4;
+			break;
+			//BIT 5
+		case 0xE8: //B
+		case 0xE9: //C
+		case 0xEA: //D
+		case 0xEB: //E
+		case 0xEC: //H
+		case 0xED: //L
+		case 0xEE: //MEM(HL)
+		case 0xEF: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::SET;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 5;
+			break;
+			//BIT 6
+		case 0xF0: //B
+		case 0xF1: //C
+		case 0xF2: //D
+		case 0xF3: //E
+		case 0xF4: //H
+		case 0xF5: //L
+		case 0xF6: //MEM(HL)
+		case 0xF7: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::SET;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 6;
+			break;
+			//BIT 7
+		case 0xF8: //B
+		case 0xF9: //C
+		case 0xFA: //D
+		case 0xFB: //E
+		case 0xFC: //H
+		case 0xFD: //L
+		case 0xFE: //MEM(HL)
+		case 0xFF: //A
+			packet.source = RegisterTable(op - 0x08, packet);
+			packet.dest = packet.source;
+			packet.instruction = Instruction::SET;
+			packet.flag_mask.value = 0x03;
+			packet.offset = 7;
+			break;
+		default:
+			break;
+		}
 	}
 }
 
@@ -1687,6 +1690,10 @@ void CPU::ExecuteInstruction(InstructionPacket &packet)
 		break;
 	case Instruction::HALT:
 		m_halted = true;
+		if (m_interrupt_enable == false)
+		{
+			FetchPC(); //Eat next command, should be noop
+		}
 		break;
 	case Instruction::AND:
 		{
@@ -2071,14 +2078,15 @@ void CPU::Int(Interrupt int_code)
 {
 	unsigned char int_flags = m_mem.IF();
 	int_flags |= (0x1 >> int_code);
-	m_mem.IF(in_flags);
+	m_mem.IF(int_flags);
 }
 
 void CPU::HandleInterrupts()
 {
+	int int_code;
 	if(this->m_interrupt_enable)
 	{
-		for(int int_code = VBLANK_INT; int_code < NUM_INTS; ++int_code)
+		for(int_code = VBLANK_INT; int_code < NUM_INTS; ++int_code)
 		{
 			if (((m_mem.IE() >> int_code) & 0x1) && ((m_mem.IF() >> int_code) & 0x1))
 			{
@@ -2103,7 +2111,8 @@ void CPU::HandleInterrupts()
 				m_regs.PC(INPUT_ROUTINE);
 				break;
 			default:
-			break;
+				Logger::RaiseError("CPU", "Unrecognized interrupt");
+				break;
 		}
 		this->m_interrupt_enable = false;
 	}

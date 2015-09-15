@@ -234,7 +234,7 @@ public:
 	~CPU();
 	void Start();
 	void Step();
-	void Int(unsigned short addr);
+	void Int(Interrupt int_code);
 	void RunGBFile(std::string rom_file);
 	void SaveState(std::string filename);
 	void LoadState(std::string filename);

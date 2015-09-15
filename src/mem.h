@@ -1,6 +1,7 @@
 #ifndef MEM_H
 #define MEM_H
 #include <string>
+#include "cpu.h"
 
 class Memory;
 
@@ -161,6 +162,7 @@ protected:
 	} m_internal_memory;
 	
 	enum {
+		SR_DIV = 0xFF04,
 		SR_TIMA = 0xFF05,
 		SR_TMA,
 		SR_TAC,
@@ -205,6 +207,7 @@ protected:
 	void StepDiv();
 
 	Cart *m_cart;
+	CPU *m_interrupt_target;
 public:
 	Memory();
 	~Memory();
@@ -213,6 +216,7 @@ public:
 	void LoadCartFromFile(std::string rom_file);
 	void LoadState(std::string filename);
 	void SaveState(std::string filename);
+	void SetInterruptTarget(CPU *target) { m_interrupt_target = target; }
 	void Step();
 	//Softreg Functions
 	//P1 - INPUT softregs
@@ -249,8 +253,8 @@ public:
 	unsigned char TMA() { return m_internal_memory.io_ports[6]; }
 	void TMA(unsigned char val) { m_internal_memory.io_ports[6] = val; }
 	//TAC
-	unsigned char TMA() { return m_internal_memory.io_ports[7]; }
-	void TMA(unsigned char val) { m_internal_memory.io_ports[7] = val; }
+	unsigned char TAC() { return m_internal_memory.io_ports[7]; }
+	void TAC(unsigned char val) { m_internal_memory.io_ports[7] = val; }
 	void StartTimer();
 	void StopTimer();
 	void SetTimerClk(unsigned char val);
@@ -322,7 +326,7 @@ public:
 	unsigned char SCY() { return m_internal_memory.io_ports[0x42]; }
 	void SCY(unsigned char val) { m_internal_memory.io_ports[0x42] = val; }
 	unsigned char SCX() { return m_internal_memory.io_ports[0x43]; }
-	void SCY(unsigned char val) { m_internal_memory.io_ports[0x43] = val; }
+	void SCX(unsigned char val) { m_internal_memory.io_ports[0x43] = val; }
 	unsigned char LY() { return m_internal_memory.io_ports[0x44]; }
 	void LY(unsigned char val) { m_internal_memory.io_ports[0x44] = val; }
 	unsigned char LYC() { return m_internal_memory.io_ports[0x45]; }
@@ -340,8 +344,6 @@ public:
 	unsigned char WX() { return m_internal_memory.io_ports[0x4B]; }
 	void WX(unsigned char val) { m_internal_memory.io_ports[0x4B] = val; }
 
-
-	
 	unsigned char IE() { return m_internal_memory.interrupt_enable; }
 	void IE(unsigned char val) { m_internal_memory.interrupt_enable = val; }
 
