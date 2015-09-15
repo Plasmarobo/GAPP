@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\audio.cpp" />
+    <ClCompile Include="..\src\clk.cpp" />
     <ClCompile Include="..\src\cpu.cpp" />
     <ClCompile Include="..\src\display.cpp" />
     <ClCompile Include="..\src\input.cpp" />
@@ -21,6 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\audio.h" />
+    <ClInclude Include="..\src\clk.h" />
     <ClInclude Include="..\src\cpu.h" />
     <ClInclude Include="..\src\display.h" />
     <ClInclude Include="..\src\emulator.h" />

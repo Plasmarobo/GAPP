@@ -2034,7 +2034,7 @@ void CPU::Start()
 	m_mem.NR14(0xBF);
 	m_mem.NR21(0x3F);
     m_mem.NR22(0x00);
-    m_mem.m_mem.NR24(0xBF);
+    m_mem.NR24(0xBF);
     m_mem.NR30(0x7F);
     m_mem.NR31(0xFF);
     m_mem.NR32(0x9F);

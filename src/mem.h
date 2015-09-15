@@ -83,6 +83,13 @@ public:
 	~MBC1Cart();
 };
 
+enum LatchState {
+	UNLATCHED,
+	LATCHING,
+	LATCHED,
+	UNLATCHING
+};
+
 class MBC3Cart : public MBC1Cart
 {
 protected:
@@ -101,12 +108,8 @@ protected:
 				unsigned char carry : 1;
 			} bits;
 		}day_h;
-		enum {
-			UNLATCHED,
-			LATCHING,
-			LATCHED,
-			UNLATCHING
-		} latch;
+
+		unsigned char latch;
 	}m_rtc;
 	unsigned long m_counter;
 	unsigned long m_counter_latch;
@@ -158,44 +161,48 @@ protected:
 	} m_internal_memory;
 	
 	enum {
-		TIMA = 0xFF05,
-		TMA,
-		TAC,
-		NR10, = 0xFF10,
-		NR11,
-		NR12,
-		NR14 = 0xFF14,
-		NR21 = 0xFF16,
-		NR22,
-		NR24 = 0xFF19,
-		NR30 = 0xFF1A,
-		NR31,
-		NR32,
-		NR33 = 0xFF1E,
-		NR41 = 0xFF20,
-		NR42,
-		NR43,
-		NR44,
-		NR50,
-		NR51,
-		NR52,
-		LCDC = 0xFF40,
-		SCY = 0xFF42,
-		SCX,
-		LY,
-		LYC = 0xFF45,
-		DMA,
-		BGP = 0xFF47,
-		OBP0, //0BP0
-		OBP1, //0BP1
-		WY = 0xFF4A,
-		WX,
-		IE = 0xFFFF,
+		SR_TIMA = 0xFF05,
+		SR_TMA,
+		SR_TAC,
+		SR_NR10 = 0xFF10,
+		SR_NR11,
+		SR_NR12,
+		SR_NR14 = 0xFF14,
+		SR_NR21 = 0xFF16,
+		SR_NR22,
+		SR_NR24 = 0xFF19,
+		SR_NR30 = 0xFF1A,
+		SR_NR31,
+		SR_NR32,
+		SR_NR33 = 0xFF1E,
+		SR_NR41 = 0xFF20,
+		SR_NR42,
+		SR_NR43,
+		SR_NR44,
+		SR_NR50,
+		SR_NR51,
+		SR_NR52,
+		SR_LCDC = 0xFF40,
+		SR_SCY = 0xFF42,
+		SR_SCX,
+		SR_LY,
+		SR_LYC = 0xFF45,
+		SR_DMA,
+		SR_BGP = 0xFF47,
+		SR_OBP0, //0BP0
+		SR_OBP1, //0BP1
+		SR_WY = 0xFF4A,
+		SR_WX,
+		SR_IE = 0xFFFF,
 	} softregs;
 	unsigned long m_div_counter;
 	unsigned long m_timer_counter;
 	
 	void Inc(unsigned short addr);
+
+	void StepTimer();
+	void StepSerial(); //Stub for now
+	void StepDiv();
 
 	Cart *m_cart;
 public:
@@ -207,8 +214,6 @@ public:
 	void LoadState(std::string filename);
 	void SaveState(std::string filename);
 	void Step();
-	void StepTimer();
-	void StepSerial(); //Stub for now
 	//Softreg Functions
 	//P1 - INPUT softregs
 	unsigned char P1() { return m_internal_memory.io_ports[0]; }
@@ -282,7 +287,7 @@ public:
 	unsigned char NR30() { return m_internal_memory.io_ports[0x1A]; }
 	void NR30(unsigned char val) { m_internal_memory.io_ports[0x1A] = val; }
 	unsigned char NR31() { return m_internal_memory.io_ports[0x1B]; }
-	void NR3(unsigned char val) { m_internal_memory.io_ports[0x1B] = val; }
+	void NR31(unsigned char val) { m_internal_memory.io_ports[0x1B] = val; }
 	unsigned char NR32() { return m_internal_memory.io_ports[0x1C]; }
 	void NR32(unsigned char val) { m_internal_memory.io_ports[0x1C] = val; }
 	unsigned char NR33() { return m_internal_memory.io_ports[0x1D]; }

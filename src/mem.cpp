@@ -179,25 +179,25 @@ void MBC3Cart::WriteMemory(unsigned short addr, unsigned char data)
 	else if (addr >= 0x6000 && addr <= 0x7FFF)
 	{
 		//Finite State Machine
-		if (m_rtc.latch == m_rtc.UNLATCHED && data == 0)
+		if (m_rtc.latch == LatchState::UNLATCHED && data == 0)
 		{
-			m_rtc.latch = m_rtc.LATCHING;
+			m_rtc.latch = LatchState::LATCHING;
 		}
-		else if (m_rtc.latch == m_rtc.LATCHING && data == 1)
+		else if (m_rtc.latch == LatchState::LATCHING && data == 1)
 		{
-			m_rtc.latch = m_rtc.LATCHED;
+			m_rtc.latch = LatchState::LATCHED;
 			m_counter_latch = m_counter;
 		}
-		else if (m_rtc.latch == m_rtc.LATCHED && data == 0)
+		else if (m_rtc.latch == LatchState::LATCHED && data == 0)
 		{
-			m_rtc.latch = m_rtc.UNLATCHING;
+			m_rtc.latch = LatchState::UNLATCHING;
 		}
-		else if (m_rtc.latch == m_rtc.UNLATCHING && data == 1)
+		else if (m_rtc.latch == LatchState::UNLATCHING && data == 1)
 		{
 			//This could go wrong if we "power down" while processing
 			//However this is a Don't Care Condition, since a reload will resync to UTC anyway
 			//We aren't worried about slight differences in rtc
-			m_rtc.latch = m_rtc.UNLATCHED;
+			m_rtc.latch = LatchState::UNLATCHED;
 			unsigned long missed = (m_counter - m_counter_latch) %	mbc3_rtc_cycles;
 			while(missed > 0)
 			{
@@ -287,7 +287,7 @@ void MBC3Cart::Step()
 	if (m_counter % mbc3_rtc_cycles == 0)
 	{
 		//One second has advanced
-		if(m_rtc.latch == m_rtc.latch::UNLATCHED)
+		if(m_rtc.latch == LatchState::UNLATCHED)
 		{
 			UpdateTime();
 		}
@@ -297,7 +297,7 @@ void MBC3Cart::Step()
 void MBC3Cart::UpdateTime()
 {
 	//32 machine steps
-	if(m_seconds == 59)
+	if(m_rtc.seconds == 59)
 	{
 		m_rtc.seconds = 0;
 		if(m_rtc.minutes == 59)
@@ -309,11 +309,11 @@ void MBC3Cart::UpdateTime()
 				if(m_rtc.day_l == 255)
 				{
 					m_rtc.day_l = 0;
-					if(m_rtc.day_h.day == 1)
+					if(m_rtc.day_h.bits.day == 1)
 					{
-						m_rtc.day_h.carry = 1;
+						m_rtc.day_h.bits.carry = 1;
 					}
-					m_rtc.day_h.day = ~m_rtc.day_h.day;
+					m_rtc.day_h.bits.day = ~m_rtc.day_h.bits.day;
 				}
 				else
 				{
@@ -472,9 +472,10 @@ void Memory::LoadCartFromFile(std::string rom_file)
 	}
 }
 
-void Memory::Inc(unsiged short addr)
+void Memory::Inc(unsigned short addr)
 {
-	
+	unsigned char val = Read(addr);
+	Write(addr, val + 1);
 }
 
 unsigned char Memory::Read(unsigned short addr)
@@ -575,15 +576,44 @@ void Memory::Write(unsigned short addr, unsigned char byte)
 	}
 	else if (AddrIn(addr, MemoryMap::IO, MemoryMap::UNUSED_1))
 	{
-		if (addr == 0xFF04)
+		switch (addr)
 		{
-			m_internal_memory.io_ports[4] = 0x00;
-		}
-		else
-		{
+		case SR_TIMA:
+		case SR_TMA:
+		case SR_TAC:
+		case SR_NR10:
+		case SR_NR11:
+		case SR_NR12:
+		case SR_NR14:
+		case SR_NR21:
+		case SR_NR22:
+		case SR_NR24:
+		case SR_NR30:
+		case SR_NR31:
+		case SR_NR32:
+		case SR_NR33:
+		case SR_NR41:
+		case SR_NR42:
+		case SR_NR43:
+		case SR_NR44:
+		case SR_NR50:
+		case SR_NR51:
+		case SR_NR52:
+		case SR_LCDC:
+		case SR_SCY:
+		case SR_SCX:
+		case SR_LY:
+		case SR_LYC:
+		case SR_DMA:
+		case SR_BGP:
+		case SR_OBP0:
+		case SR_OBP1:
+		case SR_WY:
+		case SR_WX:
+		default:
 			m_internal_memory.io_ports[addr - MemoryMap::IO] = byte;
+			break;
 		}
-
 	}
 	else if (AddrIn(addr, MemoryMap::UNUSED_1, MemoryMap::INTERNAL_RAM_1))
 	{
