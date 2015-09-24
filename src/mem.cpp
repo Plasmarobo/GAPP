@@ -1,4 +1,5 @@
 #include "mem.h"
+#include "cpu.h"
 #include "clk.h"
 #include "utils.h"
 #include <string.h>
@@ -610,11 +611,13 @@ void Memory::Write(unsigned short addr, unsigned char byte)
 
 		case SR_DMA:
 			//160 microsecond DMA transfer
-			unsigned short src_addr = byte << 8;
-			unsigned short dst_addr = 0xFE00;
-			while (dst_addr < 0xFEA0)
 			{
-				Write(dst_addr++, Read(src_addr++));
+				unsigned short src_addr = byte << 8;
+				unsigned short dst_addr = 0xFE00;
+				while (dst_addr < 0xFEA0)
+				{
+					Write(dst_addr++, Read(src_addr++));
+				}
 			}
 			break;
 		/*case SR_BGP:

@@ -23,7 +23,7 @@ void Sprite::Draw(unsigned char *buffer)
 }
 
 
-Display::Display(Memory *pmem, CPU *pcpu)
+Display::Display(Memory *pmem, GBCPU *pcpu)
 {
 	m_mem = pmem;
 	m_cpu = pcpu;

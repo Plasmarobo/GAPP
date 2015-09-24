@@ -2,6 +2,7 @@
 #define DISPLAY_H
 #include "clk.h"
 #include "mem.h"
+#include "cpu.h"
 
 
 enum DisplayStates
@@ -52,14 +53,14 @@ protected:
 	unsigned int m_hsync_counter;
 	unsigned char m_display_state;
 	Memory *m_mem;
-	CPU *m_cpu;
+	GBCPU *m_cpu;
 	unsigned char DecodeColor(unsigned char val);
 	void WriteStat(unsigned char mode);
 	unsigned char* FetchTileLine(unsigned char tile, unsigned char line, bool signed_flag, unsigned char *palette);
 	unsigned char ApplyPalette(unsigned short addr, unsigned char px);
 	
 public:
-	Display(Memory *pmem, CPU *pcpu);
+	Display(Memory *pmem, GBCPU *pcpu);
 	~Display();
 
 	void Present();

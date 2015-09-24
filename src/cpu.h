@@ -1,5 +1,6 @@
 #ifndef CPU_H
 #define CPU_H
+#include "base.h"
 #include "mem.h"
 #include "utils.h"
 
@@ -64,17 +65,6 @@ typedef enum Instruction
 	RES,
 	SET,
 	SWAP
-};
-
-
-typedef enum Interrupt
-{
-	VBLANK_INT,
-	LCDC_INT, //Hblank int
-	TIME_INT,
-	SERIAL_INT,
-	INPUT_INT,
-	NUM_INTS
 };
 
 
@@ -198,11 +188,12 @@ struct InstructionPacket
 	}
 };
 
-class CPU
+class GBCPU : public Interruptable
 {
+protected:
 	unsigned long m_cycles;
 	
-	Memory m_mem;
+	Memory *m_mem;
 	RegFile m_regs;
 	bool m_interrupt_enable;
 	bool m_halted;
@@ -230,8 +221,8 @@ class CPU
 	void StepTimer();
 	void StepVblank();
 public:
-	CPU();
-	~CPU();
+	GBCPU();
+	~GBCPU();
 	void Start();
 	void Step();
 	void Int(Interrupt int_code);

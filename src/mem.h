@@ -1,8 +1,13 @@
 #ifndef MEM_H
 #define MEM_H
-#include <string>
-#include "cpu.h"
 
+#include <string>
+#include "base.h"
+
+
+class Cart;
+class MBC1Cart;
+class MBC3Cart;
 class Memory;
 
 typedef enum
@@ -206,8 +211,9 @@ protected:
 	void StepSerial(); //Stub for now
 	void StepDiv();
 
-	Cart *m_cart;
-	CPU *m_interrupt_target;
+	Cart* m_cart;
+	Interruptable* m_interrupt_target;
+
 public:
 	Memory();
 	~Memory();
@@ -216,7 +222,7 @@ public:
 	void LoadCartFromFile(std::string rom_file);
 	void LoadState(std::string filename);
 	void SaveState(std::string filename);
-	void SetInterruptTarget(CPU *target) { m_interrupt_target = target; }
+	void SetInterruptTarget(Interruptable* target) { m_interrupt_target = target; }
 	void Step();
 	//Softreg Functions
 	//P1 - INPUT softregs

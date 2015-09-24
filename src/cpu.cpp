@@ -1,4 +1,5 @@
 #include "cpu.h"
+#include "mem.h"
 
 #define SetIfNone(x,y) if(x==Location::NONE) x=y
 #define HalfCarry(dst,src) ((dst&0xf)+(src&0xf))&0x10
@@ -7,7 +8,7 @@
 #define Borrow8b(dst,src) ((dst&0xff)-(src&0xff))<0
 
 
-Location CPU::MapLocation(unsigned char offset)
+Location GBCPU::MapLocation(unsigned char offset)
 {
 	if (offset <= (Location::B - Location::L))
 	{
@@ -19,27 +20,27 @@ Location CPU::MapLocation(unsigned char offset)
 	}
 }
 
-void CPU::StackPush(unsigned char byte)
+void GBCPU::StackPush(unsigned char byte)
 {
 	m_regs.DecSP();
 	WriteMem(m_regs.SP(), byte);
 }
 
-void CPU::PushPC()
+void GBCPU::PushPC()
 {
 	unsigned short pc = m_regs.PC();
 	StackPush(pc);
 	StackPush(pc >> 8);
 }
 
-unsigned char CPU::StackPop()
+unsigned char GBCPU::StackPop()
 {
 	unsigned char val = ReadMem(m_regs.SP());
 	m_regs.IncSP();
 	return val;
 }
 
-void CPU::PopPC()
+void GBCPU::PopPC()
 {
 	unsigned short pc = m_regs.PC();
 	pc = StackPop();
@@ -47,7 +48,7 @@ void CPU::PopPC()
 
 }
 
-InstructionPacket CPU::DecodeInstruction()
+InstructionPacket GBCPU::DecodeInstruction()
 {
 	//Fetches addresses inline
 	//Immediates must be fetched by execution
@@ -594,7 +595,7 @@ InstructionPacket CPU::DecodeInstruction()
 		packet.cycles += 4;
 		break;
 		//HALT
-	case 0x76: //Power down CPU until interrupt
+	case 0x76: //Power down GBCPU until interrupt
 		packet.instruction = Instruction::HALT;
 		packet.cycles += 4;
 		break;
@@ -902,7 +903,7 @@ InstructionPacket CPU::DecodeInstruction()
 	return packet;
 }
 
-void CPU::DecodeCB(InstructionPacket &packet)
+void GBCPU::DecodeCB(InstructionPacket &packet)
 {
 	HandleInterrupts();
 	if (!m_halted)
@@ -1391,15 +1392,15 @@ void CPU::DecodeCB(InstructionPacket &packet)
 	}
 }
 
-unsigned char CPU::FetchPC()
+unsigned char GBCPU::FetchPC()
 {
-	unsigned char byte = m_mem.Read(m_regs.PC());
+	unsigned char byte = m_mem->Read(m_regs.PC());
 	m_regs.IncPC();
 	m_cycles += 4;
 	return byte;
 }
 
-unsigned short CPU::FetchPC16()
+unsigned short GBCPU::FetchPC16()
 {
 	unsigned short bytes = FetchPC();
 	bytes = (FetchPC() << 8) + bytes;
@@ -1407,19 +1408,19 @@ unsigned short CPU::FetchPC16()
 	return bytes;
 }
 
-unsigned char CPU::ReadMem(unsigned short addr)
+unsigned char GBCPU::ReadMem(unsigned short addr)
 {
 	m_cycles += 4;
-	return m_mem.Read(addr);
+	return m_mem->Read(addr);
 }
 
-void CPU::WriteMem(unsigned short addr, unsigned char value)
+void GBCPU::WriteMem(unsigned short addr, unsigned char value)
 {
 	m_cycles += 8;
-	m_mem.Write(addr, value);
+	m_mem->Write(addr, value);
 }
 
-Location CPU::RegisterTable(unsigned char index, InstructionPacket &packet)
+Location GBCPU::RegisterTable(unsigned char index, InstructionPacket &packet)
 {
 	switch (index)
 	{
@@ -1449,13 +1450,13 @@ Location CPU::RegisterTable(unsigned char index, InstructionPacket &packet)
 		return Location::A;
 		break;
 	default:
-		Logger::RaiseError("CPU", "Unknown location table index");
+		Logger::RaiseError("GBCPU", "Unknown location table index");
 		break;
 	}
 	return Location::NONE;
 }
 
-int CPU::ReadLocation(Location l, InstructionPacket &packet)
+int GBCPU::ReadLocation(Location l, InstructionPacket &packet)
 {
 	unsigned int value;
 	switch (packet.source)
@@ -1517,13 +1518,13 @@ int CPU::ReadLocation(Location l, InstructionPacket &packet)
 	case Location::PORT:
 	case Location::STACK:
 	default:
-		Logger::RaiseError("CPU", "Attempted read from unknown location");
+		Logger::RaiseError("GBCPU", "Attempted read from unknown location");
 		break;
 	}
 	return value;
 }
 
-void CPU::WriteLocation(Location l, InstructionPacket &packet, int value)
+void GBCPU::WriteLocation(Location l, InstructionPacket &packet, int value)
 {
 	switch (packet.source)
 	{
@@ -1577,19 +1578,19 @@ void CPU::WriteLocation(Location l, InstructionPacket &packet, int value)
 	case Location::PORT:
 	case Location::STACK:
 	default:
-		Logger::RaiseError("CPU", "Attempted write to unknown location");
+		Logger::RaiseError("GBCPU", "Attempted write to unknown location");
 		break;
 	}
 }
 
 
-void CPU::ExecuteInstruction(InstructionPacket &packet)
+void GBCPU::ExecuteInstruction(InstructionPacket &packet)
 {
 	
 	switch (packet.instruction)
 	{
 	case Instruction::NON:
-		Logger::RaiseError("CPU", "No Instruction!");
+		Logger::RaiseError("GBCPU", "No Instruction!");
 		break;
 	case Instruction::NOP:
 		break;
@@ -2000,95 +2001,95 @@ void CPU::ExecuteInstruction(InstructionPacket &packet)
 		}
 		break;
 	default:
-		Logger::RaiseError("CPU", "Unknown instruction encountered");
+		Logger::RaiseError("GBCPU", "Unknown instruction encountered");
 		break;
 	}
 	m_cycles += packet.cycles;
 };
 
 
-void CPU::StepTimer()
+void GBCPU::StepTimer()
 {
 
 }
 
-CPU::CPU()
+GBCPU::GBCPU()
+{
+	m_mem = new Memory();
+}
+
+GBCPU::~GBCPU()
 {
 
 }
 
-CPU::~CPU()
-{
-
-}
-
-void CPU::Start()
+void GBCPU::Start()
 {
 	//Ignore startup sequence (we don't need no stinkin BIOS!)
-	m_regs.PC = 0x100;
+	m_regs.PC(0x100);
 	m_regs.AF(0x01);
 	m_regs.F(0xB0);
 	m_regs.BC(0x0013);
 	m_regs.DE(0x00D8);
 	m_regs.HL(0x014D);
 	m_regs.SP(0xFFFE);
-	m_mem.TIMA(0x00);
-	m_mem.TMA(0x00);
-	m_mem.TAC(0x00);
-	m_mem.NR10(0x80);
-	m_mem.NR11(0xBF);
-	m_mem.NR12(0xF3);
-	m_mem.NR14(0xBF);
-	m_mem.NR21(0x3F);
-    m_mem.NR22(0x00);
-    m_mem.NR24(0xBF);
-    m_mem.NR30(0x7F);
-    m_mem.NR31(0xFF);
-    m_mem.NR32(0x9F);
-    m_mem.NR33(0xBF);
-    m_mem.NR41(0xFF);
-    m_mem.NR42(0x00);
-    m_mem.NR43(0x00);
-    m_mem.NR44(0xBF);
-    m_mem.NR50(0x77);
-    m_mem.NR51(0xF3);
-    m_mem.NR52(0xF1);
-    m_mem.LCDC(0x91);
-    m_mem.SCY(0x00);
-    m_mem.SCX(0x00);
-    m_mem.LYC(0x00);
-    m_mem.BGP(0xFC);
-    m_mem.OBP0(0xFF);
-    m_mem.OBP1(0xFF);
-    m_mem.WY(0x00);
-    m_mem.WX(0x00);
-    m_mem.IE(0x00);
+	m_mem->TIMA(0x00);
+	m_mem->TMA(0x00);
+	m_mem->TAC(0x00);
+	m_mem->NR10(0x80);
+	m_mem->NR11(0xBF);
+	m_mem->NR12(0xF3);
+	m_mem->NR14(0xBF);
+	m_mem->NR21(0x3F);
+    m_mem->NR22(0x00);
+    m_mem->NR24(0xBF);
+    m_mem->NR30(0x7F);
+    m_mem->NR31(0xFF);
+    m_mem->NR32(0x9F);
+    m_mem->NR33(0xBF);
+    m_mem->NR41(0xFF);
+    m_mem->NR42(0x00);
+    m_mem->NR43(0x00);
+    m_mem->NR44(0xBF);
+    m_mem->NR50(0x77);
+    m_mem->NR51(0xF3);
+    m_mem->NR52(0xF1);
+    m_mem->LCDC(0x91);
+    m_mem->SCY(0x00);
+    m_mem->SCX(0x00);
+    m_mem->LYC(0x00);
+    m_mem->BGP(0xFC);
+    m_mem->OBP0(0xFF);
+    m_mem->OBP1(0xFF);
+    m_mem->WY(0x00);
+    m_mem->WX(0x00);
+    m_mem->IE(0x00);
 }
 
 
-void CPU::Step()
+void GBCPU::Step()
 {
 	//Todo: Sync with cycles
-	m_mem.Step();
+	m_mem->Step();
 	StepTimer();
 }
 
 
-void CPU::Int(Interrupt int_code)
+void GBCPU::Int(Interrupt int_code)
 {
-	unsigned char int_flags = m_mem.IF();
+	unsigned char int_flags = m_mem->IF();
 	int_flags |= (0x1 >> int_code);
-	m_mem.IF(int_flags);
+	m_mem->IF(int_flags);
 }
 
-void CPU::HandleInterrupts()
+void GBCPU::HandleInterrupts()
 {
 	int int_code;
 	if(this->m_interrupt_enable)
 	{
 		for(int_code = VBLANK_INT; int_code < NUM_INTS; ++int_code)
 		{
-			if (((m_mem.IE() >> int_code) & 0x1) && ((m_mem.IF() >> int_code) & 0x1))
+			if (((m_mem->IE() >> int_code) & 0x1) && ((m_mem->IF() >> int_code) & 0x1))
 			{
 				
 				break;
@@ -2111,11 +2112,11 @@ void CPU::HandleInterrupts()
 				m_regs.PC(INPUT_ROUTINE);
 				break;
 			default:
-				Logger::RaiseError("CPU", "Unrecognized interrupt");
+				Logger::RaiseError("GBCPU", "Unrecognized interrupt");
 				break;
 		}
 		this->m_interrupt_enable = false;
 	}
-	m_mem.IF(0);
+	m_mem->IF(0);
 }
 

@@ -22,6 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\audio.h" />
+    <ClInclude Include="..\src\base.h" />
     <ClInclude Include="..\src\clk.h" />
     <ClInclude Include="..\src\cpu.h" />
     <ClInclude Include="..\src\display.h" />

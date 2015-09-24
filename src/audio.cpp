@@ -14,7 +14,7 @@ class Audio
 {
 protected:
 	unsigned int HzToGb(unsigned int hz) { return (2048 - (131072 / hz)); }
-	unsigned int GbToHz(unsigned int gb) { return (131072 / (2048 - gb); }
+	unsigned int GbToHz(unsigned int gb) { return (131072 / (2048 - gb)); }
 
 };
 #endif
