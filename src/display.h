@@ -3,7 +3,7 @@
 #include "clk.h"
 #include "mem.h"
 #include "cpu.h"
-
+#include <SFML\Graphics.hpp>
 
 enum DisplayStates
 {
@@ -16,6 +16,8 @@ enum DisplayStates
 class Sprite
 {
 protected:
+	unsigned char* FetchLine(unsigned char line);
+public:
 	unsigned char x;
 	unsigned char y;
 	unsigned char pattern;
@@ -28,11 +30,19 @@ protected:
 			unsigned char palette : 1;
 		} bits;
 	} flags;
-public:
+	Memory *mem;
 	Sprite();
+	Sprite(const Sprite &rhs);
+	void Read(Memory *m, unsigned short offset);
+	void Draw(unsigned char *buffer, unsigned char line);
+	void Blend(unsigned char *buffer, short w, unsigned char line);
 	
-	void Read(Memory *mem, unsigned short offset);
-	void Draw(unsigned char *buffer);
+};
+
+class PrioritySprite
+{
+public:
+	bool operator()(const Sprite &lhs, const Sprite &rhs);
 };
 
 class Display
@@ -40,6 +50,7 @@ class Display
 protected:
 	//unsigned char m_screen_buffer[256 * 256];
 	unsigned char m_display[160 * 144];
+
 	unsigned char m_wndposx;
 	unsigned char m_wndposy;
 	unsigned char m_scrollx;
@@ -54,13 +65,14 @@ protected:
 	unsigned char m_display_state;
 	Memory *m_mem;
 	GBCPU *m_cpu;
+	sf::RenderWindow* m_window;
+	sf::Texture m_texture;
 	unsigned char DecodeColor(unsigned char val);
 	void WriteStat(unsigned char mode);
 	unsigned char* FetchTileLine(unsigned char tile, unsigned char line, bool signed_flag, unsigned char *palette);
-	unsigned char ApplyPalette(unsigned short addr, unsigned char px);
 	
 public:
-	Display(Memory *pmem, GBCPU *pcpu);
+	Display(Memory *pmem, GBCPU *pcpu, sf::RenderWindow *window);
 	~Display();
 
 	void Present();

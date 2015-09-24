@@ -188,7 +188,7 @@ struct InstructionPacket
 	}
 };
 
-class GBCPU : public Interruptable
+class GBCPU : protected Interruptable
 {
 protected:
 	unsigned long m_cycles;
@@ -225,7 +225,7 @@ public:
 	~GBCPU();
 	void Start();
 	void Step();
-	void Int(Interrupt int_code);
+	virtual void Int(Interrupt int_code);
 	void RunGBFile(std::string rom_file);
 	void SaveState(std::string filename);
 	void LoadState(std::string filename);

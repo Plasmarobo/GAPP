@@ -15,14 +15,14 @@ typedef enum Interrupt
 class Interruptable
 {
 public:
-	virtual void Int(Interrupt int_code);
+	virtual void Int(Interrupt int_code) = 0;
 };
 
 class Addressable
 {
 public:
-	virtual unsigned char Read(unsigned short addr);
-	virtual void Write(unsigned short addr, unsigned char val);
+	virtual unsigned char Read(unsigned short addr) = 0;
+	virtual void Write(unsigned short addr, unsigned char val) = 0;
 };
 
 #endif

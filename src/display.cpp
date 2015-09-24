@@ -1,4 +1,7 @@
 #include "display.h"
+#include <SFML\Graphics.hpp>
+#include <queue>
+#include <vector>
 
 Sprite::Sprite()
 {
@@ -8,28 +11,78 @@ Sprite::Sprite()
 	flags.value = 0;
 }
 
-void Sprite::Read(Memory *mem, unsigned short offset)
+void Sprite::Read(Memory *m, unsigned short offset)
 {
+	mem = m;
 	x = mem->Read(offset);
 	y = mem->Read(offset+1);
 	pattern = mem->Read(offset+2);
 	flags.value = mem->Read(offset+3);
+
 }
 
-void Sprite::Draw(unsigned char *buffer)
+void Sprite::Draw(unsigned char *buffer, unsigned char line)
 {
-	unsigned int offset = x + (160 * y);
+	
 
 }
 
+void Sprite::Blend(unsigned char *buffer, short w, unsigned char line)
+{
+	if (w <= 0)
+		return;
 
-Display::Display(Memory *pmem, GBCPU *pcpu)
+}
+
+unsigned char* Sprite::FetchLine(unsigned char line)
+{
+	int offset =  (pattern * 16) + (line * 2); //16 bytes per tile , 2 bytes per line
+	unsigned short addr = (unsigned short) (0x8000 + offset);
+	unsigned char *px_data = new unsigned char[8];
+	//Decompress tile
+	unsigned short compressed_tile = (mem->Read(addr) << 8) + mem->Read(addr + 1);
+	unsigned char palette[4];
+	unsigned char pal = flags.bits.palette ? mem->OBP1() : mem->OBP0();
+	palette[0]
+	for (unsigned char i = 0; i < 8; ++i)
+	{
+		px_data[i] = palette[compressed_tile >> (i * 2) & 0x3];
+	}
+	return px_data;
+}
+
+Sprite::Sprite(const Sprite &rhs)
+{
+	x = rhs.x;
+	y = rhs.y;
+	pattern = rhs.pattern;
+	flags.value = rhs.flags.value;
+	mem = rhs.mem;
+}
+
+bool PrioritySprite::operator()(const Sprite &lhs, const Sprite &rhs)
+{
+	//Sprites are drawn with highest x first (will get overwritten)
+	if (lhs.x > rhs.x)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+
+Display::Display(Memory *pmem, GBCPU *pcpu, sf::RenderWindow *window)
 {
 	m_mem = pmem;
 	m_cpu = pcpu;
+	m_window = window;
 	m_vsync_counter = 0;
 	m_display_state = LINE_SPRITES;
 	m_scanline = 0;
+	m_texture.create(160, 144);
 }
 
 unsigned char Display::DecodeColor(unsigned char val)
@@ -201,7 +254,7 @@ void Display::Drawline()
 					{
 						break;
 					}
-					m_display [(160 * m_scanline)+x] = ApplyPalette(0xFF47, px_data[tile_x+xoff]);
+					m_display [(160 * m_scanline)+x] = px_data[tile_x+xoff];
 					++x;
 				}
 				xoff = 0;
@@ -238,7 +291,7 @@ void Display::Drawline()
 					{
 						break;
 					}
-					m_display[(160 * m_scanline) + x] = ApplyPalette(0xFF47, px_data[tile_x + xoff]);
+					m_display[(160 * m_scanline) + x] = px_data[tile_x + xoff];
 					++x;
 				}
 				xoff = 0;
@@ -248,7 +301,48 @@ void Display::Drawline()
 		//Draw Sprites
 		if (sprite_enable)
 		{
-
+			Sprite sprite;
+			std::priority_queue<Sprite, std::vector<Sprite>, PrioritySprite> spriteStream;
+			for (unsigned short sprite_index = 39; sprite_index >= 0; --sprite_index)
+			{
+				sprite.Read(m_mem, 0xFE00 + sprite_index);
+				if ((((m_scanline - sprite.y) < 8) && (tall_sprites == false)) ||
+					((m_scanline - sprite.y < 16) && (tall_sprites == true)))
+				spriteStream.push(sprite);
+			}
+			while (!spriteStream.empty())
+			{
+				sprite = spriteStream.top();
+				spriteStream.pop();
+				if (sprite.flags.bits.priority == 0)
+				{
+					sprite.Draw(m_display, m_scanline);
+				}
+				else
+				{
+					if ((((sprite.x - m_mem->WX()) ^ 2) < 64) || (((sprite.y - m_mem->WY()) ^ 2) < 64))
+						sprite.Blend(m_display, m_mem->WX() - sprite.x, m_scanline);
+					else
+						sprite.Blend(m_display, 8, m_scanline);
+				}
+			}
 		}
 	}
+}
+
+void Display::Present()
+{
+	sf::Sprite sprite;
+	unsigned char screenbuffer[160 * 144 * 4];
+	for (int i = 0; i < 160 * 144; ++i)
+	{
+		screenbuffer[(i * 4)] = m_display[i];
+		screenbuffer[(i * 4) + 1] = m_display[i];
+		screenbuffer[(i * 4) + 2] = m_display[2];
+		screenbuffer[(i * 4) + 3] = 255;
+	}
+	m_texture.update(screenbuffer, 160, 144, 0, 0);
+	sprite.setTexture(m_texture);
+	m_window->draw(sprite);
+	m_window->display();
 }

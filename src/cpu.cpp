@@ -8,6 +8,12 @@
 #define Borrow8b(dst,src) ((dst&0xff)-(src&0xff))<0
 
 
+Register::Register()
+{
+	m_upper = 0;
+	m_lower = 0;
+}
+
 Location GBCPU::MapLocation(unsigned char offset)
 {
 	if (offset <= (Location::B - Location::L))
@@ -19,6 +25,7 @@ Location GBCPU::MapLocation(unsigned char offset)
 		return Location::NONE;
 	}
 }
+
 
 void GBCPU::StackPush(unsigned char byte)
 {
