@@ -70,7 +70,7 @@ typedef enum Instruction
 typedef enum Interrupt
 {
 	VBLANK_INT,
-	LCDC_INT,
+	LCDC_INT, //Hblank int
 	TIME_INT,
 	SERIAL_INT,
 	INPUT_INT,

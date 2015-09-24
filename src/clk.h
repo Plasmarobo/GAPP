@@ -16,7 +16,11 @@ unsigned long const div_frequency = 16384; //Hz
 
 //Abstract cycle conversions
 unsigned long const cycles_per_second =    machine_frequency;
-unsigned long const vsync_cycle_interval = 17555; //Cycles til vsync 
+unsigned long const scan_sprite_cycles = 20;
+unsigned long const scan_vram_cycles = 43;
+unsigned long const hblank_cycles = 51;
+unsigned long const vblank_cycles = 1140; 
+unsigned long const render_cycles = 17556;
 unsigned long const mbc3_rtc_cycles =      mbc3_rtc_frequency/4; //Cycles til tick
 unsigned long const timer_cycle_intervals[] = {
     256,

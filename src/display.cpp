@@ -1,21 +1,254 @@
 #include "display.h"
 
-Display::Display(Memory *mem)
+Sprite::Sprite()
 {
-	m_mem = mem;
+	x = 0;
+	y = 0;
+	pattern = 0;
+	flags.value = 0;
+}
+
+void Sprite::Read(Memory *mem, unsigned short offset)
+{
+	x = mem->Read(offset);
+	y = mem->Read(offset+1);
+	pattern = mem->Read(offset+2);
+	flags.value = mem->Read(offset+3);
+}
+
+void Sprite::Draw(unsigned char *buffer)
+{
+	unsigned int offset = x + (160 * y);
+
+}
+
+
+Display::Display(Memory *pmem, CPU *pcpu)
+{
+	m_mem = pmem;
+	m_cpu = pcpu;
 	m_vsync_counter = 0;
+	m_display_state = LINE_SPRITES;
+	m_scanline = 0;
+}
+
+unsigned char Display::DecodeColor(unsigned char val)
+{
+	switch (val)
+	{
+	case 0:
+		return m_black_color;
+	case 1:
+		return m_dark_color;
+	case 2:
+		return m_light_color;
+	case 3:
+		return m_white_color;
+	default:
+		return m_black_color;
+	}
+}
+
+void Display::WriteStat(unsigned char mode)
+{
+	unsigned char current = m_mem->STAT();
+	unsigned char stat_val = 0x78; //0111 1000
+
+	if (mode == 0 && ((current >> 3) & 0x1))
+	{
+		//Hblank
+		m_cpu->Int(LCDC_INT);
+	}
+	else if (mode == 1 && ((current >> 4) & 0x1))
+	{
+		//Vblank
+		m_cpu->Int(LCDC_INT);
+	}
+	else if (mode == 2 && ((current >> 5) & 0x1))
+	{
+		//Sprite-RAM read
+		m_cpu->Int(LCDC_INT);
+	}
+	else if (mode == 3)
+	{
+		//Copy to display
+		//No interrupt
+	}
+	
+	m_mem->STAT(stat_val |
+		(((m_mem->LY() == m_mem->LYC()) ? 1 : 0) >> 2) |
+		(((mode == 2 || mode == 3) ? 1 : 0) >> 1) |
+		(((mode == 1 || mode == 3) ? 1 : 0)));
+}
+
+unsigned char* Display::FetchTileLine(unsigned char tile, unsigned char line, bool signed_flag, unsigned char *palette)
+{
+	int s_addr = signed_flag ? 0x8800 : 0x8000;
+	int offset = ((signed_flag ? ((signed char)tile) : ((unsigned char)tile))* 16) + (line * 2); //16 bytes per tile , 2 bytes per line
+	unsigned short addr = (unsigned short)(s_addr + offset);
+	unsigned char *px_data = new unsigned char[8];
+	//Decompress tile
+	unsigned short compressed_tile = (m_mem->Read(addr) << 8) + m_mem->Read(addr+1);
+	for (unsigned char i = 0; i < 8; ++i)
+	{
+		px_data[i] = palette[compressed_tile >> (i * 2) & 0x3];
+	}
+	return px_data;
 }
 
 void Display::Step()
 {
 	++m_vsync_counter;
-	if (m_vsync_counter % vsync_cycle_interval)
+	//Implement FSM
+	if ((m_display_state == LINE_SPRITES) && (m_vsync_counter == scan_sprite_cycles))
 	{
-		m_scanline = 0;
+		m_display_state = LINE_VRAM;
+		m_vsync_counter = 0;
+		WriteStat(2);
 	}
-	if ((m_scanline < 144) && (m_vsync_counter % ))
+	else if ((m_display_state == LINE_VRAM) && (m_vsync_counter == scan_vram_cycles))
 	{
-
+		m_vsync_counter = 0;
+		Drawline();
+		++m_scanline;
+		WriteStat(3);
+		m_mem->LY(m_scanline);
+		if (m_scanline == 144)
+		{
+			//INTERRUPT
+			Present();
+			WriteStat(1);
+			m_cpu->Int(VBLANK_INT);
+			m_display_state = VBLANK;
+		}
+		else
+		{
+			m_display_state = LINE_BLANK;
+		}
 	}
+	else if ((m_display_state == LINE_BLANK) && (m_vsync_counter == hblank_cycles))
+	{
+		m_vsync_counter = 0;
+		m_display_state = LINE_SPRITES;
+		WriteStat(0);
+	}
+	else if ((m_display_state == VBLANK) && (m_vsync_counter == (vblank_cycles/10)))
+	{
+		//ten line timing
+		m_vsync_counter = 0;
+		if (m_scanline == 153)
+		{
+			m_scanline = 0;
+			m_display_state = LINE_SPRITES;
+			//Do not write scanline, > 143 is a signal for vblank
+		}
+		else
+		{
+			++m_scanline;
+			m_mem->LY(m_scanline);
+		}
+		m_cpu->Int(LCDC_INT);
+		WriteStat(1);
+	}
+}
 
+
+
+void Display::Drawline()
+{
+	//READ LCDC
+	unsigned char controls = m_mem->LCDC();
+	bool lcd_enable = (controls >> 7) & 0x1;
+	unsigned short window_tilemap_addr = ((controls >> 6) & 0x1) ? 0x9800 : 0x9C00;
+	bool window_enable = (controls >> 5) & 0x1;
+	unsigned short tile_data_addr = ((controls >> 4) & 0x1) ? 0x8800 : 0x8000;
+	bool signed_tile_data = tile_data_addr == 0x8800;
+	unsigned short background_tilemap_addr = ((controls >> 3) & 0x1) ? 0x9800 : 0x9C00;
+	bool tall_sprites = (controls >> 2) & 0x1;
+	bool sprite_enable = (controls >> 1) & 0x1;
+	bool window_background_enable = controls & 0x1;
+
+	if (lcd_enable)
+	{
+		//Draw bkg
+		if (window_background_enable)
+		{
+			//Background is 32 rows of 32 bytes
+			//Divide scrollx and scrolly by 8 (shift 3) to get offset
+			unsigned short offset = (m_mem->SCX() >> 3) + (32 * (m_mem->SCY() >> 3));
+			offset += 32 * (m_scanline >> 3); //Offset for scanline
+			unsigned char line = m_scanline % 8;
+			unsigned char xoff = m_mem->SCX() % 8;
+			unsigned char yoff = m_mem->SCY() % 8;
+			unsigned char tile_id = 0;
+			unsigned char x = 0;
+			//20 tiles are onscreen, but we need to fetch 21 for partial tile alignment
+			for (unsigned int tile_no = 0; tile_no <= 20; ++tile_no)
+			{
+				//Get the tile
+				tile_id = m_mem->Read(background_tilemap_addr + offset + tile_no);
+				unsigned char palette[4];
+				unsigned char pal = m_mem->BGP();
+				palette[0] = DecodeColor(pal & 0x3);
+				palette[1] = DecodeColor((pal >> 2) & 0x3);
+				palette[2] = DecodeColor((pal >> 4) & 0x3);
+				palette[3] = DecodeColor((pal >> 6) & 0x3);
+				unsigned char *px_data = FetchTileLine(tile_id, line + yoff, signed_tile_data, palette);
+				//Copy the tile to the screen, if it's the first tile, respect offset
+				for (unsigned int tile_x = xoff; tile_x < 8; ++tile_x)
+				{
+					if (x > 159)
+					{
+						break;
+					}
+					m_display [(160 * m_scanline)+x] = ApplyPalette(0xFF47, px_data[tile_x+xoff]);
+					++x;
+				}
+				xoff = 0;
+			}
+		}
+
+		//Draw window
+		if (window_enable)
+		{
+			unsigned short offset = (m_mem->WX() >> 3) + (32 * (m_mem->WY() >> 3));
+			offset += 32 * m_scanline;
+			unsigned char line = m_scanline % 8;
+			unsigned char xoff = m_mem->SCX() % 8;
+			unsigned char yoff = m_mem->SCY() % 8;
+			unsigned char tile_id = 0;
+			unsigned char tile_span = ((160 - (m_mem->WX() - 7)) >> 3) + 1;
+			unsigned char x = m_mem->WX()-7;
+			//20 tiles are onscreen, but we need to fetch 21 for partial tile alignment
+			for (unsigned int tile_no = 0; tile_no <= tile_span; ++tile_no)
+			{
+				//Get the tile
+				tile_id = m_mem->Read(background_tilemap_addr + offset + tile_no);
+				unsigned char palette[4];
+				unsigned char pal = m_mem->BGP();
+				palette[0] = DecodeColor(pal & 0x3);
+				palette[1] = DecodeColor((pal >> 2) & 0x3);
+				palette[2] = DecodeColor((pal >> 4) & 0x3);
+				palette[3] = DecodeColor((pal >> 6) & 0x3);
+				unsigned char *px_data = FetchTileLine(tile_id, line + yoff, signed_tile_data, palette);
+				//Copy the tile to the screen, if it's the first tile, respect offset
+				for (unsigned int tile_x = xoff; tile_x < 8; ++tile_x)
+				{
+					if (x > 159)
+					{
+						break;
+					}
+					m_display[(160 * m_scanline) + x] = ApplyPalette(0xFF47, px_data[tile_x + xoff]);
+					++x;
+				}
+				xoff = 0;
+			}
+		}
+
+		//Draw Sprites
+		if (sprite_enable)
+		{
+
+		}
+	}
 }
