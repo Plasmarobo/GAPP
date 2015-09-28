@@ -67,7 +67,8 @@ protected:
 	GBCPU *m_cpu;
 	sf::RenderWindow* m_window;
 	sf::Texture m_texture;
-	unsigned char DecodeColor(unsigned char val);
+	static unsigned char DecodeColor(unsigned char val);
+	static void ApplyPalette(unsigned char pal, unsigned char *palette);
 	void WriteStat(unsigned char mode);
 	unsigned char* FetchTileLine(unsigned char tile, unsigned char line, bool signed_flag, unsigned char *palette);
 	

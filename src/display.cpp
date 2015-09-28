@@ -3,6 +3,7 @@
 #include <queue>
 #include <vector>
 
+
 Sprite::Sprite()
 {
 	x = 0;
@@ -23,15 +24,24 @@ void Sprite::Read(Memory *m, unsigned short offset)
 
 void Sprite::Draw(unsigned char *buffer, unsigned char line)
 {
-	
-
+	unsigned short addr = 160 * (y + line) + x;
+	unsigned char* line_data = FetchLine(line);
+	memcpy(buffer + addr, line_data, sizeof(unsigned char) * 8);
 }
 
 void Sprite::Blend(unsigned char *buffer, short w, unsigned char line)
 {
 	if (w <= 0)
 		return;
-
+	unsigned short addr = 160 * (y + line) + x;
+	unsigned char* line_data = FetchLine(line);
+	for(unsigned short offset = 0; offset < 8; ++offset)
+	{
+		if(buffer[addr+offset] == 0)
+		{
+			buffer[addr+offset] = line_data[offset];
+		}
+	}
 }
 
 unsigned char* Sprite::FetchLine(unsigned char line)
@@ -43,7 +53,7 @@ unsigned char* Sprite::FetchLine(unsigned char line)
 	unsigned short compressed_tile = (mem->Read(addr) << 8) + mem->Read(addr + 1);
 	unsigned char palette[4];
 	unsigned char pal = flags.bits.palette ? mem->OBP1() : mem->OBP0();
-	palette[0]
+	ApplyPalette(pal, &(palette[0])); 
 	for (unsigned char i = 0; i < 8; ++i)
 	{
 		px_data[i] = palette[compressed_tile >> (i * 2) & 0x3];
@@ -100,6 +110,14 @@ unsigned char Display::DecodeColor(unsigned char val)
 	default:
 		return m_black_color;
 	}
+}
+
+void Display::ApplyPalette(unsigned char pal, unsigned char* palette)
+{
+	palette[0] = DecodeColor(pal & 0x3);
+	palette[1] = DecodeColor((pal >> 2) & 0x3);
+	palette[2] = DecodeColor((pal >> 4) & 0x3);
+	palette[3] = DecodeColor((pal >> 6) & 0x3);)
 }
 
 void Display::WriteStat(unsigned char mode)
@@ -242,10 +260,7 @@ void Display::Drawline()
 				tile_id = m_mem->Read(background_tilemap_addr + offset + tile_no);
 				unsigned char palette[4];
 				unsigned char pal = m_mem->BGP();
-				palette[0] = DecodeColor(pal & 0x3);
-				palette[1] = DecodeColor((pal >> 2) & 0x3);
-				palette[2] = DecodeColor((pal >> 4) & 0x3);
-				palette[3] = DecodeColor((pal >> 6) & 0x3);
+				ApplyPalette(pal, &(palette[0]));
 				unsigned char *px_data = FetchTileLine(tile_id, line + yoff, signed_tile_data, palette);
 				//Copy the tile to the screen, if it's the first tile, respect offset
 				for (unsigned int tile_x = xoff; tile_x < 8; ++tile_x)
@@ -279,10 +294,7 @@ void Display::Drawline()
 				tile_id = m_mem->Read(background_tilemap_addr + offset + tile_no);
 				unsigned char palette[4];
 				unsigned char pal = m_mem->BGP();
-				palette[0] = DecodeColor(pal & 0x3);
-				palette[1] = DecodeColor((pal >> 2) & 0x3);
-				palette[2] = DecodeColor((pal >> 4) & 0x3);
-				palette[3] = DecodeColor((pal >> 6) & 0x3);
+				ApplyPalette(pal, &(palette[0]));
 				unsigned char *px_data = FetchTileLine(tile_id, line + yoff, signed_tile_data, palette);
 				//Copy the tile to the screen, if it's the first tile, respect offset
 				for (unsigned int tile_x = xoff; tile_x < 8; ++tile_x)
@@ -336,6 +348,7 @@ void Display::Present()
 	unsigned char screenbuffer[160 * 144 * 4];
 	for (int i = 0; i < 160 * 144; ++i)
 	{
+		//Convert from g to rgba
 		screenbuffer[(i * 4)] = m_display[i];
 		screenbuffer[(i * 4) + 1] = m_display[i];
 		screenbuffer[(i * 4) + 2] = m_display[2];
