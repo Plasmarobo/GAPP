@@ -13,6 +13,13 @@ enum DisplayStates
 	LINE_BLANK
 };
 
+const unsigned char white_color = 255;
+const unsigned char light_color = 192;
+const unsigned char dark_color = 96;
+const unsigned char black_color = 0;
+unsigned char DecodeColor(unsigned char val);
+void ApplyPalette(unsigned char pal, unsigned char *palette);
+
 class Sprite
 {
 protected:
@@ -55,10 +62,7 @@ protected:
 	unsigned char m_wndposy;
 	unsigned char m_scrollx;
 	unsigned char m_scrolly;
-	const unsigned char m_white_color = 255;
-	const unsigned char m_light_color = 192;
-	const unsigned char m_dark_color = 96;
-	const unsigned char m_black_color = 0;
+	
 	unsigned char m_scanline;
 	unsigned int m_vsync_counter;
 	unsigned int m_hsync_counter;
@@ -67,7 +71,7 @@ protected:
 	GBCPU *m_cpu;
 	sf::RenderWindow* m_window;
 	sf::Texture m_texture;
-	unsigned char DecodeColor(unsigned char val);
+	
 	void WriteStat(unsigned char mode);
 	unsigned char* FetchTileLine(unsigned char tile, unsigned char line, bool signed_flag, unsigned char *palette);
 	

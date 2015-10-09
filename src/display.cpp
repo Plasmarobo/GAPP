@@ -43,7 +43,7 @@ unsigned char* Sprite::FetchLine(unsigned char line)
 	unsigned short compressed_tile = (mem->Read(addr) << 8) + mem->Read(addr + 1);
 	unsigned char palette[4];
 	unsigned char pal = flags.bits.palette ? mem->OBP1() : mem->OBP0();
-	palette[0]
+	ApplyPalette(pal, &(palette[0]));
 	for (unsigned char i = 0; i < 8; ++i)
 	{
 		px_data[i] = palette[compressed_tile >> (i * 2) & 0x3];
@@ -85,21 +85,29 @@ Display::Display(Memory *pmem, GBCPU *pcpu, sf::RenderWindow *window)
 	m_texture.create(160, 144);
 }
 
-unsigned char Display::DecodeColor(unsigned char val)
+unsigned char DecodeColor(unsigned char val)
 {
 	switch (val)
 	{
 	case 0:
-		return m_black_color;
+		return black_color;
 	case 1:
-		return m_dark_color;
+		return dark_color;
 	case 2:
-		return m_light_color;
+		return light_color;
 	case 3:
-		return m_white_color;
+		return white_color;
 	default:
-		return m_black_color;
+		return black_color;
 	}
+}
+
+void ApplyPalette(unsigned char pal, unsigned char* palette)
+{
+	palette[0] = DecodeColor(pal & 0x3);
+	palette[1] = DecodeColor((pal >> 2) & 0x3);
+	palette[2] = DecodeColor((pal >> 4) & 0x3);
+	palette[3] = DecodeColor((pal >> 6) & 0x3);
 }
 
 void Display::WriteStat(unsigned char mode)
