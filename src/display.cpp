@@ -23,15 +23,24 @@ void Sprite::Read(Memory *m, unsigned short offset)
 
 void Sprite::Draw(unsigned char *buffer, unsigned char line)
 {
-	
-
+	unsigned short addr = 160 * (y + line) + x;
+	unsigned char* line_data = FetchLine(line);
+	memcpy(buffer + addr, line_data, sizeof(unsigned char) * 8);
 }
 
 void Sprite::Blend(unsigned char *buffer, short w, unsigned char line)
 {
 	if (w <= 0)
 		return;
-
+	unsigned short addr = 160 * (y + line) + x;
+	unsigned char* line_data = FetchLine(line);
+	for(unsigned short offset = 0; offset < 8; ++offset)
+	{
+		if(buffer[addr+offset] == 0)
+		{
+			buffer[addr+offset] = line_data[offset];
+		}
+	}
 }
 
 unsigned char* Sprite::FetchLine(unsigned char line)
@@ -250,10 +259,7 @@ void Display::Drawline()
 				tile_id = m_mem->Read(background_tilemap_addr + offset + tile_no);
 				unsigned char palette[4];
 				unsigned char pal = m_mem->BGP();
-				palette[0] = DecodeColor(pal & 0x3);
-				palette[1] = DecodeColor((pal >> 2) & 0x3);
-				palette[2] = DecodeColor((pal >> 4) & 0x3);
-				palette[3] = DecodeColor((pal >> 6) & 0x3);
+				ApplyPalette(pal, &(palette[0]));
 				unsigned char *px_data = FetchTileLine(tile_id, line + yoff, signed_tile_data, palette);
 				//Copy the tile to the screen, if it's the first tile, respect offset
 				for (unsigned int tile_x = xoff; tile_x < 8; ++tile_x)
@@ -287,10 +293,7 @@ void Display::Drawline()
 				tile_id = m_mem->Read(background_tilemap_addr + offset + tile_no);
 				unsigned char palette[4];
 				unsigned char pal = m_mem->BGP();
-				palette[0] = DecodeColor(pal & 0x3);
-				palette[1] = DecodeColor((pal >> 2) & 0x3);
-				palette[2] = DecodeColor((pal >> 4) & 0x3);
-				palette[3] = DecodeColor((pal >> 6) & 0x3);
+				ApplyPalette(pal, &(palette[0]));
 				unsigned char *px_data = FetchTileLine(tile_id, line + yoff, signed_tile_data, palette);
 				//Copy the tile to the screen, if it's the first tile, respect offset
 				for (unsigned int tile_x = xoff; tile_x < 8; ++tile_x)
@@ -344,6 +347,7 @@ void Display::Present()
 	unsigned char screenbuffer[160 * 144 * 4];
 	for (int i = 0; i < 160 * 144; ++i)
 	{
+		//Convert from g to rgba
 		screenbuffer[(i * 4)] = m_display[i];
 		screenbuffer[(i * 4) + 1] = m_display[i];
 		screenbuffer[(i * 4) + 2] = m_display[2];

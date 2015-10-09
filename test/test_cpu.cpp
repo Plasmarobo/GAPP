@@ -3,7 +3,8 @@
 
 int main(int argc, void* argv)
 {
-    CPU cpu;
-    
+    GBCPU cpu;
+    cpu.Start();
+    cpu.RunGBFile("test_cpu.gb");
     return 0;
 }
