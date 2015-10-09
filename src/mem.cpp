@@ -110,6 +110,9 @@ MBC3Cart::MBC3Cart() : MBC1Cart()
 MBC3Cart::MBC3Cart(unsigned char *rom, unsigned int rom_size, unsigned int ram_size) : MBC1Cart(rom, rom_size, ram_size)
 {
 	m_utc_timestamp = GetUtc();
+	m_counter = 0;
+	m_counter_latch = 0;
+	m_write_enable = false;
 }
 
 void MBC3Cart::WriteMemory(unsigned short addr, unsigned char data)

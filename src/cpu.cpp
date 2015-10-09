@@ -1,5 +1,8 @@
 #include "cpu.h"
 #include "mem.h"
+#ifdef _DEBUG
+#include <iostream>
+#endif
 
 #define SetIfNone(x,y) if(x==Location::NONE) x=y
 #define HalfCarry(dst,src) ((dst&0xf)+(src&0xf))&0x10
@@ -2078,7 +2081,15 @@ void GBCPU::Start()
 unsigned long GBCPU::Step()
 {
 	unsigned long start_cycles = m_cycles;
+
 	InstructionPacket packet = DecodeInstruction();
+#ifdef _DEBUG
+	std::cout << "Cycle" << std::endl;
+	std::cout << "Instruction: " << packet.instruction << std::endl;
+	std::cout << "Address: " << packet.address << std::endl;
+	std::cout << "Source: " << packet.source << std::endl;
+	std::cout << "Destination: " << packet.dest << std::endl;
+#endif
 	ExecuteInstruction(packet);
 	m_mem->Step();
 	return m_cycles - start_cycles;
