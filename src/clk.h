@@ -16,6 +16,7 @@ unsigned long const div_frequency = 16384; //Hz
 
 //Abstract cycle conversions
 unsigned long const cycles_per_second =    machine_frequency;
+const double machine_period = 1.0 / (double) machine_frequency;
 unsigned long const scan_sprite_cycles = 20;
 unsigned long const scan_vram_cycles = 43;
 unsigned long const hblank_cycles = 51;

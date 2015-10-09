@@ -57,855 +57,860 @@ void GBCPU::PopPC()
 
 InstructionPacket GBCPU::DecodeInstruction()
 {
-	//Fetches addresses inline
-	//Immediates must be fetched by execution
-	unsigned char op = FetchPC();
 	InstructionPacket packet;
-	bool address_locked = false;
-	
-	switch (op)
+	HandleInterrupts();
+	if (!m_halted)
 	{
-		//LOAD IMM -> REG
-	case 0x06: //B
-		SetIfNone(packet.dest, Location::B);
-	case 0x0E: //C
-		SetIfNone(packet.dest, Location::C);
-	case 0x16: //D
-		SetIfNone(packet.dest, Location::D);
-	case 0x1E: //E
-		SetIfNone(packet.dest, Location::E);
-	case 0x26: //H
-		SetIfNone(packet.dest, Location::H);
-	case 0x2E: //L
-		SetIfNone(packet.dest, Location::L);
-		packet.source = Location::IMM;
-		packet.instruction = Instruction::LOAD;
-		packet.cycles += 4;
-		break;
-		//LOAD REG -> REG
-		//LOAD IN TO A
-	case 0x78: //B
-	case 0x79: //C
-	case 0x7A: //D
-	case 0x7B: //E
-	case 0x7C: //H
-	case 0x7D: //L
-	case 0x7E: //MEM(HL)
-	case 0x7F: //A
-		packet.source = RegisterTable(op - 0x78, packet);
-	case 0x3E: //IMM
-		SetIfNone(packet.source, Location::IMM);
-		packet.instruction = Instruction::LOAD;
-		packet.dest = Location::A;
-		packet.cycles += 4;
-		break;
-		//WIDE
-	case 0x0A: //MEM(BC)
-		packet.address = m_regs.BC();
-	case 0x1A: //MEM(DE)
-		if(packet.address == -1) packet.address = m_regs.DE();
-	case 0x3A: //MEM(HL--)
-		if (packet.address == -1)
-		{
-			packet.address = m_regs.HL();
-			m_regs.HL(m_regs.HL() - 1);
-		}
-	case 0x2A: //MEM(HL++)
-		if (packet.address == -1)
-		{
-			packet.address = m_regs.HL();
-			m_regs.HL(m_regs.HL() + 1);
-		}
-	case 0xF0: //MEM(0xFF+IMM)
-		if (packet.address == -1) packet.address = 0xFF00 + FetchPC();
-	case 0xF2: //MEM(0xFF00 + C)
-		if (packet.address == -1) packet.address = 0xFF00 + m_regs.C();
-	case 0xFA: //MEM(WIDE IMM LS -> MS)
-		packet.source = Location::MEM;
-		if (packet.address == -1) packet.address = FetchPC16();
-		packet.dest = Location::A;
-		packet.cycles += 4;
-		break;
-		//LOAD INTO B
-	case 0x40: //B
-	case 0x41:
-	case 0x42:
-	case 0x43:
-	case 0x44:
-	case 0x45:
-	case 0x46: //MEM(HL)
-	case 0x47: //A
-		packet.source = RegisterTable(op - 0x40, packet);
-		packet.instruction = Instruction::LOAD;
-		packet.dest = Location::B;
-		packet.cycles += 4;
-		break;
-		//LOAD INTO C
-	case 0x48: //B
-	case 0x49:
-	case 0x4A:
-	case 0x4B:
-	case 0x4C:
-	case 0x4D:
-	case 0x4E: //MEM(HL)
-	case 0x4F: //A
-		packet.source = RegisterTable(op - 0x48, packet);
-		packet.instruction = Instruction::LOAD;
-		packet.dest = Location::C;
-		packet.cycles += 4;
-		break;
-		//LOAD INTO D
-	case 0x50: //B
-	case 0x51:
-	case 0x52:
-	case 0x53:
-	case 0x54:
-	case 0x55:
-	case 0x56: //MEM(HL)
-	case 0x57: //A
-		packet.source = RegisterTable(op - 0x50, packet);
-		packet.instruction = Instruction::LOAD;
-		packet.dest = Location::D;
-		packet.cycles += 4;
-		break;
-		//LOAD INTO E
-	case 0x58: //B
-	case 0x59:
-	case 0x5A:
-	case 0x5B:
-	case 0x5C:
-	case 0x5D:
-	case 0x5E: //MEM(HL)
-	case 0x5F: //A
-		packet.source = RegisterTable(op - 0x58, packet);
-		packet.instruction = Instruction::LOAD;
-		packet.dest = Location::E;
-		packet.cycles += 4;
-		break;
-		//LOAD INTO H
-	case 0x60: //B
-	case 0x61:
-	case 0x62:
-	case 0x63:
-	case 0x64:
-	case 0x65:
-	case 0x66: //MEM(HL)
-	case 0x67: //A
-		packet.source = RegisterTable(op - 0x60, packet);
-		packet.instruction = Instruction::LOAD;
-		packet.dest = Location::H;
-		packet.cycles += 4;
-		break;
-		//LOAD INTO L
-	case 0x68: //B
-	case 0x69:
-	case 0x6A:
-	case 0x6B:
-	case 0x6C:
-	case 0x6D:
-	case 0x6E: //MEM(HL)
-	case 0x6F: //A
-		packet.source = RegisterTable(op - 0x68, packet);
-		packet.instruction = Instruction::LOAD;
-		packet.dest = Location::L;
-		packet.cycles += 4;
-		break;
-		//LOAD INTO MEM(HL)
-	case 0x70: //B
-	case 0x71:
-	case 0x72:
-	case 0x73:
-	case 0x74:
-	case 0x75: //L
-		packet.source = RegisterTable(op - 0x70, packet);
-		packet.instruction = Instruction::LOAD;
-		packet.dest = Location::MEM;
-		packet.address = m_regs.HL();
-		packet.cycles += 4;
-		break;
-	case 0x36: //IMM
-		packet.source = Location::IMM;
-		packet.dest = Location::MEM;
-		packet.address = m_regs.HL();
-		packet.cycles += 4;
-		break;
-		//MEM(BC)
-	case 0x02: //A
-		if(packet.address == -1) packet.address = m_regs.BC();
-		//MEM(DE)
-	case 0x12: //A
-		if (packet.address == -1) packet.address = m_regs.DE();
-		//MEM(HL)
-	case 0x22: 
-	case 0x32:
-	case 0x77: //A
-		if (packet.address == -1) packet.address = m_regs.HL();
-		if (op == 0x32) m_regs.HL(m_regs.HL() - 1);
-		if (op == 0x22) m_regs.HL(m_regs.HL() + 1);
-		//LOAD MEM(0xFF00+IMM)
-	case 0xE0: //A
-		if (packet.address == -1) packet.address = 0xFF00 + FetchPC();
-		//LOAD INTO MEM(0xFF+C)
-	case 0xE2: //A
-		if (packet.address == -1) packet.address = 0xFF00 + m_regs.C();
-		//MEM(WIDE IMM LS->MS)
-	case 0xEA: //A
-		if (packet.address == -1) packet.address = FetchPC16();
-		packet.dest = Location::MEM;
-		packet.source = Location::A;
-		packet.instruction = Instruction::LOAD;
-		packet.cycles += 4;
-		break;
+		//Fetches addresses inline
+		//Immediates must be fetched by execution
+		unsigned char op = FetchPC();
+		
+		bool address_locked = false;
 
-		//WIDE LOAD
-		//BC
-	case 0x01: //WIDE-IMM
-		packet.dest = Location::BC;
-		//DE
-	case 0x11: //WIDE-IMM
-		SetIfNone(packet.dest, Location::DE);
-		//HL
-	case 0x21: //WIDE-IMM
-		SetIfNone(packet.dest, Location::HL);
-		//SP
-	case 0x31: //WIDE-IMM
-		SetIfNone(packet.dest, Location::SP);
-		packet.source = Location::WIDE_IMM;
-		packet.cycles += 4;
-		packet.instruction = Instruction::LOAD;
-		break;
-		//LOAD SP
-	case 0xF9: //HL
-		packet.instruction = Instruction::LOAD;
-		packet.source = Location::HL;
-		packet.dest = Location::SP;
-		packet.cycles += 4;
-		break;
-	case 0xF8: //SP + n: reset zero, reset nonzero may set h, may set c
-		packet.instruction = Instruction::ADD;
-		packet.source = Location::SP;
-		packet.dest = Location::HL;
-		packet.offset = FetchPC();
-		packet.flag_mask.value = 0x0C;
-		packet.cycles += 8;
-		break;
-		//LOAD SP
-	case 0x08: //WIDE-IMM
-		packet.instruction = Instruction::LOAD;
-		packet.dest = Location::SP;
-		packet.source = Location::WIDE_IMM;
-		packet.cycles += 12;
-		break;
-		//PUSH -> SP - 2
-	case 0xF5: //AF
-		SetIfNone(packet.source, Location::AF);
-	case 0xC5: //BC
-		SetIfNone(packet.source, Location::BC);
-	case 0xD5: //DE
-		SetIfNone(packet.source, Location::DE);
-	case 0xE5: //HL
-		SetIfNone(packet.source, Location::HL);
-		packet.address = m_regs.SP();
-		packet.dest = Location::MEM;
-		packet.instruction = Instruction::PUSH;
-		packet.cycles += 0;
-		break;
-		//POP
-	case 0xF1: //AF
-		SetIfNone(packet.dest, Location::AF);
-	case 0xC1: //BC
-		SetIfNone(packet.dest, Location::BC);
-	case 0xD1: //DE
-		SetIfNone(packet.dest, Location::DE);
-	case 0xE1: //HL
-		SetIfNone(packet.dest, Location::HL);
-		packet.address = m_regs.SP();
-		packet.source = Location::MEM;
-		packet.instruction = Instruction::POP;
-		packet.cycles += 4;
-		break;
-		//ADD to A, set zero if zero, reset nonzero, set h if carry bit 3, set c if carry from 7
-	case 0x80: //B
-	case 0x81: //C
-	case 0x82: //D
-	case 0x83: //E
-	case 0x84: //H
-	case 0x85: //L
-	case 0x86: //MEM(HL)
-	case 0x87: //A
-		packet.source = RegisterTable(op - 0x80, packet);
-	case 0xC6: //IMM
-		SetIfNone(packet.source, Location::IMM);
-		packet.instruction = Instruction::ADD;
-		packet.dest = Location::A;
-		packet.flag_mask.value = 0x0D;
-		packet.cycles += 4;
-		break;
-		//ADC -> Add X plus carry to A
-	case 0x88: //B
-	case 0x89: //C
-	case 0x8A: //D
-	case 0x8B: //E
-	case 0x8C: //H
-	case 0x8D: //L
-	case 0x8E: //MEM(HL)
-	case 0x8F: //A
-		packet.source = RegisterTable(op - 0x8F, packet);
-	case 0xCE: //IMM
-		SetIfNone(packet.source, Location::IMM);
-		packet.dest = Location::A;
-		packet.offset = m_regs.Carry() ? 1 : 0;
-		packet.flag_mask.value = 0x0D;
-		packet.cycles += 4;
-		break;
-		//SUB from A
-	case 0x90: //B
-	case 0x91: //C
-	case 0x92: //D
-	case 0x93: //E
-	case 0x94: //H
-	case 0x95: //L
-	case 0x96: //MEM(HL)
-	case 0x97: //A
-		packet.source = RegisterTable(op - 0x90, packet);
-	case 0xD6: //IMM
-		SetIfNone(packet.source, Location::IMM);
-		packet.dest = Location::A;
-		packet.flag_mask.value = 0x0F;
-		packet.cycles += 4;
-		break;
-		//SBC -> Sub X plus carry from A
-	case 0x98: //B
-	case 0x99: //C
-	case 0x9A: //D
-	case 0x9B: //E
-	case 0x9C: //H
-	case 0x9D: //L
-	case 0x9E: //MEM(HL)
-	case 0x9F: //A
-	//case 0x?? //IMM
-		packet.source = RegisterTable(op - 0x98, packet);
-		//SetIfNone(packet.source, Location::IMM);
-		packet.offset = m_regs.Carry() ? 1 : 0;
-		packet.dest = Location::A;
-		packet.flag_mask.value = 0x0F;
-		packet.cycles += 4;
-		break;
-		//AND with A
-	case 0xA0: //B
-	case 0xA1: //C
-	case 0xA2: //D
-	case 0xA3: //E
-	case 0xA4: //H
-	case 0xA5: //L
-	case 0xA6: //MEM(HL)
-	case 0xA7: //A
-		packet.source = RegisterTable(op - 0xA0, packet);
-	case 0xE6: //IMM
-		SetIfNone(packet.source, Location::IMM);
-		packet.instruction = Instruction::AND;
-		packet.dest = Location::A;
-		packet.flag_mask.value = 0x05;
-		packet.cycles += 4;
-		break;
-		//OR with A
-	case 0xB0: //B
-	case 0xB1: //C
-	case 0xB2: //D
-	case 0xB3: //E
-	case 0xB4: //H
-	case 0xB5: //L
-	case 0xB6: //MEM(HL)
-	case 0xB7: //A
-		packet.source = RegisterTable(op - 0xB0, packet);
-	case 0xF6: //IMM
-		SetIfNone(packet.source, Location::IMM);
-		packet.instruction = Instruction::OR;
-		packet.dest = Location::A;
-		packet.flag_mask.value = 0x01;
-		packet.cycles += 4;
-		break;
-		//XOR with A
-	case 0xA8: //B
-	case 0xA9: //C
-	case 0xAA: //D
-	case 0xAB: //E
-	case 0xAC: //H
-	case 0xAD: //L
-	case 0xAE: //MEM(HL)
-	case 0xAF: //A
-		packet.source = RegisterTable(op - 0xA8, packet);
-	case 0xEE: //IMM
-		SetIfNone(packet.source, Location::IMM);
-		packet.instruction = Instruction::XOR;
-		packet.dest = Location::A;
-		packet.flag_mask.value = 0x01;
-		packet.cycles += 4;
-		break;
-		//COMPARE
-	case 0xB8: //B
-	case 0xB9: //C
-	case 0xBA: //D
-	case 0xBB: //E
-	case 0xBC: //H
-	case 0xBD: //L
-	case 0xBE: //MEM(HL)
-	case 0xBF: //A
-		packet.source = RegisterTable(op - 0xB8, packet);
-	case 0xFE: //IMM
-		SetIfNone(packet.source, Location::IMM);
-		packet.instruction = Instruction::CP;
-		packet.dest = Location::A;
-		packet.flag_mask.value = 0x0F;
-		packet.cycles += 4;
-		break;
-		//INC
-	case 0x04: //B
-		SetIfNone(packet.dest, Location::B);
-	case 0x0C: //C
-		SetIfNone(packet.dest, Location::C);
-	case 0x14: //D
-		SetIfNone(packet.dest, Location::D);
-	case 0x1C: //E
-		SetIfNone(packet.dest, Location::E);
-	case 0x24: //H
-		SetIfNone(packet.dest, Location::H);
-	case 0x2C: //L
-		SetIfNone(packet.dest, Location::L);
-	case 0x34: //MEM(HL)
-		if (op == 0x34)
+		switch (op)
 		{
-			SetIfNone(packet.dest, Location::MEM);
+			//LOAD IMM -> REG
+		case 0x06: //B
+			SetIfNone(packet.dest, Location::B);
+		case 0x0E: //C
+			SetIfNone(packet.dest, Location::C);
+		case 0x16: //D
+			SetIfNone(packet.dest, Location::D);
+		case 0x1E: //E
+			SetIfNone(packet.dest, Location::E);
+		case 0x26: //H
+			SetIfNone(packet.dest, Location::H);
+		case 0x2E: //L
+			SetIfNone(packet.dest, Location::L);
+			packet.source = Location::IMM;
+			packet.instruction = Instruction::LOAD;
+			packet.cycles += 4;
+			break;
+			//LOAD REG -> REG
+			//LOAD IN TO A
+		case 0x78: //B
+		case 0x79: //C
+		case 0x7A: //D
+		case 0x7B: //E
+		case 0x7C: //H
+		case 0x7D: //L
+		case 0x7E: //MEM(HL)
+		case 0x7F: //A
+			packet.source = RegisterTable(op - 0x78, packet);
+		case 0x3E: //IMM
+			SetIfNone(packet.source, Location::IMM);
+			packet.instruction = Instruction::LOAD;
+			packet.dest = Location::A;
+			packet.cycles += 4;
+			break;
+			//WIDE
+		case 0x0A: //MEM(BC)
+			packet.address = m_regs.BC();
+		case 0x1A: //MEM(DE)
+			if (packet.address == -1) packet.address = m_regs.DE();
+		case 0x3A: //MEM(HL--)
+			if (packet.address == -1)
+			{
+				packet.address = m_regs.HL();
+				m_regs.HL(m_regs.HL() - 1);
+			}
+		case 0x2A: //MEM(HL++)
+			if (packet.address == -1)
+			{
+				packet.address = m_regs.HL();
+				m_regs.HL(m_regs.HL() + 1);
+			}
+		case 0xF0: //MEM(0xFF+IMM)
+			if (packet.address == -1) packet.address = 0xFF00 + FetchPC();
+		case 0xF2: //MEM(0xFF00 + C)
+			if (packet.address == -1) packet.address = 0xFF00 + m_regs.C();
+		case 0xFA: //MEM(WIDE IMM LS -> MS)
+			packet.source = Location::MEM;
+			if (packet.address == -1) packet.address = FetchPC16();
+			packet.dest = Location::A;
+			packet.cycles += 4;
+			break;
+			//LOAD INTO B
+		case 0x40: //B
+		case 0x41:
+		case 0x42:
+		case 0x43:
+		case 0x44:
+		case 0x45:
+		case 0x46: //MEM(HL)
+		case 0x47: //A
+			packet.source = RegisterTable(op - 0x40, packet);
+			packet.instruction = Instruction::LOAD;
+			packet.dest = Location::B;
+			packet.cycles += 4;
+			break;
+			//LOAD INTO C
+		case 0x48: //B
+		case 0x49:
+		case 0x4A:
+		case 0x4B:
+		case 0x4C:
+		case 0x4D:
+		case 0x4E: //MEM(HL)
+		case 0x4F: //A
+			packet.source = RegisterTable(op - 0x48, packet);
+			packet.instruction = Instruction::LOAD;
+			packet.dest = Location::C;
+			packet.cycles += 4;
+			break;
+			//LOAD INTO D
+		case 0x50: //B
+		case 0x51:
+		case 0x52:
+		case 0x53:
+		case 0x54:
+		case 0x55:
+		case 0x56: //MEM(HL)
+		case 0x57: //A
+			packet.source = RegisterTable(op - 0x50, packet);
+			packet.instruction = Instruction::LOAD;
+			packet.dest = Location::D;
+			packet.cycles += 4;
+			break;
+			//LOAD INTO E
+		case 0x58: //B
+		case 0x59:
+		case 0x5A:
+		case 0x5B:
+		case 0x5C:
+		case 0x5D:
+		case 0x5E: //MEM(HL)
+		case 0x5F: //A
+			packet.source = RegisterTable(op - 0x58, packet);
+			packet.instruction = Instruction::LOAD;
+			packet.dest = Location::E;
+			packet.cycles += 4;
+			break;
+			//LOAD INTO H
+		case 0x60: //B
+		case 0x61:
+		case 0x62:
+		case 0x63:
+		case 0x64:
+		case 0x65:
+		case 0x66: //MEM(HL)
+		case 0x67: //A
+			packet.source = RegisterTable(op - 0x60, packet);
+			packet.instruction = Instruction::LOAD;
+			packet.dest = Location::H;
+			packet.cycles += 4;
+			break;
+			//LOAD INTO L
+		case 0x68: //B
+		case 0x69:
+		case 0x6A:
+		case 0x6B:
+		case 0x6C:
+		case 0x6D:
+		case 0x6E: //MEM(HL)
+		case 0x6F: //A
+			packet.source = RegisterTable(op - 0x68, packet);
+			packet.instruction = Instruction::LOAD;
+			packet.dest = Location::L;
+			packet.cycles += 4;
+			break;
+			//LOAD INTO MEM(HL)
+		case 0x70: //B
+		case 0x71:
+		case 0x72:
+		case 0x73:
+		case 0x74:
+		case 0x75: //L
+			packet.source = RegisterTable(op - 0x70, packet);
+			packet.instruction = Instruction::LOAD;
+			packet.dest = Location::MEM;
 			packet.address = m_regs.HL();
-		}
-	case 0x3C: //A
-		SetIfNone(packet.source, Location::A);
-		packet.offset = 1;
-		packet.dest = packet.source;
-		packet.instruction = Instruction::LOAD;
-		packet.flag_mask.value = 0x05;
-		packet.cycles += 4;
-		break;
-		//DEC
-	case 0x05: //B
-		SetIfNone(packet.dest, Location::B);
-	case 0x0D: //C
-		SetIfNone(packet.dest, Location::C);
-	case 0x15: //D
-		SetIfNone(packet.dest, Location::D);
-	case 0x1D: //E
-		SetIfNone(packet.dest, Location::E);
-	case 0x25: //H
-		SetIfNone(packet.dest, Location::H);
-	case 0x2D: //L
-		SetIfNone(packet.dest, Location::L);
-	case 0x35: //MEM(HL)
-		if (op == 0x35)
-		{
-			SetIfNone(packet.dest, Location::MEM);
+			packet.cycles += 4;
+			break;
+		case 0x36: //IMM
+			packet.source = Location::IMM;
+			packet.dest = Location::MEM;
 			packet.address = m_regs.HL();
-		}
-	case 0x3D: //A
-		SetIfNone(packet.source, Location::A);
-		packet.offset = -1;
-		packet.dest = packet.source;
-		packet.instruction = Instruction::LOAD;
-		packet.flag_mask.value = 0x07;
-		packet.cycles += 4;
-		break;
-		//ADD 16
-		//ADD TO HL
-	case 0x09: //BC
-		SetIfNone(packet.source, Location::BC);
-	case 0x19: //DE
-		SetIfNone(packet.source, Location::DE);
-	case 0x29: //HL
-		SetIfNone(packet.source, Location::HL);
-	case 0x39: //SP
-		SetIfNone(packet.source, Location::SP);
-		packet.dest = Location::HL;
-		packet.instruction = Instruction::ADD;
-		packet.flag_mask.value = 0x0C;
-		packet.cycles += 8;
-		break;
-		//ADD SP
-	case 0xE8: //IMM
-		packet.dest = Location::SP;
-		packet.source = Location::IMM;
-		packet.instruction = Instruction::ADD;
-		packet.flag_mask.value = 0x0C;
-		packet.cycles += 12;
-		break;
-		//INC16
-	case 0x03: //BC
-		SetIfNone(packet.dest, Location::BC);
-	case 0x13: //DE
-		SetIfNone(packet.dest, Location::DE);
-	case 0x23: //HL
-		SetIfNone(packet.dest, Location::HL);
-	case 0x33: //SP
-		SetIfNone(packet.dest, Location::SP);
-		packet.offset = 1;
-		packet.dest = packet.source;
-		packet.instruction = Instruction::LOAD;
-		packet.cycles += 8;
-		break;
-		//DEC16
-	case 0x0B: //BC
-		SetIfNone(packet.dest, Location::BC);
-	case 0x1B: //DE
-		SetIfNone(packet.dest, Location::DE);
-	case 0x2B: //HL
-		SetIfNone(packet.dest, Location::HL);
-	case 0x3B: //SP
-		SetIfNone(packet.dest, Location::SP);
-		packet.offset = -1;
-		packet.dest = packet.source;
-		packet.instruction = Instruction::LOAD;
-		packet.cycles += 8;
-		break;
-		//CB EXT
-	case 0xCB:
-		DecodeCB(packet);
-		break;
-		//DAA
-	case 0x27: //Decimal Adjust A
-		packet.instruction = Instruction::DAA;
-		packet.source = Location::A;
-		packet.dest = Location::A;
-		packet.cycles += 4;
-		break;
-		//CPL
-	case 0x2F: //A
-		packet.instruction = Instruction::CPL;
-		packet.source = Location::A;
-		packet.dest = Location::A;
-		packet.cycles += 4;
-		break;
-		//CCF 
-	case 0x3F: //Complement carry flag
-		packet.instruction = Instruction::CCF;
-		packet.source = Location::F;
-		packet.dest = Location::F;
-		packet.cycles += 4;
-		break;
-		//SCF
-	case 0x37: //Set carry flag
-		packet.instruction = Instruction::SCF;
-		packet.source = Location::F;
-		packet.dest = Location::F;
-		packet.cycles += 4;
-		break;
-		//NOP
-	case 0x00: //NOP
-		packet.instruction = Instruction::NOP;
-		packet.cycles += 4;
-		break;
-		//HALT
-	case 0x76: //Power down GBCPU until interrupt
-		packet.instruction = Instruction::HALT;
-		packet.cycles += 4;
-		break;
-		//STOP
-	case 0x10:
-		packet.instruction = Instruction::STOP;
-		packet.cycles += 4;
-		FetchPC();
-		break;
-		//DI
-	case 0xF3: //Disable interrupt after exec
-		packet.instruction = Instruction::DI;
-		packet.cycles += 4;
-		break;
-		//EI
-	case 0xFB: //Enable interrupt after exec
-		packet.instruction = Instruction::EI;
-		packet.cycles += 4;
-		break;
-		//ROT LEFT
-	case 0x17: //Rotate A left through carry flag
-		packet.instruction = Instruction::RLC;
-		packet.source = Location::A;
-		packet.dest = Location::A;
-		packet.cycles += 4;
-		break;
-	case 0x07: //Rotate A left, bit 0 to carry
-		packet.instruction = Instruction::RL;
-		packet.source = Location::A;
-		packet.dest = Location::A;
-		packet.cycles += 4;
-		break;
-		//ROT RIGHT
-	case 0x0F: //Rotate A right, bit 7 to carry
-		packet.instruction = Instruction::RR;
-		packet.source = Location::A;
-		packet.dest = Location::A;
-		packet.cycles += 4;
-		break;
-	case 0x1F: //Rotate A right through carry flag
-		packet.instruction = Instruction::RRC;
-		packet.source = Location::A;
-		packet.dest = Location::A;
-		packet.cycles += 4;
-		break;
-		//JUMP
-	case 0xC3: //WIDE-IMM
-		packet.instruction = Instruction::LOAD;
-		packet.source = Location::WIDE_IMM;
-		packet.dest = Location::PC;
-		packet.cycles += 4;
-		break;
-	case 0xE9: //MEM(HL)
-		packet.instruction = Instruction::LOAD;
-		packet.source = Location::HL;
-		packet.dest = Location::PC;
-		packet.cycles += 4;
-		break;
-		//JUMP IF
-	case 0xC2: //Z reset
-		packet.source = Location::WIDE_IMM;
-		packet.dest = Location::PC;
-		if (!m_regs.Zero())
-		{
+			packet.cycles += 4;
+			break;
+			//MEM(BC)
+		case 0x02: //A
+			if (packet.address == -1) packet.address = m_regs.BC();
+			//MEM(DE)
+		case 0x12: //A
+			if (packet.address == -1) packet.address = m_regs.DE();
+			//MEM(HL)
+		case 0x22:
+		case 0x32:
+		case 0x77: //A
+			if (packet.address == -1) packet.address = m_regs.HL();
+			if (op == 0x32) m_regs.HL(m_regs.HL() - 1);
+			if (op == 0x22) m_regs.HL(m_regs.HL() + 1);
+			//LOAD MEM(0xFF00+IMM)
+		case 0xE0: //A
+			if (packet.address == -1) packet.address = 0xFF00 + FetchPC();
+			//LOAD INTO MEM(0xFF+C)
+		case 0xE2: //A
+			if (packet.address == -1) packet.address = 0xFF00 + m_regs.C();
+			//MEM(WIDE IMM LS->MS)
+		case 0xEA: //A
+			if (packet.address == -1) packet.address = FetchPC16();
+			packet.dest = Location::MEM;
+			packet.source = Location::A;
 			packet.instruction = Instruction::LOAD;
-		}
-		else
-		{
-			packet.instruction = Instruction::NOP;
-		}
-		packet.cycles += 4;
-		break;
-	case 0xCA: //Z set
-		packet.source = Location::WIDE_IMM;
-		packet.dest = Location::PC;
-		if (m_regs.Zero())
-		{
+			packet.cycles += 4;
+			break;
+
+			//WIDE LOAD
+			//BC
+		case 0x01: //WIDE-IMM
+			packet.dest = Location::BC;
+			//DE
+		case 0x11: //WIDE-IMM
+			SetIfNone(packet.dest, Location::DE);
+			//HL
+		case 0x21: //WIDE-IMM
+			SetIfNone(packet.dest, Location::HL);
+			//SP
+		case 0x31: //WIDE-IMM
+			SetIfNone(packet.dest, Location::SP);
+			packet.source = Location::WIDE_IMM;
+			packet.cycles += 4;
 			packet.instruction = Instruction::LOAD;
-		}
-		else
-		{
-			packet.instruction = Instruction::NOP;
-		}
-		packet.cycles += 4;
-		break;
-	case 0xD2: //C reset (no carry)
-		packet.source = Location::WIDE_IMM;
-		packet.dest = Location::PC;
-		if (!m_regs.Carry())
-		{
+			break;
+			//LOAD SP
+		case 0xF9: //HL
 			packet.instruction = Instruction::LOAD;
-		}
-		else
-		{
-			packet.instruction = Instruction::NOP;
-		}
-		packet.cycles += 4;
-		break;
-	case 0xDA: //C set (carry)
-		packet.source = Location::WIDE_IMM;
-		packet.dest = Location::PC;
-		if (m_regs.Carry())
-		{
+			packet.source = Location::HL;
+			packet.dest = Location::SP;
+			packet.cycles += 4;
+			break;
+		case 0xF8: //SP + n: reset zero, reset nonzero may set h, may set c
+			packet.instruction = Instruction::ADD;
+			packet.source = Location::SP;
+			packet.dest = Location::HL;
+			packet.offset = FetchPC();
+			packet.flag_mask.value = 0x0C;
+			packet.cycles += 8;
+			break;
+			//LOAD SP
+		case 0x08: //WIDE-IMM
 			packet.instruction = Instruction::LOAD;
-		}
-		else
-		{
-			packet.instruction = Instruction::NOP;
-		}
-		packet.cycles += 4;
-		break;
-		//JUMP REL
-	case 0x18: //signed IMM
-		packet.source = Location::PC;
-		packet.dest = Location::PC;
-		packet.offset = (short)FetchPC();
-		packet.instruction = Instruction::LOAD;
-		break;
-		//JUMP REL IF
-	case 0x20: //Z reset, IMM signed
-		packet.source = Location::PC;
-		packet.dest = Location::PC;
-		packet.offset = (short) FetchPC();
-		if (!m_regs.Zero())
-		{
+			packet.dest = Location::SP;
+			packet.source = Location::WIDE_IMM;
+			packet.cycles += 12;
+			break;
+			//PUSH -> SP - 2
+		case 0xF5: //AF
+			SetIfNone(packet.source, Location::AF);
+		case 0xC5: //BC
+			SetIfNone(packet.source, Location::BC);
+		case 0xD5: //DE
+			SetIfNone(packet.source, Location::DE);
+		case 0xE5: //HL
+			SetIfNone(packet.source, Location::HL);
+			packet.address = m_regs.SP();
+			packet.dest = Location::MEM;
+			packet.instruction = Instruction::PUSH;
+			packet.cycles += 0;
+			break;
+			//POP
+		case 0xF1: //AF
+			SetIfNone(packet.dest, Location::AF);
+		case 0xC1: //BC
+			SetIfNone(packet.dest, Location::BC);
+		case 0xD1: //DE
+			SetIfNone(packet.dest, Location::DE);
+		case 0xE1: //HL
+			SetIfNone(packet.dest, Location::HL);
+			packet.address = m_regs.SP();
+			packet.source = Location::MEM;
+			packet.instruction = Instruction::POP;
+			packet.cycles += 4;
+			break;
+			//ADD to A, set zero if zero, reset nonzero, set h if carry bit 3, set c if carry from 7
+		case 0x80: //B
+		case 0x81: //C
+		case 0x82: //D
+		case 0x83: //E
+		case 0x84: //H
+		case 0x85: //L
+		case 0x86: //MEM(HL)
+		case 0x87: //A
+			packet.source = RegisterTable(op - 0x80, packet);
+		case 0xC6: //IMM
+			SetIfNone(packet.source, Location::IMM);
+			packet.instruction = Instruction::ADD;
+			packet.dest = Location::A;
+			packet.flag_mask.value = 0x0D;
+			packet.cycles += 4;
+			break;
+			//ADC -> Add X plus carry to A
+		case 0x88: //B
+		case 0x89: //C
+		case 0x8A: //D
+		case 0x8B: //E
+		case 0x8C: //H
+		case 0x8D: //L
+		case 0x8E: //MEM(HL)
+		case 0x8F: //A
+			packet.source = RegisterTable(op - 0x8F, packet);
+		case 0xCE: //IMM
+			SetIfNone(packet.source, Location::IMM);
+			packet.dest = Location::A;
+			packet.offset = m_regs.Carry() ? 1 : 0;
+			packet.flag_mask.value = 0x0D;
+			packet.cycles += 4;
+			break;
+			//SUB from A
+		case 0x90: //B
+		case 0x91: //C
+		case 0x92: //D
+		case 0x93: //E
+		case 0x94: //H
+		case 0x95: //L
+		case 0x96: //MEM(HL)
+		case 0x97: //A
+			packet.source = RegisterTable(op - 0x90, packet);
+		case 0xD6: //IMM
+			SetIfNone(packet.source, Location::IMM);
+			packet.dest = Location::A;
+			packet.flag_mask.value = 0x0F;
+			packet.cycles += 4;
+			break;
+			//SBC -> Sub X plus carry from A
+		case 0x98: //B
+		case 0x99: //C
+		case 0x9A: //D
+		case 0x9B: //E
+		case 0x9C: //H
+		case 0x9D: //L
+		case 0x9E: //MEM(HL)
+		case 0x9F: //A
+			//case 0x?? //IMM
+			packet.source = RegisterTable(op - 0x98, packet);
+			//SetIfNone(packet.source, Location::IMM);
+			packet.offset = m_regs.Carry() ? 1 : 0;
+			packet.dest = Location::A;
+			packet.flag_mask.value = 0x0F;
+			packet.cycles += 4;
+			break;
+			//AND with A
+		case 0xA0: //B
+		case 0xA1: //C
+		case 0xA2: //D
+		case 0xA3: //E
+		case 0xA4: //H
+		case 0xA5: //L
+		case 0xA6: //MEM(HL)
+		case 0xA7: //A
+			packet.source = RegisterTable(op - 0xA0, packet);
+		case 0xE6: //IMM
+			SetIfNone(packet.source, Location::IMM);
+			packet.instruction = Instruction::AND;
+			packet.dest = Location::A;
+			packet.flag_mask.value = 0x05;
+			packet.cycles += 4;
+			break;
+			//OR with A
+		case 0xB0: //B
+		case 0xB1: //C
+		case 0xB2: //D
+		case 0xB3: //E
+		case 0xB4: //H
+		case 0xB5: //L
+		case 0xB6: //MEM(HL)
+		case 0xB7: //A
+			packet.source = RegisterTable(op - 0xB0, packet);
+		case 0xF6: //IMM
+			SetIfNone(packet.source, Location::IMM);
+			packet.instruction = Instruction::OR;
+			packet.dest = Location::A;
+			packet.flag_mask.value = 0x01;
+			packet.cycles += 4;
+			break;
+			//XOR with A
+		case 0xA8: //B
+		case 0xA9: //C
+		case 0xAA: //D
+		case 0xAB: //E
+		case 0xAC: //H
+		case 0xAD: //L
+		case 0xAE: //MEM(HL)
+		case 0xAF: //A
+			packet.source = RegisterTable(op - 0xA8, packet);
+		case 0xEE: //IMM
+			SetIfNone(packet.source, Location::IMM);
+			packet.instruction = Instruction::XOR;
+			packet.dest = Location::A;
+			packet.flag_mask.value = 0x01;
+			packet.cycles += 4;
+			break;
+			//COMPARE
+		case 0xB8: //B
+		case 0xB9: //C
+		case 0xBA: //D
+		case 0xBB: //E
+		case 0xBC: //H
+		case 0xBD: //L
+		case 0xBE: //MEM(HL)
+		case 0xBF: //A
+			packet.source = RegisterTable(op - 0xB8, packet);
+		case 0xFE: //IMM
+			SetIfNone(packet.source, Location::IMM);
+			packet.instruction = Instruction::CP;
+			packet.dest = Location::A;
+			packet.flag_mask.value = 0x0F;
+			packet.cycles += 4;
+			break;
+			//INC
+		case 0x04: //B
+			SetIfNone(packet.dest, Location::B);
+		case 0x0C: //C
+			SetIfNone(packet.dest, Location::C);
+		case 0x14: //D
+			SetIfNone(packet.dest, Location::D);
+		case 0x1C: //E
+			SetIfNone(packet.dest, Location::E);
+		case 0x24: //H
+			SetIfNone(packet.dest, Location::H);
+		case 0x2C: //L
+			SetIfNone(packet.dest, Location::L);
+		case 0x34: //MEM(HL)
+			if (op == 0x34)
+			{
+				SetIfNone(packet.dest, Location::MEM);
+				packet.address = m_regs.HL();
+			}
+		case 0x3C: //A
+			SetIfNone(packet.source, Location::A);
+			packet.offset = 1;
+			packet.dest = packet.source;
 			packet.instruction = Instruction::LOAD;
-		}
-		else
-		{
-			packet.instruction = Instruction::NOP;
-		}
-		packet.cycles += 4;
-		break;
-	case 0x28: //Z set. IMM signed
-		packet.source = Location::PC;
-		packet.dest = Location::PC;
-		packet.offset = (short) FetchPC();
-		if (m_regs.Zero())
-		{
+			packet.flag_mask.value = 0x05;
+			packet.cycles += 4;
+			break;
+			//DEC
+		case 0x05: //B
+			SetIfNone(packet.dest, Location::B);
+		case 0x0D: //C
+			SetIfNone(packet.dest, Location::C);
+		case 0x15: //D
+			SetIfNone(packet.dest, Location::D);
+		case 0x1D: //E
+			SetIfNone(packet.dest, Location::E);
+		case 0x25: //H
+			SetIfNone(packet.dest, Location::H);
+		case 0x2D: //L
+			SetIfNone(packet.dest, Location::L);
+		case 0x35: //MEM(HL)
+			if (op == 0x35)
+			{
+				SetIfNone(packet.dest, Location::MEM);
+				packet.address = m_regs.HL();
+			}
+		case 0x3D: //A
+			SetIfNone(packet.source, Location::A);
+			packet.offset = -1;
+			packet.dest = packet.source;
 			packet.instruction = Instruction::LOAD;
-		}
-		else
-		{
-			packet.instruction = Instruction::NOP;
-		}
-		packet.cycles += 4;
-		break;
-	case 0x30: //C reset, IMM signed
-		packet.source = Location::PC;
-		packet.dest = Location::PC;
-		packet.offset = (short) FetchPC();
-		if (!m_regs.Carry())
-		{
+			packet.flag_mask.value = 0x07;
+			packet.cycles += 4;
+			break;
+			//ADD 16
+			//ADD TO HL
+		case 0x09: //BC
+			SetIfNone(packet.source, Location::BC);
+		case 0x19: //DE
+			SetIfNone(packet.source, Location::DE);
+		case 0x29: //HL
+			SetIfNone(packet.source, Location::HL);
+		case 0x39: //SP
+			SetIfNone(packet.source, Location::SP);
+			packet.dest = Location::HL;
+			packet.instruction = Instruction::ADD;
+			packet.flag_mask.value = 0x0C;
+			packet.cycles += 8;
+			break;
+			//ADD SP
+		case 0xE8: //IMM
+			packet.dest = Location::SP;
+			packet.source = Location::IMM;
+			packet.instruction = Instruction::ADD;
+			packet.flag_mask.value = 0x0C;
+			packet.cycles += 12;
+			break;
+			//INC16
+		case 0x03: //BC
+			SetIfNone(packet.dest, Location::BC);
+		case 0x13: //DE
+			SetIfNone(packet.dest, Location::DE);
+		case 0x23: //HL
+			SetIfNone(packet.dest, Location::HL);
+		case 0x33: //SP
+			SetIfNone(packet.dest, Location::SP);
+			packet.offset = 1;
+			packet.dest = packet.source;
 			packet.instruction = Instruction::LOAD;
-		}
-		else
-		{
-			packet.instruction = Instruction::NOP;
-		}
-		packet.cycles += 4;
-		break;
-	case 0x38: //C set, IMM signed
-		packet.source = Location::PC;
-		packet.dest = Location::PC;
-		packet.offset = (short) FetchPC();
-		if (m_regs.Carry())
-		{
+			packet.cycles += 8;
+			break;
+			//DEC16
+		case 0x0B: //BC
+			SetIfNone(packet.dest, Location::BC);
+		case 0x1B: //DE
+			SetIfNone(packet.dest, Location::DE);
+		case 0x2B: //HL
+			SetIfNone(packet.dest, Location::HL);
+		case 0x3B: //SP
+			SetIfNone(packet.dest, Location::SP);
+			packet.offset = -1;
+			packet.dest = packet.source;
 			packet.instruction = Instruction::LOAD;
-		}
-		else
-		{
+			packet.cycles += 8;
+			break;
+			//CB EXT
+		case 0xCB:
+			DecodeCB(packet);
+			break;
+			//DAA
+		case 0x27: //Decimal Adjust A
+			packet.instruction = Instruction::DAA;
+			packet.source = Location::A;
+			packet.dest = Location::A;
+			packet.cycles += 4;
+			break;
+			//CPL
+		case 0x2F: //A
+			packet.instruction = Instruction::CPL;
+			packet.source = Location::A;
+			packet.dest = Location::A;
+			packet.cycles += 4;
+			break;
+			//CCF 
+		case 0x3F: //Complement carry flag
+			packet.instruction = Instruction::CCF;
+			packet.source = Location::F;
+			packet.dest = Location::F;
+			packet.cycles += 4;
+			break;
+			//SCF
+		case 0x37: //Set carry flag
+			packet.instruction = Instruction::SCF;
+			packet.source = Location::F;
+			packet.dest = Location::F;
+			packet.cycles += 4;
+			break;
+			//NOP
+		case 0x00: //NOP
 			packet.instruction = Instruction::NOP;
-		}
-		packet.cycles += 4;
-		break;
-		//CALL
-	case 0xCD: //WIDE-IMM
-		PushPC();
-		packet.instruction = Instruction::LOAD;
-		packet.dest = Location::PC;
-		packet.source = Location::WIDE_IMM;
-		break;
-		//CALL IF
-	case 0xC4: //Z reset
-		PushPC();
-		packet.source = Location::PC;
-		packet.dest = Location::PC;
-		packet.offset = (short) FetchPC();
-		if (!m_regs.Zero())
-		{
+			packet.cycles += 4;
+			break;
+			//HALT
+		case 0x76: //Power down GBCPU until interrupt
+			packet.instruction = Instruction::HALT;
+			packet.cycles += 4;
+			break;
+			//STOP
+		case 0x10:
+			packet.instruction = Instruction::STOP;
+			packet.cycles += 4;
+			FetchPC();
+			break;
+			//DI
+		case 0xF3: //Disable interrupt after exec
+			packet.instruction = Instruction::DI;
+			packet.cycles += 4;
+			break;
+			//EI
+		case 0xFB: //Enable interrupt after exec
+			packet.instruction = Instruction::EI;
+			packet.cycles += 4;
+			break;
+			//ROT LEFT
+		case 0x17: //Rotate A left through carry flag
+			packet.instruction = Instruction::RLC;
+			packet.source = Location::A;
+			packet.dest = Location::A;
+			packet.cycles += 4;
+			break;
+		case 0x07: //Rotate A left, bit 0 to carry
+			packet.instruction = Instruction::RL;
+			packet.source = Location::A;
+			packet.dest = Location::A;
+			packet.cycles += 4;
+			break;
+			//ROT RIGHT
+		case 0x0F: //Rotate A right, bit 7 to carry
+			packet.instruction = Instruction::RR;
+			packet.source = Location::A;
+			packet.dest = Location::A;
+			packet.cycles += 4;
+			break;
+		case 0x1F: //Rotate A right through carry flag
+			packet.instruction = Instruction::RRC;
+			packet.source = Location::A;
+			packet.dest = Location::A;
+			packet.cycles += 4;
+			break;
+			//JUMP
+		case 0xC3: //WIDE-IMM
 			packet.instruction = Instruction::LOAD;
-		}
-		else
-		{
-			packet.instruction = Instruction::NOP;
-		}
-		packet.cycles += 4;
-	case 0xCC: //Z set
-		PushPC();
-		packet.source = Location::PC;
-		packet.dest = Location::PC;
-		packet.offset = (short) FetchPC();
-		if (m_regs.Zero())
-		{
+			packet.source = Location::WIDE_IMM;
+			packet.dest = Location::PC;
+			packet.cycles += 4;
+			break;
+		case 0xE9: //MEM(HL)
 			packet.instruction = Instruction::LOAD;
-		}
-		else
-		{
-			packet.instruction = Instruction::NOP;
-		}
-		packet.cycles += 4;
-	case 0xD4: //C reset
-		PushPC();
-		packet.source = Location::PC;
-		packet.dest = Location::PC;
-		packet.offset = (short) FetchPC();
-		if (!m_regs.Carry())
-		{
+			packet.source = Location::HL;
+			packet.dest = Location::PC;
+			packet.cycles += 4;
+			break;
+			//JUMP IF
+		case 0xC2: //Z reset
+			packet.source = Location::WIDE_IMM;
+			packet.dest = Location::PC;
+			if (!m_regs.Zero())
+			{
+				packet.instruction = Instruction::LOAD;
+			}
+			else
+			{
+				packet.instruction = Instruction::NOP;
+			}
+			packet.cycles += 4;
+			break;
+		case 0xCA: //Z set
+			packet.source = Location::WIDE_IMM;
+			packet.dest = Location::PC;
+			if (m_regs.Zero())
+			{
+				packet.instruction = Instruction::LOAD;
+			}
+			else
+			{
+				packet.instruction = Instruction::NOP;
+			}
+			packet.cycles += 4;
+			break;
+		case 0xD2: //C reset (no carry)
+			packet.source = Location::WIDE_IMM;
+			packet.dest = Location::PC;
+			if (!m_regs.Carry())
+			{
+				packet.instruction = Instruction::LOAD;
+			}
+			else
+			{
+				packet.instruction = Instruction::NOP;
+			}
+			packet.cycles += 4;
+			break;
+		case 0xDA: //C set (carry)
+			packet.source = Location::WIDE_IMM;
+			packet.dest = Location::PC;
+			if (m_regs.Carry())
+			{
+				packet.instruction = Instruction::LOAD;
+			}
+			else
+			{
+				packet.instruction = Instruction::NOP;
+			}
+			packet.cycles += 4;
+			break;
+			//JUMP REL
+		case 0x18: //signed IMM
+			packet.source = Location::PC;
+			packet.dest = Location::PC;
+			packet.offset = (short) FetchPC();
 			packet.instruction = Instruction::LOAD;
-		}
-		else
-		{
-			packet.instruction = Instruction::NOP;
-		}
-		packet.cycles += 4;
-	case 0xDC: //C set
-		PushPC();
-		packet.source = Location::PC;
-		packet.dest = Location::PC;
-		packet.offset = (short) FetchPC();
-		if (m_regs.Carry())
-		{
+			break;
+			//JUMP REL IF
+		case 0x20: //Z reset, IMM signed
+			packet.source = Location::PC;
+			packet.dest = Location::PC;
+			packet.offset = (short) FetchPC();
+			if (!m_regs.Zero())
+			{
+				packet.instruction = Instruction::LOAD;
+			}
+			else
+			{
+				packet.instruction = Instruction::NOP;
+			}
+			packet.cycles += 4;
+			break;
+		case 0x28: //Z set. IMM signed
+			packet.source = Location::PC;
+			packet.dest = Location::PC;
+			packet.offset = (short) FetchPC();
+			if (m_regs.Zero())
+			{
+				packet.instruction = Instruction::LOAD;
+			}
+			else
+			{
+				packet.instruction = Instruction::NOP;
+			}
+			packet.cycles += 4;
+			break;
+		case 0x30: //C reset, IMM signed
+			packet.source = Location::PC;
+			packet.dest = Location::PC;
+			packet.offset = (short) FetchPC();
+			if (!m_regs.Carry())
+			{
+				packet.instruction = Instruction::LOAD;
+			}
+			else
+			{
+				packet.instruction = Instruction::NOP;
+			}
+			packet.cycles += 4;
+			break;
+		case 0x38: //C set, IMM signed
+			packet.source = Location::PC;
+			packet.dest = Location::PC;
+			packet.offset = (short) FetchPC();
+			if (m_regs.Carry())
+			{
+				packet.instruction = Instruction::LOAD;
+			}
+			else
+			{
+				packet.instruction = Instruction::NOP;
+			}
+			packet.cycles += 4;
+			break;
+			//CALL
+		case 0xCD: //WIDE-IMM
+			PushPC();
 			packet.instruction = Instruction::LOAD;
-		}
-		else
-		{
-			packet.instruction = Instruction::NOP;
-		}
-		packet.cycles += 4;
-		break;
-		//RST (push PC onto stack and jump to 0 + n
-	case 0xC7: //00H
-	case 0xCF: //08H
-	case 0xD7: //10H
-	case 0xDF: //18H
-	case 0xE7: //20H
-	case 0xEF: //28H
-	case 0xF7: //30H
-	case 0xFF: //38H
-		PushPC();
-		packet.source = Location::NONE;
-		packet.offset = op - 0xC7;
-		packet.dest = Location::PC;
-		packet.instruction = Instruction::LOAD;
-		packet.cycles += 32;
-		break;
-		//RET
-	case 0xC9: //pop two bytes and jump to that address
-		PopPC();
-		packet.instruction = Instruction::NOP;
-		packet.cycles = 0;
-		break;
-		//RET IF
-	case 0xC0: //Z set
-		if (m_regs.Zero())
-		{
+			packet.dest = Location::PC;
+			packet.source = Location::WIDE_IMM;
+			break;
+			//CALL IF
+		case 0xC4: //Z reset
+			PushPC();
+			packet.source = Location::PC;
+			packet.dest = Location::PC;
+			packet.offset = (short) FetchPC();
+			if (!m_regs.Zero())
+			{
+				packet.instruction = Instruction::LOAD;
+			}
+			else
+			{
+				packet.instruction = Instruction::NOP;
+			}
+			packet.cycles += 4;
+		case 0xCC: //Z set
+			PushPC();
+			packet.source = Location::PC;
+			packet.dest = Location::PC;
+			packet.offset = (short) FetchPC();
+			if (m_regs.Zero())
+			{
+				packet.instruction = Instruction::LOAD;
+			}
+			else
+			{
+				packet.instruction = Instruction::NOP;
+			}
+			packet.cycles += 4;
+		case 0xD4: //C reset
+			PushPC();
+			packet.source = Location::PC;
+			packet.dest = Location::PC;
+			packet.offset = (short) FetchPC();
+			if (!m_regs.Carry())
+			{
+				packet.instruction = Instruction::LOAD;
+			}
+			else
+			{
+				packet.instruction = Instruction::NOP;
+			}
+			packet.cycles += 4;
+		case 0xDC: //C set
+			PushPC();
+			packet.source = Location::PC;
+			packet.dest = Location::PC;
+			packet.offset = (short) FetchPC();
+			if (m_regs.Carry())
+			{
+				packet.instruction = Instruction::LOAD;
+			}
+			else
+			{
+				packet.instruction = Instruction::NOP;
+			}
+			packet.cycles += 4;
+			break;
+			//RST (push PC onto stack and jump to 0 + n
+		case 0xC7: //00H
+		case 0xCF: //08H
+		case 0xD7: //10H
+		case 0xDF: //18H
+		case 0xE7: //20H
+		case 0xEF: //28H
+		case 0xF7: //30H
+		case 0xFF: //38H
+			PushPC();
+			packet.source = Location::NONE;
+			packet.offset = op - 0xC7;
+			packet.dest = Location::PC;
+			packet.instruction = Instruction::LOAD;
+			packet.cycles += 32;
+			break;
+			//RET
+		case 0xC9: //pop two bytes and jump to that address
 			PopPC();
-		}
-		packet.instruction = Instruction::NOP;
-		packet.cycles = 0;
-		break;
-	case 0xC8: //Z reset
-		if (!m_regs.Zero())
-		{
+			packet.instruction = Instruction::NOP;
+			packet.cycles = 0;
+			break;
+			//RET IF
+		case 0xC0: //Z set
+			if (m_regs.Zero())
+			{
+				PopPC();
+			}
+			packet.instruction = Instruction::NOP;
+			packet.cycles = 0;
+			break;
+		case 0xC8: //Z reset
+			if (!m_regs.Zero())
+			{
+				PopPC();
+			}
+			packet.instruction = Instruction::NOP;
+			packet.cycles = 0;
+			break;
+		case 0xD0: //C set
+			if (m_regs.Carry())
+			{
+				PopPC();
+			}
+			packet.instruction = Instruction::NOP;
+			packet.cycles = 0;
+			break;
+		case 0xD8: //C reset
+			if (!m_regs.Carry())
+			{
+				PopPC();
+			}
+			packet.instruction = Instruction::NOP;
+			packet.cycles = 0;
+			break;
+			//RETI
+		case 0xD9: //pop two bytes and dump to that address, then enable interrupts
 			PopPC();
+			packet.instruction = Instruction::EI;
+			packet.cycles = 0;
+			break;
+		default:
+			break;
 		}
-		packet.instruction = Instruction::NOP;
-		packet.cycles = 0;
-		break;
-	case 0xD0: //C set
-		if (m_regs.Carry())
-		{
-			PopPC();
-		}
-		packet.instruction = Instruction::NOP;
-		packet.cycles = 0;
-		break;
-	case 0xD8: //C reset
-		if (!m_regs.Carry())
-		{
-			PopPC();
-		}
-		packet.instruction = Instruction::NOP;
-		packet.cycles = 0;
-		break;
-		//RETI
-	case 0xD9: //pop two bytes and dump to that address, then enable interrupts
-		PopPC();
-		packet.instruction = Instruction::EI;
-		packet.cycles = 0;
-		break;
-	default:
-		break;
 	}
 	return packet;
 }
@@ -2015,11 +2020,6 @@ void GBCPU::ExecuteInstruction(InstructionPacket &packet)
 };
 
 
-void GBCPU::StepTimer()
-{
-
-}
-
 GBCPU::GBCPU()
 {
 	m_mem = new Memory();
@@ -2027,7 +2027,7 @@ GBCPU::GBCPU()
 
 GBCPU::~GBCPU()
 {
-
+	delete m_mem;
 }
 
 void GBCPU::Start()
@@ -2074,11 +2074,14 @@ void GBCPU::Start()
 }
 
 
-void GBCPU::Step()
+unsigned long GBCPU::Step()
 {
-	//Todo: Sync with cycles
+	unsigned long start_cycles = m_cycles;
+	InstructionPacket packet = DecodeInstruction();
+	ExecuteInstruction(packet);
 	m_mem->Step();
-	StepTimer();
+	return m_cycles - start_cycles;
+	//StepTimer();
 }
 
 
@@ -2127,3 +2130,12 @@ void GBCPU::HandleInterrupts()
 	m_mem->IF(0);
 }
 
+Memory *GBCPU::GetMem()
+{
+	return m_mem;
+}
+
+void GBCPU::RunGBFile(std::string filename)
+{
+	m_mem->LoadCartFromFile(filename);
+}

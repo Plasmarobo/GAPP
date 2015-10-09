@@ -218,18 +218,17 @@ protected:
 
 	Location RegisterTable(unsigned char index, InstructionPacket &packet);
 	Location MapLocation(unsigned char offset);
-	void StepTimer();
-	void StepVblank();
+	//void StepTimer();
 public:
 	GBCPU();
 	~GBCPU();
 	void Start();
-	void Step();
+	unsigned long Step();
 	virtual void Int(Interrupt int_code);
 	void RunGBFile(std::string rom_file);
 	void SaveState(std::string filename);
 	void LoadState(std::string filename);
-
+	Memory *GetMem();
 };
 
 

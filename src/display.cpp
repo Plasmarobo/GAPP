@@ -34,11 +34,11 @@ void Sprite::Blend(unsigned char *buffer, short w, unsigned char line)
 		return;
 	unsigned short addr = 160 * (y + line) + x;
 	unsigned char* line_data = FetchLine(line);
-	for(unsigned short offset = 0; offset < 8; ++offset)
+	for (unsigned short offset = 0; offset < 8; ++offset)
 	{
-		if(buffer[addr+offset] == 0)
+		if (buffer[addr + offset] == 0)
 		{
-			buffer[addr+offset] = line_data[offset];
+			buffer[addr + offset] = line_data[offset];
 		}
 	}
 }
@@ -92,6 +92,11 @@ Display::Display(Memory *pmem, GBCPU *pcpu, sf::RenderWindow *window)
 	m_display_state = LINE_SPRITES;
 	m_scanline = 0;
 	m_texture.create(160, 144);
+}
+
+Display::~Display()
+{
+	
 }
 
 unsigned char DecodeColor(unsigned char val)
@@ -259,7 +264,7 @@ void Display::Drawline()
 				tile_id = m_mem->Read(background_tilemap_addr + offset + tile_no);
 				unsigned char palette[4];
 				unsigned char pal = m_mem->BGP();
-				ApplyPalette(pal, &(palette[0]));
+				ApplyPalette(pal, palette);
 				unsigned char *px_data = FetchTileLine(tile_id, line + yoff, signed_tile_data, palette);
 				//Copy the tile to the screen, if it's the first tile, respect offset
 				for (unsigned int tile_x = xoff; tile_x < 8; ++tile_x)
@@ -293,7 +298,7 @@ void Display::Drawline()
 				tile_id = m_mem->Read(background_tilemap_addr + offset + tile_no);
 				unsigned char palette[4];
 				unsigned char pal = m_mem->BGP();
-				ApplyPalette(pal, &(palette[0]));
+				ApplyPalette(pal, palette);
 				unsigned char *px_data = FetchTileLine(tile_id, line + yoff, signed_tile_data, palette);
 				//Copy the tile to the screen, if it's the first tile, respect offset
 				for (unsigned int tile_x = xoff; tile_x < 8; ++tile_x)
@@ -343,18 +348,19 @@ void Display::Drawline()
 
 void Display::Present()
 {
+	m_window->clear(sf::Color(white_color));
 	sf::Sprite sprite;
 	unsigned char screenbuffer[160 * 144 * 4];
 	for (int i = 0; i < 160 * 144; ++i)
 	{
-		//Convert from g to rgba
 		screenbuffer[(i * 4)] = m_display[i];
 		screenbuffer[(i * 4) + 1] = m_display[i];
-		screenbuffer[(i * 4) + 2] = m_display[2];
+		screenbuffer[(i * 4) + 2] = m_display[i];
 		screenbuffer[(i * 4) + 3] = 255;
 	}
 	m_texture.update(screenbuffer, 160, 144, 0, 0);
 	sprite.setTexture(m_texture);
 	m_window->draw(sprite);
+	
 	m_window->display();
 }

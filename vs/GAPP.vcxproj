@@ -26,7 +26,6 @@
     <ClInclude Include="..\src\clk.h" />
     <ClInclude Include="..\src\cpu.h" />
     <ClInclude Include="..\src\display.h" />
-    <ClInclude Include="..\src\emulator.h" />
     <ClInclude Include="..\src\input.h" />
     <ClInclude Include="..\src\mem.h" />
     <ClInclude Include="..\src\utils.h" />
@@ -85,7 +84,7 @@
       <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;sfml-audio-d.lib;sfml-main-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy $(SolutionDir)..\dependencies\SFML-2.3.1-vs2013\bin\*.dll $(SolutionDir)..\bin\$(Configuration)  /Y /C</Command>
+      <Command>xcopy $(SolutionDir)..\dependencies\SFML-2.3.2\bin\*.dll $(SolutionDir)..\bin\$(Configuration)  /Y /C</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

@@ -365,13 +365,21 @@ void Memory::LoadCartFromFile(std::string rom_file)
 		file.close();
 		//CHECK Memory controller
 		Logger::PrintInfo("MEMORY", "Loaded " + rom_file);
-		unsigned int type_offset = 0x0134 + 15 + 2 + 1; //Skip title, license, sgb
-		unsigned int rom_size_offset = type_offset + 1;
-		unsigned int ram_size_offset = rom_size_offset + 1;
-		unsigned int rom_size;
-		unsigned int ram_size;
+		unsigned char title[15];
+		memcpy(&(title[0]), &(image[0x134]), 15);
+		unsigned char color_setting = image[0x143];
+		unsigned short new_licensee;
+		memcpy(&new_licensee, &(image[0x144]), 2);
+		unsigned char sgb = image[0x146];
+		unsigned char type = image[0x147];
+		unsigned int rom_size = image[0x148];
+		unsigned int ram_size = image[0x149];
+		unsigned char country = image[0x14A];
+		unsigned char licensee = image[0x14B];
+		unsigned char header_check = image[0x14C];
+		unsigned char global_check = image[0x14D];
 
-		switch (image[rom_size_offset])
+		switch (rom_size)
 		{
 		case 0x00:
 			rom_size = 32000;
@@ -403,7 +411,7 @@ void Memory::LoadCartFromFile(std::string rom_file)
 			break;
 		}
 		
-		switch (image[ram_size_offset])
+		switch (ram_size)
 		{
 		case 0x00:
 			ram_size = 0;
@@ -423,7 +431,7 @@ void Memory::LoadCartFromFile(std::string rom_file)
 			break;
 		}
 
-		switch (image[type_offset])
+		switch (type)
 		{
 		case 0x00: //ROM
 		case 0x08: //ROM+RAM
@@ -720,4 +728,21 @@ void Memory::Step()
 	//Update TIMER
 	//Update DIV
 	//Update SB (serial buffer)
+}
+
+void Memory::SetKeyStates(unsigned char bits)
+{
+	if (P15())
+	{
+		P1((bits >> 4) | 0x20);
+		
+	}
+	else if (P14())
+	{
+		P1((bits & 0x0F) | 0x10);
+	}
+	else
+	{
+		P1(0);
+	}
 }

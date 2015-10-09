@@ -242,6 +242,8 @@ public:
 	bool B() { return m_internal_memory.io_ports[0] & 0x22; }
 	bool Sel() { return m_internal_memory.io_ports[0] & 0x24; }
 	bool Start() { return m_internal_memory.io_ports[0] & 0x28; }
+	//RLUDABSelSta
+	void SetKeyStates(unsigned char bits);
 	//SERIAL
 	void SB(unsigned char val) { m_internal_memory.io_ports[1] = val; }
 	unsigned char SB() { return m_internal_memory.io_ports[1]; }
