@@ -4,7 +4,8 @@
 
 typedef enum Interrupt
 {
-	VBLANK_INT,
+	
+	VBLANK_INT = 0,
 	LCDC_INT, //Hblank int
 	TIME_INT,
 	SERIAL_INT,

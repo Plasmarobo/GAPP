@@ -2071,6 +2071,7 @@ void GBCPU::Start()
     m_mem->WY(0x00);
     m_mem->WX(0x00);
     m_mem->IE(0x00);
+	m_halted = false;
 }
 
 
@@ -2095,18 +2096,17 @@ void GBCPU::Int(Interrupt int_code)
 void GBCPU::HandleInterrupts()
 {
 	int int_code;
-	if(this->m_interrupt_enable)
+	
+	if(this->m_interrupt_enable && (m_mem->IF() != 0))
 	{
 		for(int_code = VBLANK_INT; int_code < NUM_INTS; ++int_code)
 		{
 			if (((m_mem->IE() >> int_code) & 0x1) && ((m_mem->IF() >> int_code) & 0x1))
 			{
-				
 				break;
 			}
 		}
-		this->PushPC();
-		unsigned short addr = m_regs.PC();
+		
 		switch(int_code)
 		{
 			case VBLANK_INT:
@@ -2123,11 +2123,15 @@ void GBCPU::HandleInterrupts()
 				break;
 			default:
 				Logger::RaiseError("GBCPU", "Unrecognized interrupt");
+				m_mem->IF(0);
+				return;
 				break;
 		}
+		this->PushPC();
 		this->m_interrupt_enable = false;
+		m_mem->IF(0);
 	}
-	m_mem->IF(0);
+	
 }
 
 Memory *GBCPU::GetMem()

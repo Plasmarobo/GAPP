@@ -198,7 +198,6 @@ protected:
 	bool m_interrupt_enable;
 	bool m_halted;
 	bool m_stopped;
-	unsigned char m_inerrupt;
 
 	void HandleInterrupts();
 	InstructionPacket DecodeInstruction();

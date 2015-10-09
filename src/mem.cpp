@@ -23,7 +23,9 @@ Cart::Cart()
 
 Cart::Cart(unsigned char *rom, unsigned int rom_size, unsigned int ram_size)
 {
-	m_rom = rom;
+	m_rom = new unsigned char[rom_size];
+	m_rom_size = rom_size;
+	memcpy(m_rom, rom, rom_size);
 	if (ram_size > 0)
 	{
 		m_ram = new unsigned char[ram_size];
@@ -417,17 +419,17 @@ void Memory::LoadCartFromFile(std::string rom_file)
 			ram_size = 0;
 			break;
 		case 0x01:
-			rom_size = 2000;
+			ram_size = 2000;
 			break;
 		case 0x02:
-			rom_size = 8000;
+			ram_size = 8000;
 			break;
 		case 0x03:
-			rom_size = 32000;
+			ram_size = 32000;
 			break;
 		default:
 			Logger::RaiseError("MEMORY", "Invalid RAM size");
-			rom_size = 0;
+			ram_size = 0;
 			break;
 		}
 
@@ -479,6 +481,7 @@ void Memory::LoadCartFromFile(std::string rom_file)
 	{
 		Logger::RaiseError("MEMORY", "Cannot open gb file: " + rom_file);
 	}
+	delete [] image;
 }
 
 void Memory::Inc(unsigned short addr)
