@@ -1541,7 +1541,7 @@ int GBCPU::ReadLocation(Location l, InstructionPacket &packet)
 
 void GBCPU::WriteLocation(Location l, InstructionPacket &packet, int value)
 {
-	switch (packet.source)
+	switch (packet.dest)
 	{
 	case Location::A:
 		m_regs.A(value);
@@ -1612,10 +1612,10 @@ void GBCPU::ExecuteInstruction(InstructionPacket &packet)
 	case Instruction::LOAD:
 		{
 			int val = ReadLocation(packet.source, packet);
-			int res = 0;
+			
 			if (packet.offset != 0)
 			{
-				res = val + packet.offset;
+				int res = val + packet.offset;
 				if (packet.offset == 1)
 				{
 					//INC
@@ -1639,8 +1639,13 @@ void GBCPU::ExecuteInstruction(InstructionPacket &packet)
 						m_regs.SetFlags(res == 0, false, HalfCarry(val, packet.offset), m_regs.Carry());
 					}
 				}
+				WriteLocation(packet.dest, packet, res);
 			}
-			WriteLocation(packet.dest, packet, res);
+			else
+			{
+				WriteLocation(packet.dest, packet, val);
+			}
+			
 		}
 		break;
 	case Instruction::ADD:
@@ -2026,6 +2031,7 @@ void GBCPU::ExecuteInstruction(InstructionPacket &packet)
 GBCPU::GBCPU()
 {
 	m_mem = new Memory();
+	m_cycles = 0;
 }
 
 GBCPU::~GBCPU()
@@ -2074,6 +2080,7 @@ void GBCPU::Start()
     m_mem->WY(0x00);
     m_mem->WX(0x00);
     m_mem->IE(0x00);
+	m_mem->IF(0);
 	m_halted = false;
 }
 

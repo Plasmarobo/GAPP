@@ -11,24 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\audio.cpp" />
-    <ClCompile Include="..\src\clk.cpp" />
-    <ClCompile Include="..\src\cpu.cpp" />
-    <ClCompile Include="..\src\display.cpp" />
-    <ClCompile Include="..\src\input.cpp" />
     <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\mem.cpp" />
-    <ClCompile Include="..\src\utils.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\src\audio.h" />
-    <ClInclude Include="..\src\base.h" />
-    <ClInclude Include="..\src\clk.h" />
-    <ClInclude Include="..\src\cpu.h" />
-    <ClInclude Include="..\src\display.h" />
-    <ClInclude Include="..\src\input.h" />
-    <ClInclude Include="..\src\mem.h" />
-    <ClInclude Include="..\src\utils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{AC82A912-A43F-4102-91BC-0E1F1CE4675F}</ProjectGuid>
@@ -80,8 +63,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\dependencies\SFML-2.3.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;sfml-audio-d.lib;sfml-main-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\lib;..\dependencies\SFML-2.3.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>GBLib.lib;sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;sfml-audio-d.lib;sfml-main-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy $(SolutionDir)..\dependencies\SFML-2.3.2\bin\*.dll $(SolutionDir)..\bin\$(Configuration)  /Y /C</Command>

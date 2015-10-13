@@ -476,15 +476,17 @@ void Memory::LoadCartFromFile(std::string rom_file)
 		case 0xFE:
 		case 0xFF:
 		default:
+			m_cart = new Cart(image, rom_size, ram_size);
 			Logger::RaiseError("MEMORY", "Unknown Cart Type");
 			break;
 		}
+		delete [] image;
 	}
 	else
 	{
 		Logger::RaiseError("MEMORY", "Cannot open gb file: " + rom_file);
 	}
-	delete [] image;
+	
 }
 
 void Memory::Inc(unsigned short addr)
