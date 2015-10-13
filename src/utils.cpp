@@ -2,6 +2,11 @@
 #include <fstream>
 #include <iostream>
 
+#ifdef _DEBUG
+#include <assert.h>
+#include <intrin.h>
+#endif
+
 std::fstream Logger::m_log_file;
 
 Logger::Logger(std::string filename)
@@ -25,6 +30,9 @@ void Logger::RaiseError(std::string tag, std::string message)
 	{
 		m_log_file << entry << std::endl;
 	}
+#ifdef _DEBUG
+	__debugbreak();
+#endif
 }
 
 void Logger::PrintInfo(std::string tag, std::string message)

@@ -10,6 +10,68 @@
 #define Carry8b(dst,src) ((dst&0xff)+(src&0xff))&0x100
 #define Borrow8b(dst,src) ((dst&0xff)-(src&0xff))<0
 
+const std::string location_names[NUM_LOCATIONS] = {
+	"NONE",
+	"B",
+	"C",
+	"D",
+	"E",
+	"H",
+	"L",
+	"A",
+	"F",
+	"AF",
+	"BC",
+	"DE",
+	"HL",
+	"SP",
+	"PC",
+	"MEM", //Memory address 16b
+	"IMM", //8b
+	"WIDE_IMM", //16b
+	"OFFSET", //Memory address given by FF00 + n (8b)
+	"WIDE_OFFSET", //Memory address given by FF00+n (16b)
+	"PORT",
+	"STACK"
+};
+
+const
+std::string instruction_names[NUM_INSTRUCTIONS] =
+{
+	"NON",
+	"NOP",
+	"LOAD",
+	"ADD",
+	"ADC",
+	"SUB",
+	"SBC",
+	"STOP",
+	"HALT",
+	"AND",
+	"OR",
+	"XOR",
+	"CP",
+	"RLC",
+	"RL",
+	"RRC",
+	"RR",
+	"SRS", //Shift right signed
+	"SL",
+	"SR",
+	"DAA",
+	"CPL",
+	"SCF",
+	"CCF",
+	"POP",
+	"PUSH",
+	"DI",
+	"EI",
+	"BIT",
+	"RES",
+	"SET",
+	"SWAP"
+};
+
 
 Register::Register()
 {
@@ -29,6 +91,14 @@ Location GBCPU::MapLocation(unsigned char offset)
 	}
 }
 
+void InstructionPacket::Print(std::ostream &stream)
+{
+	stream << "Cycle" << std::endl;
+	stream << "Instruction: " << instruction_names[instruction] << std::endl;
+	stream << "Address: " << address << std::endl;
+	stream << "Source: " << location_names[source] << std::endl;
+	stream << "Destination: " << location_names[dest] << std::endl;
+}
 
 void GBCPU::StackPush(unsigned char byte)
 {
@@ -128,6 +198,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0xF2: //MEM(0xFF00 + C)
 			if (packet.address == -1) packet.address = 0xFF00 + m_regs.C();
 		case 0xFA: //MEM(WIDE IMM LS -> MS)
+			packet.instruction = Instruction::LOAD;
 			packet.source = Location::MEM;
 			if (packet.address == -1) packet.address = FetchPC16();
 			packet.dest = Location::A;
@@ -231,6 +302,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.cycles += 4;
 			break;
 		case 0x36: //IMM
+			packet.instruction = Instruction::LOAD;
 			packet.source = Location::IMM;
 			packet.dest = Location::MEM;
 			packet.address = m_regs.HL();
@@ -359,6 +431,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x8F: //A
 			packet.source = RegisterTable(op - 0x8F, packet);
 		case 0xCE: //IMM
+			packet.instruction = Instruction::ADC;
 			SetIfNone(packet.source, Location::IMM);
 			packet.dest = Location::A;
 			packet.offset = m_regs.Carry() ? 1 : 0;
@@ -376,6 +449,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x97: //A
 			packet.source = RegisterTable(op - 0x90, packet);
 		case 0xD6: //IMM
+			packet.instruction = Instruction::SUB;
 			SetIfNone(packet.source, Location::IMM);
 			packet.dest = Location::A;
 			packet.flag_mask.value = 0x0F;
@@ -391,6 +465,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x9E: //MEM(HL)
 		case 0x9F: //A
 			//case 0x?? //IMM
+			packet.instruction = Instruction::SBC;
 			packet.source = RegisterTable(op - 0x98, packet);
 			//SetIfNone(packet.source, Location::IMM);
 			packet.offset = m_regs.Carry() ? 1 : 0;
@@ -912,6 +987,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.cycles = 0;
 			break;
 		default:
+			Logger::RaiseError("CPU", "Unknown Opcode");
 			break;
 		}
 	}
@@ -1402,6 +1478,7 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 			packet.offset = 7;
 			break;
 		default:
+			Logger::RaiseError("CPU", "Unknown CB code");
 			break;
 		}
 	}
@@ -2091,11 +2168,7 @@ unsigned long GBCPU::Step()
 
 	InstructionPacket packet = DecodeInstruction();
 #ifdef _DEBUG
-	std::cout << "Cycle" << std::endl;
-	std::cout << "Instruction: " << packet.instruction << std::endl;
-	std::cout << "Address: " << packet.address << std::endl;
-	std::cout << "Source: " << packet.source << std::endl;
-	std::cout << "Destination: " << packet.dest << std::endl;
+	packet.Print(std::cout);
 #endif
 	ExecuteInstruction(packet);
 	m_mem->Step();

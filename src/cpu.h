@@ -29,7 +29,9 @@ typedef enum Location
 	WIDE_OFFSET, //Memory address given by FF00+n (16b)
 	PORT,
 	STACK,
+	NUM_LOCATIONS
 };
+
 
 typedef enum Instruction
 {
@@ -64,7 +66,8 @@ typedef enum Instruction
 	BIT,
 	RES,
 	SET,
-	SWAP
+	SWAP,
+	NUM_INSTRUCTIONS
 };
 
 
@@ -186,6 +189,8 @@ struct InstructionPacket
 		instruction = Instruction::NON;
 		flag_mask.value = 0;
 	}
+
+	void Print(std::ostream &stream);
 };
 
 class GBCPU : protected Interruptable
