@@ -83,20 +83,24 @@ bool PrioritySprite::operator()(const Sprite &lhs, const Sprite &rhs)
 }
 
 
-Display::Display(Memory *pmem, GBCPU *pcpu, sf::RenderWindow *window)
+Display::Display(Memory *pmem, GBCPU *pcpu)
 {
 	m_mem = pmem;
 	m_cpu = pcpu;
-	m_window = window;
+	
 	m_vsync_counter = 0;
 	m_display_state = LINE_SPRITES;
 	m_scanline = 0;
-	m_texture.create(160, 144);
 }
 
 Display::~Display()
 {
 	
+}
+
+DisplayStates Display::GetState()
+{
+	return m_display_state;
 }
 
 unsigned char DecodeColor(unsigned char val)
@@ -191,7 +195,7 @@ void Display::Step()
 		if (m_scanline == 144)
 		{
 			//INTERRUPT
-			Present();
+			//Present();
 			WriteStat(1);
 			m_cpu->Int(VBLANK_INT);
 			m_display_state = VBLANK;
@@ -346,11 +350,10 @@ void Display::Drawline()
 	}
 }
 
-void Display::Present()
+unsigned char* Display::GetRGBA()
 {
-	m_window->clear(sf::Color(white_color));
-	sf::Sprite sprite;
-	unsigned char screenbuffer[160 * 144 * 4];
+	
+	unsigned char* screenbuffer = new unsigned char[160 * 144 * 4];
 	for (int i = 0; i < 160 * 144; ++i)
 	{
 		screenbuffer[(i * 4)] = m_display[i];
@@ -358,9 +361,6 @@ void Display::Present()
 		screenbuffer[(i * 4) + 2] = m_display[i];
 		screenbuffer[(i * 4) + 3] = 255;
 	}
-	m_texture.update(screenbuffer, 160, 144, 0, 0);
-	sprite.setTexture(m_texture);
-	m_window->draw(sprite);
-	
-	m_window->display();
+
+	return screenbuffer;
 }

@@ -93,11 +93,12 @@ Location GBCPU::MapLocation(unsigned char offset)
 
 void InstructionPacket::Print(std::ostream &stream)
 {
-	stream << "Cycle" << std::endl;
+	stream << "+++++++++++++++++++++++Instruction Packet+++++++++++++++++++++++" << std::endl;
 	stream << "Instruction: " << instruction_names[instruction] << std::endl;
-	stream << "Address: " << address << std::endl;
+	stream << "Address: " << std::hex << "0x" << address << std::endl;
 	stream << "Source: " << location_names[source] << std::endl;
 	stream << "Destination: " << location_names[dest] << std::endl;
+	stream << "+++++++++++++++++++++++    End Packet    +++++++++++++++++++++++" << std::endl;
 }
 
 void GBCPU::StackPush(unsigned char byte)
@@ -124,7 +125,7 @@ void GBCPU::PopPC()
 {
 	unsigned short pc = m_regs.PC();
 	pc = StackPop();
-	pc = StackPop() + (pc << 8); //LSB\
+	pc = StackPop() + (pc << 8); //LSB
 
 }
 
@@ -1489,6 +1490,9 @@ unsigned char GBCPU::FetchPC()
 	unsigned char byte = m_mem->Read(m_regs.PC());
 	m_regs.IncPC();
 	m_cycles += 4;
+#ifdef _DEBUG
+	std::cout << "FetchPC returned 0x" << std::hex << (int)byte << std::endl;
+#endif
 	return byte;
 }
 
@@ -1496,7 +1500,9 @@ unsigned short GBCPU::FetchPC16()
 {
 	unsigned short bytes = FetchPC();
 	bytes = (FetchPC() << 8) + bytes;
-	m_cycles += 8;
+#ifdef _DEBUG
+	std::cout << "FetchPC16 returned 0x" << std::hex << (int)bytes << std::endl;
+#endif
 	return bytes;
 }
 
@@ -1618,6 +1624,9 @@ int GBCPU::ReadLocation(Location l, InstructionPacket &packet)
 
 void GBCPU::WriteLocation(Location l, InstructionPacket &packet, int value)
 {
+#ifdef _DEBUG
+	std::cout << "Writing location " << location_names[packet.dest] << " with " << std::hex << value << std::endl;
+#endif
 	switch (packet.dest)
 	{
 	case Location::A:
@@ -2165,7 +2174,9 @@ void GBCPU::Start()
 unsigned long GBCPU::Step()
 {
 	unsigned long start_cycles = m_cycles;
-
+#ifdef _DEBUG
+	std::cout << "Current PC: " << std::hex << "0x" << (int)m_regs.PC() << std::endl;
+#endif
 	InstructionPacket packet = DecodeInstruction();
 #ifdef _DEBUG
 	packet.Print(std::cout);

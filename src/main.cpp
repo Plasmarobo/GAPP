@@ -39,6 +39,10 @@ double RealElapsedTime(void) {
 int main()
 {
 	sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
+	sf::Texture tx;
+	sf::Sprite spi;
+	tx.create(160, 144);
+	
 	sf::CircleShape shape(100.f);
 	shape.setFillColor(sf::Color::Green);
 #ifdef _DEBUG
@@ -72,6 +76,13 @@ int main()
 			input->Step();
 			gbcpu->Step(); //may consume more than one cycle!
 			display->Step();
+			if (display->GetState() == DisplayStates::VBLANK)
+			{
+				tx.update(display->GetRGBA(), 0, 0);
+				spi.setTexture(tx);
+				window.draw(spi);
+				window.display();
+			}
 #ifdef _DEBUG
 		}
 #endif

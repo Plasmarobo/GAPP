@@ -3,7 +3,7 @@
 #include "clk.h"
 #include "mem.h"
 #include "cpu.h"
-#include <SFML\Graphics.hpp>
+
 
 enum DisplayStates
 {
@@ -69,17 +69,16 @@ protected:
 	unsigned char m_display_state;
 	Memory *m_mem;
 	GBCPU *m_cpu;
-	sf::RenderWindow* m_window;
-	sf::Texture m_texture;
-	
+
 	void WriteStat(unsigned char mode);
 	unsigned char* FetchTileLine(unsigned char tile, unsigned char line, bool signed_flag, unsigned char *palette);
 	
 public:
-	Display(Memory *pmem, GBCPU *pcpu, sf::RenderWindow *window);
+	Display(Memory *pmem, GBCPU *pcpu);
 	~Display();
-
-	void Present();
+	
+	unsigned char* GetRGBA();
+	DisplayStates GetState();
 	void Drawline();
 	void Step();
 
