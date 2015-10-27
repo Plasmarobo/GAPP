@@ -5,6 +5,7 @@
     <Grid>
         <RichTextBox x:Name="Assembly" Width="400" Margin="10,10,0,10" HorizontalAlignment="Left"/>
         <RichTextBox x:Name="Execution" Width="400" Margin="0,10,10,10" HorizontalAlignment="Right"/>
+        <Button Content="Save" HorizontalAlignment="Left" Margin="415,714,0,0" VerticalAlignment="Top" Width="62" Click="SaveASM"/>
         <Button Content="Run" HorizontalAlignment="Left" Margin="415,739,0,0" VerticalAlignment="Top" Width="62" Click="CompileAndRun"/>
     </Grid>
 </Window>

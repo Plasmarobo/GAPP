@@ -1,5 +1,4 @@
 #include "display.h"
-#include <SFML\Graphics.hpp>
 #include <queue>
 #include <vector>
 

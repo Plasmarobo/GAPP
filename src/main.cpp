@@ -49,7 +49,7 @@ int main()
 	timerCurrent = RealElapsedTime();
 #endif
 	GBCPU *gbcpu = new GBCPU();
-	Display *display = new Display(gbcpu->GetMem(), gbcpu, &window);
+	Display *display = new Display(gbcpu->GetMem(), gbcpu);
 	Input *input = new Input(gbcpu, gbcpu->GetMem());
 
 	gbcpu->RunGBFile("pokemon_blue.gb");
@@ -78,7 +78,7 @@ int main()
 			display->Step();
 			if (display->GetState() == DisplayStates::VBLANK)
 			{
-				tx.update(display->GetRGBA(), 0, 0);
+				tx.update(display->GetRGBA(), 0, 0, 0, 0);
 				spi.setTexture(tx);
 				window.draw(spi);
 				window.display();

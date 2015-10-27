@@ -6,6 +6,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="160" d:DesignWidth="144">
     <Grid>
-            
+        <Image x:Name="DisplayFrame" Width="160" Height="144" KeyDown="DisplayFrame_KeyDown" KeyUp="DisplayFrame_KeyUp"></Image>
     </Grid>
 </UserControl>

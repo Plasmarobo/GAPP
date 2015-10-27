@@ -59,7 +59,7 @@ int main()
 	for (unsigned int i = 0; i < n_tests; ++i)
 	{
 		GBCPU *gbcpu = new GBCPU();
-		Display *display = new Display(gbcpu->GetMem(), gbcpu, &window);
+		Display *display = new Display(gbcpu->GetMem(), gbcpu);
 		Input *input = new Input(gbcpu, gbcpu->GetMem());
 
 		gbcpu->RunGBFile(tests[i]);

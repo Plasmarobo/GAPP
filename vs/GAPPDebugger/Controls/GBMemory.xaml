@@ -1,11 +1,16 @@
-﻿<UserControl x:Class="GAPPDebugger.Controls.GBMemory"
+﻿<UserControl
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GAPPDebugger.Controls" x:Class="GAPPDebugger.Controls.GBMemory" 
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
-    <Grid>
-            
-    </Grid>
+             d:DesignHeight="300" d:DesignWidth="320">
+    <StackPanel Width="320" Height="300">
+        <TextBox x:Name="SearchBox" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" TextChanged="SearchBox_TextChanged" Width="320"/>
+        <ScrollViewer Width="320" Height="277" Margin="0,2,0,0" >
+            <StackPanel x:Name="MemoryContents" Orientation="Vertical"/>
+        </ScrollViewer>
+        
+    </StackPanel>
 </UserControl>

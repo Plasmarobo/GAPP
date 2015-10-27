@@ -1,18 +1,20 @@
 #include "input.h"
 
+
 Input::Input(GBCPU *gbcpu, Memory *mem)
 {
 	m_cpu = gbcpu;
 	m_mem = mem;
 	//Default mappings
-	m_keymap[Buttons::BTNA] = sf::Keyboard::Key::A;
-	m_keymap[Buttons::BTNB] = sf::Keyboard::Key::S;
-	m_keymap[Buttons::START] = sf::Keyboard::Key::Return;
-	m_keymap[Buttons::SELECT] = sf::Keyboard::Key::RShift;
-	m_keymap[Buttons::UP] = sf::Keyboard::Key::Up;
-	m_keymap[Buttons::DOWN] = sf::Keyboard::Key::Down;
-	m_keymap[Buttons::LEFT] = sf::Keyboard::Key::Left;
-	m_keymap[Buttons::RIGHT] = sf::Keyboard::Key::Right;
+	m_keymap[Buttons::BTNA] = KEY_A; //A
+	m_keymap[Buttons::BTNB] = KEY_S; //S
+	
+	m_keymap[Buttons::START] = KEY_START; //Return
+	m_keymap[Buttons::SELECT] = KEY_SELECT; //Rshift
+	m_keymap[Buttons::UP] = KEY_UP; //up
+	m_keymap[Buttons::DOWN] = KEY_DOWN; //down
+	m_keymap[Buttons::LEFT] = KEY_LEFT; //left
+	m_keymap[Buttons::RIGHT] = KEY_RIGHT; //right
 
 }
 
@@ -22,7 +24,7 @@ void Input::Step()
 	m_mem->SetKeyStates(GetBits());
 }
 
-void Input::KeyDown(sf::Keyboard::Key key)
+void Input::KeyDown(unsigned int key)
 {
 	for (int b = Buttons::BTNA; b < Buttons::BUTTONS_COUNT; ++b)
 	{
@@ -35,7 +37,7 @@ void Input::KeyDown(sf::Keyboard::Key key)
 	}
 }
 
-void Input::KeyUp(sf::Keyboard::Key key)
+void Input::KeyUp(unsigned int key)
 {
 	for (int b = Buttons::BTNA; b < Buttons::BUTTONS_COUNT; ++b)
 	{
@@ -47,7 +49,7 @@ void Input::KeyUp(sf::Keyboard::Key key)
 	}
 }
 
-void Input::MapKey(sf::Keyboard::Key key, Buttons button)
+void Input::MapKey(unsigned int key, Buttons button)
 {
 	m_keymap[button] = key;
 }

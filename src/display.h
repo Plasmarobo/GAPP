@@ -66,7 +66,7 @@ protected:
 	unsigned char m_scanline;
 	unsigned int m_vsync_counter;
 	unsigned int m_hsync_counter;
-	unsigned char m_display_state;
+	DisplayStates m_display_state;
 	Memory *m_mem;
 	GBCPU *m_cpu;
 

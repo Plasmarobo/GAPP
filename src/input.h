@@ -2,7 +2,19 @@
 #define INPUT_H
 #include "cpu.h"
 #include "mem.h"
-#include <SFML/Window.hpp>
+
+enum DefaultKeys
+{
+	UNKNOWN_KEY = -1,
+	KEY_A = 0,
+	KEY_S = 18,
+	KEY_SELECT = 42,
+	KEY_START = 58,
+	KEY_LEFT = 68,
+	KEY_RIGHT = 69,
+	KEY_UP = 70,
+	KEY_DOWN = 71,
+};
 
 enum Buttons
 {
@@ -26,16 +38,16 @@ class Input
 protected:
 	GBCPU* m_cpu;
 	Memory* m_mem;
-	sf::Keyboard::Key m_keymap[Buttons::BUTTONS_COUNT];
+	unsigned int m_keymap[Buttons::BUTTONS_COUNT];
 	bool m_keystates[Buttons::BUTTONS_COUNT];
 	void SetState(Buttons b, bool state);
 public:
 	Input(GBCPU* gbcpu, Memory *mem);
 
 	void Step();
-	void KeyDown(sf::Keyboard::Key key);
-	void KeyUp(sf::Keyboard::Key key);
-	void MapKey(sf::Keyboard::Key key, Buttons button);
+	void KeyDown(unsigned int key);
+	void KeyUp(unsigned int key);
+	void MapKey(unsigned int key, Buttons button);
 	unsigned char GetBits();
 };
 
