@@ -10,211 +10,204 @@ namespace GAPPDebugger
 {
     class Assembler : IGBASMListener
     {
+        private GAPPDebugger.Controls.AssemblerProgress window;
+        private List<Byte> rom;
+        private AntlrFileStream inputStream;
+        private GBASMLexer lexer;
+        private CommonTokenStream tokenStream;
+        private GBASMParser parser;
 
         public Assembler()
         {
+            window = new GAPPDebugger.Controls.AssemblerProgress();
+            
         }
 
-        public bool Assemble(String filename)
+        public void PrintLine(String line)
         {
-            AntlrFileStream inputStream = new AntlrFileStream(filename);
-            GBASMLexer lexer = new GBASMLexer(inputStream);
-            CommonTokenStream tokenStream = new CommonTokenStream(lexer);
-            GBASMParser parser = new GBASMParser(tokenStream);
+            window.ConsoleWin.Text += line + "\n";
+        }
+
+        public List<Byte> Assemble(String filename)
+        {
+            window.Show();
+            window.Focus();
+            rom = new List<byte>();
+            inputStream = new AntlrFileStream(filename);
+            lexer = new GBASMLexer(inputStream);
+            tokenStream = new CommonTokenStream(lexer);
+            parser = new GBASMParser(tokenStream);
+            
             parser.BuildParseTree = true;
             Antlr4.Runtime.Tree.IParseTree tree = parser.eval();
             Antlr4.Runtime.Tree.ParseTreeWalker.Default.Walk(this, tree);
-            return true;
+            return rom;
         }
+
 
         public void EnterEval(GBASMParser.EvalContext context)
         {
-            //Do nothing
+            PrintLine("Starting");
         }
 
         public void ExitEval(GBASMParser.EvalContext context)
         {
-            //EOF must have been reached
+            PrintLine("Finished");
         }
 
         public void EnterExp(GBASMParser.ExpContext context)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void ExitExp(GBASMParser.ExpContext context)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void EnterOp(GBASMParser.OpContext context)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void ExitOp(GBASMParser.OpContext context)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
-        public void EnterJumpflag(GBASMParser.JumpflagContext context)
+        public void EnterMonad(GBASMParser.MonadContext context)
         {
-            throw new NotImplementedException();
+            PrintLine("Monad Detected");
+            PrintLine(context.GetText());
+            //throw new NotImplementedException();
         }
 
-        public void ExitJumpflag(GBASMParser.JumpflagContext context)
+        public void ExitMonad(GBASMParser.MonadContext context)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
-        public void EnterComplexop(GBASMParser.ComplexopContext context)
+        public void EnterBiad(GBASMParser.BiadContext context)
         {
-            throw new NotImplementedException();
+            PrintLine("Biad Detected");
+            PrintLine(context.GetText());
+            //throw new NotImplementedException();
         }
 
-        public void ExitComplexop(GBASMParser.ComplexopContext context)
+        public void ExitBiad(GBASMParser.BiadContext context)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
-        public void EnterCmd(GBASMParser.CmdContext context)
+        public void EnterTriad(GBASMParser.TriadContext context)
         {
-            throw new NotImplementedException();
+            PrintLine("Triad Detected");
+            PrintLine(context.GetText());
+            //throw new NotImplementedException();
         }
 
-        public void ExitCmd(GBASMParser.CmdContext context)
+        public void ExitTriad(GBASMParser.TriadContext context)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
-        public void EnterRegop(GBASMParser.RegopContext context)
+        public void EnterArg(GBASMParser.ArgContext context)
         {
-            throw new NotImplementedException();
+            PrintLine("Argument");
+            //throw new NotImplementedException();
         }
 
-        public void ExitRegop(GBASMParser.RegopContext context)
+        public void ExitArg(GBASMParser.ArgContext context)
         {
-            throw new NotImplementedException();
-        }
-
-        public void EnterFlagop(GBASMParser.FlagopContext context)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ExitFlagop(GBASMParser.FlagopContext context)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void EnterComplex(GBASMParser.ComplexContext context)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ExitComplex(GBASMParser.ComplexContext context)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void EnterLoc(GBASMParser.LocContext context)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ExitLoc(GBASMParser.LocContext context)
-        {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void EnterMemory(GBASMParser.MemoryContext context)
         {
-            throw new NotImplementedException();
+            PrintLine("Memory Location");
+            //throw new NotImplementedException();
         }
 
         public void ExitMemory(GBASMParser.MemoryContext context)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void EnterOffset(GBASMParser.OffsetContext context)
         {
-            throw new NotImplementedException();
+            PrintLine("Offset");
+            //throw new NotImplementedException();
         }
 
         public void ExitOffset(GBASMParser.OffsetContext context)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void EnterRegister(GBASMParser.RegisterContext context)
         {
-            throw new NotImplementedException();
+            PrintLine("Register");
         }
 
         public void ExitRegister(GBASMParser.RegisterContext context)
         {
-            throw new NotImplementedException();
-        }
-
-        public void EnterWideregister(GBASMParser.WideregisterContext context)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ExitWideregister(GBASMParser.WideregisterContext context)
-        {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void EnterFlag(GBASMParser.FlagContext context)
         {
-            throw new NotImplementedException();
+            PrintLine("Flag");
+            //throw new NotImplementedException();
         }
 
         public void ExitFlag(GBASMParser.FlagContext context)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void EnterValue(GBASMParser.ValueContext context)
         {
-            throw new NotImplementedException();
+            PrintLine("Numeric Value");
+            PrintLine(context.GetText());
+            //throw new NotImplementedException();
         }
 
         public void ExitValue(GBASMParser.ValueContext context)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void EnterNegvalue(GBASMParser.NegvalueContext context)
         {
-            throw new NotImplementedException();
+            PrintLine("Signed Value");
+            PrintLine(context.GetText());
+            //throw new NotImplementedException();
         }
 
         public void ExitNegvalue(GBASMParser.NegvalueContext context)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void EnterEveryRule(ParserRuleContext ctx)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void ExitEveryRule(ParserRuleContext ctx)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void VisitErrorNode(Antlr4.Runtime.Tree.IErrorNode node)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void VisitTerminal(Antlr4.Runtime.Tree.ITerminalNode node)
         {
-            throw new NotImplementedException();
+            //PrintLine("No more rules");
+            //throw new NotImplementedException();
         }
     }
 }

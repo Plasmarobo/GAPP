@@ -3,33 +3,23 @@ grammar GBASM;
 eval : exp EOF;
 exp : op exp | op;
 
-op : cmd | regop (register|wideregister|memory|value) | jumpflag | complexop;
+op : monad | biad arg | triad arg SEPARATOR arg;
 
-jumpflag : flagop (memory|value|Label|flag) | flagop flag Separator (memory|value|Label);
-complexop : complex loc Separator loc;
+monad : NOP|RLCA|RRCA|STOP|RLA|RRA|DAA|CPL|SCF|CCF|HALT|RETI|DI|EI|RST|RET;
 
-cmd : NOP|RLCA|RRCA|STOP|RLA|RRA|DAA|CPL|SCF|CCF|HALT|RETI|DI|EI|RST|RET;
+biad : INC|DEC|SUB|AND|XOR|OR|CP|POP|PUSH|RLC|RRC|RL|RR|SLA|SRA|SWAP|SRL|JP|JR;
 
-regop : INC|DEC|SUB|AND|XOR|OR|CP|POP|PUSH|RLC|RRC|RL|RR|SLA|SRA|SWAP|SRL;
+triad : RET|JR|JP|CALL|LD|LDD|LDI|LDH|ADD|ADC|SBC|BIT|RES|SET;
 
-flagop : RET | JR | JP | CALL;
+arg : (register|value|negvalue|flag|offset|LABEL|memory);
 
-complex : LD|LDD|LDI|LDH|ADD|ADC|SBC|BIT|RES|SET;
+memory : MEMSTART (register|value) MEMEND;
 
-loc : (register|wideregister|value|negvalue|flag|offset|Label|memory);
+offset : register Plus value | register negvalue;
 
-memory : MEMSTART (register|wideregister|value) MEMEND;
-
-offset : (register|wideregister) Plus value | (register|wideregister) negvalue;
-
-register : A|B|C|D|E|F|H|L;
-
-wideregister : AF|BC|DE|HL|SP;
+register : A|B|C|D|E|F|H|L|AF|BC|DE|HL|SP|HLPLUS|HLMINUS;
 
 flag : NZ | NC | Z | C;
-
-Letters : ('a'..'z'|'A'..'Z')+;
-
 
 Z : 'Z';
 
@@ -52,9 +42,6 @@ NC : 'NC';
 RST_VALUE : '0x' RST_DIGITS | RST_DIGITS 'H';
 RST_DIGITS : '00' | '10' | '20' | '30' | '08' | '18' | '28' | '38';
 
-Label : ':' Letters;
-
-
 value : (Hexval|Integer);
 negvalue : Neg value;
 
@@ -66,8 +53,8 @@ Plus : '+';
 fragment HexDigit : ('0'..'9'|'a'..'f'|'A'..'F');
 fragment Digit : '0'..'9';
 
-HLplus : 'HL+' | 'HLI';
-HLminus : 'HL-' | 'HLD';
+HLPLUS : 'HL+' | 'HLI';
+HLMINUS : 'HL-' | 'HLD';
 MEMSTART : '(';
 MEMEND : ')';
 
@@ -123,7 +110,7 @@ STOP : 'STOP 0' | 'STOP' | 'stop 0' | 'stop';
 HALT: 'HALT' | 'halt';
 RETI: 'RETI' | 'reti';
 
-
-Separator : ',';
+LABEL : ':' ('a'..'z'|'A'..'Z'|'0'..'9')+;
+SEPARATOR : ',';
 WS : (' '|'\t'|'\n'|'\r') ->skip;
-Comment : ';' ~('\n'|'\r')* '\r'? '\n' ->skip;
+COMMENT : ';' ~('\n'|'\r')* '\r'? '\n' ->skip;

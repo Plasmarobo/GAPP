@@ -82,9 +82,11 @@ void GBLib::ClockStep()
 	display->Step();
 	if (display->GetState() == DisplayStates::VBLANK)
 	{
+		array<unsigned char>^ _data = gcnew array<unsigned char>(160 * 144 * 4);
 		unsigned char* raw = display->GetRGBA();
+		System::Runtime::InteropServices::Marshal::Copy((IntPtr)raw, _data, 0, 160*144*4);
 		
-		onDisplayUpdate(raw, 160, 144);
+		onDisplayUpdate(_data, 160, 144);
 		delete [] raw;
 	}
 }

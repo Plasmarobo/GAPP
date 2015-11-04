@@ -29,7 +29,9 @@ namespace GAPPDebugger.Controls
             memory = new List<MemoryRow>(0x10000);
             for(int i = 0; i < 0x10000; ++i)
             {
-                memory[i].Location = (ushort)i;
+                MemoryRow r = new MemoryRow();
+                r.Location = (ushort)i;
+                memory.Add(r);
             }
         }
 

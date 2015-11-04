@@ -23,15 +23,23 @@ namespace GAPPDebugger.Controls
     public partial class GBDisplay : UserControl
     {
 
-        public GBLib gbemu;
-
-        public GBDisplay(GBLib emu)
+        private GBLib _gbemu;
+        public GBLib GBemu
         {
-            InitializeComponent();
-            gbemu = emu;
-            gbemu.onDisplayUpdate += OnDisplayUpdate;
+            set
+            {
+                _gbemu = value;
+                _gbemu.onDisplayUpdate += OnDisplayUpdate;
+            }
+
+            get { return _gbemu; }
         }
 
+        public GBDisplay()
+        {
+            InitializeComponent();
+        }
+        
         public void OnDisplayUpdate(byte[] rgba_data, uint width, uint height)
         {
             try
@@ -50,15 +58,16 @@ namespace GAPPDebugger.Controls
                 Console.Write(ex.Message);
             }
         }
+        
 
         private void DisplayFrame_KeyDown(object sender, KeyEventArgs e)
         {
-            gbemu.Keydown((uint)e.Key);
+            _gbemu.Keydown((uint)e.Key);
         }
 
         private void DisplayFrame_KeyUp(object sender, KeyEventArgs e)
         {
-            gbemu.Keyup((uint)e.Key);
+            _gbemu.Keyup((uint)e.Key);
         }
     }
 }

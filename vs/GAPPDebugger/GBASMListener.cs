@@ -59,75 +59,45 @@ public interface IGBASMListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitOp([NotNull] GBASMParser.OpContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="GBASMParser.jumpflag"/>.
+	/// Enter a parse tree produced by <see cref="GBASMParser.monad"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterJumpflag([NotNull] GBASMParser.JumpflagContext context);
+	void EnterMonad([NotNull] GBASMParser.MonadContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="GBASMParser.jumpflag"/>.
+	/// Exit a parse tree produced by <see cref="GBASMParser.monad"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitJumpflag([NotNull] GBASMParser.JumpflagContext context);
+	void ExitMonad([NotNull] GBASMParser.MonadContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="GBASMParser.complexop"/>.
+	/// Enter a parse tree produced by <see cref="GBASMParser.biad"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterComplexop([NotNull] GBASMParser.ComplexopContext context);
+	void EnterBiad([NotNull] GBASMParser.BiadContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="GBASMParser.complexop"/>.
+	/// Exit a parse tree produced by <see cref="GBASMParser.biad"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitComplexop([NotNull] GBASMParser.ComplexopContext context);
+	void ExitBiad([NotNull] GBASMParser.BiadContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="GBASMParser.cmd"/>.
+	/// Enter a parse tree produced by <see cref="GBASMParser.triad"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterCmd([NotNull] GBASMParser.CmdContext context);
+	void EnterTriad([NotNull] GBASMParser.TriadContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="GBASMParser.cmd"/>.
+	/// Exit a parse tree produced by <see cref="GBASMParser.triad"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitCmd([NotNull] GBASMParser.CmdContext context);
+	void ExitTriad([NotNull] GBASMParser.TriadContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="GBASMParser.regop"/>.
+	/// Enter a parse tree produced by <see cref="GBASMParser.arg"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterRegop([NotNull] GBASMParser.RegopContext context);
+	void EnterArg([NotNull] GBASMParser.ArgContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="GBASMParser.regop"/>.
+	/// Exit a parse tree produced by <see cref="GBASMParser.arg"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitRegop([NotNull] GBASMParser.RegopContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="GBASMParser.flagop"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterFlagop([NotNull] GBASMParser.FlagopContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="GBASMParser.flagop"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitFlagop([NotNull] GBASMParser.FlagopContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="GBASMParser.complex"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterComplex([NotNull] GBASMParser.ComplexContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="GBASMParser.complex"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitComplex([NotNull] GBASMParser.ComplexContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="GBASMParser.loc"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterLoc([NotNull] GBASMParser.LocContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="GBASMParser.loc"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitLoc([NotNull] GBASMParser.LocContext context);
+	void ExitArg([NotNull] GBASMParser.ArgContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="GBASMParser.memory"/>.
 	/// </summary>
@@ -158,16 +128,6 @@ public interface IGBASMListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitRegister([NotNull] GBASMParser.RegisterContext context);
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="GBASMParser.wideregister"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void EnterWideregister([NotNull] GBASMParser.WideregisterContext context);
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="GBASMParser.wideregister"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	void ExitWideregister([NotNull] GBASMParser.WideregisterContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="GBASMParser.flag"/>.
 	/// </summary>

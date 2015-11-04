@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,19 +21,46 @@ namespace GAPPDebugger.Controls
     /// </summary>
     public partial class GBAssembler : Window
     {
+        Assembler assembler;
         public GBAssembler()
         {
             InitializeComponent();
+            assembler = new Assembler();
         }
 
         private void CompileAndRun(object sender, RoutedEventArgs e)
         {
-
+            assembler.Assemble(Assembly.Text);
         }
 
         private void SaveASM(object sender, RoutedEventArgs e)
         {
-
+            SaveFileDialog dialog = new SaveFileDialog();
+            dialog.FileName = "Gameboy";
+            dialog.DefaultExt = ".asm";
+            dialog.Filter = "Assembly (.asm)|*.asm";
+            bool? res = dialog.ShowDialog();
+            if(res == true)
+            {
+                File.WriteAllText(dialog.FileName, Assembly.Text.ToString());
+            }
         }
+
+        private void LoadASM(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.FileName = "";
+            dialog.DefaultExt = ".asm";
+            dialog.Filter = "Assembly (.asm)|*.asm|Text Files (.txt)|*.txt";
+            bool? res = dialog.ShowDialog();
+            if(res == true)
+            {
+                StreamReader f = new StreamReader(dialog.OpenFile());
+                Assembly.Text = f.ReadToEnd();
+                f.Close();
+            }
+        }
+
+      
     }
 }

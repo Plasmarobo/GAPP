@@ -8,10 +8,9 @@
 using namespace System;
 using namespace System::Collections::Generic;
 namespace GBLibWrapper {
-	
 	public ref class AssemblyToken
 	{
-		
+
 		String^ token;
 		unsigned long lineNo;
 		unsigned int lineTokenIndex;
@@ -21,11 +20,12 @@ namespace GBLibWrapper {
 		AssemblyToken(String^ line);
 		AssemblyToken(Queue<Byte> ^stream);
 		String^ GetTokenString();
-		
-	};
 
-	delegate void OnDisplayUpdate(unsigned char image[], unsigned int width, unsigned int height);
-	delegate void OnBreakpoint(unsigned long lineNo, unsigned int instruction);
+	};
+	
+
+	public delegate void OnDisplayUpdate(array<unsigned char>^ image, unsigned int width, unsigned int height);
+	public delegate void OnBreakpoint(unsigned long lineNo, unsigned int instruction);
 
 	public ref class GBLib
 	{
@@ -36,8 +36,10 @@ namespace GBLibWrapper {
 
 	public:
 
-		GBLib();
+		
 
+		GBLib();
+		
 		event OnDisplayUpdate ^ onDisplayUpdate;
 		event OnBreakpoint ^ onBreakpoint;
 
