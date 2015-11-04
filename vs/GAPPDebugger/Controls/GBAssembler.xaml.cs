@@ -28,5 +28,10 @@ namespace GAPPDebugger.Controls
         {
 
         }
+
+        private void SaveASM(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
