@@ -158,4 +158,14 @@ public interface IGBASMListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitNegvalue([NotNull] GBASMParser.NegvalueContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="GBASMParser.jump_target"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterJump_target([NotNull] GBASMParser.Jump_targetContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="GBASMParser.jump_target"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitJump_target([NotNull] GBASMParser.Jump_targetContext context);
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Antlr4.Runtime;
+using Antlr4.Runtime.Misc;
 
 namespace GAPPDebugger
 {
@@ -12,6 +13,8 @@ namespace GAPPDebugger
     {
         private GAPPDebugger.Controls.AssemblerProgress window;
         private List<Byte> rom;
+        private List<String> lineToBytes;
+        private List<String> lines;
         private AntlrInputStream inputStream;
         private GBASMLexer lexer;
         private CommonTokenStream tokenStream;
@@ -200,23 +203,31 @@ namespace GAPPDebugger
             WIDE_IMM, //16b
             OFFSET, //Memory address given by FF00 + n (8b)
             WIDE_OFFSET, //Memory address given by FF00+n (16b)
-            PORT,
+            //LABEL,
             STACK,
             NUM_LOCATIONS
         };
 
-        public struct LocationInfo
+        public class LocationInfo
         {
             public Locations loc;
             public bool isMem;
             public bool isReg;
             public bool isFlag;
             public bool isOffset;
-            public bool isPC;
-            public bool isDec;
-            public bool isInc;
             public bool isWide;
             public Int16 val;
+
+            public LocationInfo()
+            {
+                loc = Locations.NONE;
+                isMem = false;
+                isReg = false;
+                isFlag = false;
+                isOffset = false;
+                isWide = false;
+                val = 0;
+            }
         }
 
         public class Instruction
@@ -225,6 +236,13 @@ namespace GAPPDebugger
             //By convention src is arg 1, dst is arg 2 (even if some ops reverse this)
             public LocationInfo src;
             public LocationInfo dst;
+
+            public Instruction()
+            {
+                op = Instructions.NOP;
+                src = new LocationInfo();
+                dst = new LocationInfo();
+            }
 
             protected static void InsertLocationInfo(List<Byte> rom, LocationInfo src)
             {
@@ -1122,6 +1140,8 @@ namespace GAPPDebugger
             window.Show();
             window.Focus();
             rom = new List<byte>();
+            lines = new List<String>();
+            lineToBytes = new List<String>();
             lexer = new GBASMLexer(inputStream);
             tokenStream = new CommonTokenStream(lexer);
             parser = new GBASMParser(tokenStream);
@@ -1171,11 +1191,19 @@ namespace GAPPDebugger
         public void EnterOp(GBASMParser.OpContext context)
         {
             currentInst = new Instruction();
+            lines.Add(inputStream.GetText(new Interval((int)context.Start.StartIndex, (int)context.Stop.StopIndex)));
         }
 
         public void ExitOp(GBASMParser.OpContext context)
         {
+            Int32 len = rom.Count;
             currentInst.AppendTo(rom);
+            String str = "";
+            for(int i = len; i < rom.Count; ++i)
+            {
+                str = str + "0x" + rom[i].ToString("X2") + " ";    
+            }
+            lineToBytes.Add(str);
         }
 
         public void EnterMonad(GBASMParser.MonadContext context)
@@ -1384,6 +1412,15 @@ namespace GAPPDebugger
 
         }
 
+        public void EnterJump_target(GBASMParser.Jump_targetContext context) 
+        {
+            throw new NotImplementedException();
+        }
+        
+        public void ExitJump_target(GBASMParser.Jump_targetContext context) 
+        { 
+        }
+
         public void EnterEveryRule(ParserRuleContext ctx)
         {
             //throw new NotImplementedException();
@@ -1403,6 +1440,21 @@ namespace GAPPDebugger
         {
             //PrintLine("No more rules");
             //throw new NotImplementedException();
+        }
+
+        public int GetLength()
+        {
+            return lines.Count;
+        }
+
+        public String GetLine(int i)
+        {
+            return lines[i];
+        }
+
+        public String GetByteString(int i)
+        {
+            return lineToBytes[i];
         }
     }
 }

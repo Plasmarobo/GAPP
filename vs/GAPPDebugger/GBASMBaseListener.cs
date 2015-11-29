@@ -188,6 +188,18 @@ public partial class GBASMBaseListener : IGBASMListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitNegvalue([NotNull] GBASMParser.NegvalueContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="GBASMParser.jump_target"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterJump_target([NotNull] GBASMParser.Jump_targetContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="GBASMParser.jump_target"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitJump_target([NotNull] GBASMParser.Jump_targetContext context) { }
 
 	/// <inheritdoc/>
 	/// <remarks>The default implementation does nothing.</remarks>

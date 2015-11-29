@@ -43,10 +43,10 @@ public partial class GBASMParser : Parser {
 	public const int
 		RULE_eval = 0, RULE_exp = 1, RULE_op = 2, RULE_monad = 3, RULE_biad = 4, 
 		RULE_triad = 5, RULE_arg = 6, RULE_memory = 7, RULE_offset = 8, RULE_register = 9, 
-		RULE_flag = 10, RULE_value = 11, RULE_negvalue = 12;
+		RULE_flag = 10, RULE_value = 11, RULE_negvalue = 12, RULE_jump_target = 13;
 	public static readonly string[] ruleNames = {
 		"eval", "exp", "op", "monad", "biad", "triad", "arg", "memory", "offset", 
-		"register", "flag", "value", "negvalue"
+		"register", "flag", "value", "negvalue", "jump_target"
 	};
 
 	private static readonly string[] _LiteralNames = {
@@ -117,8 +117,8 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 26; exp();
-			State = 27; Match(Eof);
+			State = 28; exp();
+			State = 29; Match(Eof);
 			}
 		}
 		catch (RecognitionException re) {
@@ -135,6 +135,9 @@ public partial class GBASMParser : Parser {
 	public partial class ExpContext : ParserRuleContext {
 		public OpContext op() {
 			return GetRuleContext<OpContext>(0);
+		}
+		public Jump_targetContext jump_target() {
+			return GetRuleContext<Jump_targetContext>(0);
 		}
 		public ExpContext exp() {
 			return GetRuleContext<ExpContext>(0);
@@ -159,19 +162,34 @@ public partial class GBASMParser : Parser {
 		ExpContext _localctx = new ExpContext(Context, State);
 		EnterRule(_localctx, 2, RULE_exp);
 		try {
-			State = 33;
+			State = 42;
 			switch ( Interpreter.AdaptivePredict(TokenStream,0,Context) ) {
 			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 29; op();
-				State = 30; exp();
+				State = 31; op();
+				State = 32; jump_target();
+				State = 33; exp();
 				}
 				break;
 			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 32; op();
+				State = 35; op();
+				State = 36; jump_target();
+				}
+				break;
+			case 3:
+				EnterOuterAlt(_localctx, 3);
+				{
+				State = 38; op();
+				State = 39; exp();
+				}
+				break;
+			case 4:
+				EnterOuterAlt(_localctx, 4);
+				{
+				State = 41; op();
 				}
 				break;
 			}
@@ -224,28 +242,28 @@ public partial class GBASMParser : Parser {
 		OpContext _localctx = new OpContext(Context, State);
 		EnterRule(_localctx, 4, RULE_op);
 		try {
-			State = 44;
+			State = 53;
 			switch ( Interpreter.AdaptivePredict(TokenStream,1,Context) ) {
 			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 35; monad();
+				State = 44; monad();
 				}
 				break;
 			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 36; biad();
-				State = 37; arg();
+				State = 45; biad();
+				State = 46; arg();
 				}
 				break;
 			case 3:
 				EnterOuterAlt(_localctx, 3);
 				{
-				State = 39; triad();
-				State = 40; arg();
-				State = 41; Match(SEPARATOR);
-				State = 42; arg();
+				State = 48; triad();
+				State = 49; arg();
+				State = 50; Match(SEPARATOR);
+				State = 51; arg();
 				}
 				break;
 			}
@@ -301,7 +319,7 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 46;
+			State = 55;
 			_la = TokenStream.La(1);
 			if ( !(((((_la - 34)) & ~0x3f) == 0 && ((1L << (_la - 34)) & ((1L << (DI - 34)) | (1L << (EI - 34)) | (1L << (RET - 34)) | (1L << (NOP - 34)) | (1L << (RLA - 34)) | (1L << (RRA - 34)) | (1L << (DAA - 34)) | (1L << (CPL - 34)) | (1L << (SCF - 34)) | (1L << (CCF - 34)) | (1L << (RST - 34)) | (1L << (RLCA - 34)) | (1L << (RRCA - 34)) | (1L << (STOP - 34)) | (1L << (HALT - 34)) | (1L << (RETI - 34)))) != 0)) ) {
 			ErrorHandler.RecoverInline(this);
@@ -365,7 +383,7 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 48;
+			State = 57;
 			_la = TokenStream.La(1);
 			if ( !(((((_la - 28)) & ~0x3f) == 0 && ((1L << (_la - 28)) & ((1L << (JR - 28)) | (1L << (JP - 28)) | (1L << (OR - 28)) | (1L << (CP - 28)) | (1L << (RL - 28)) | (1L << (RR - 28)) | (1L << (INC - 28)) | (1L << (DEC - 28)) | (1L << (SUB - 28)) | (1L << (AND - 28)) | (1L << (XOR - 28)) | (1L << (RLC - 28)) | (1L << (RRC - 28)) | (1L << (POP - 28)) | (1L << (SLA - 28)) | (1L << (SRA - 28)) | (1L << (SRL - 28)) | (1L << (PUSH - 28)) | (1L << (SWAP - 28)))) != 0)) ) {
 			ErrorHandler.RecoverInline(this);
@@ -424,7 +442,7 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 50;
+			State = 59;
 			_la = TokenStream.La(1);
 			if ( !(((((_la - 27)) & ~0x3f) == 0 && ((1L << (_la - 27)) & ((1L << (LD - 27)) | (1L << (JR - 27)) | (1L << (JP - 27)) | (1L << (LDD - 27)) | (1L << (LDI - 27)) | (1L << (ADD - 27)) | (1L << (ADC - 27)) | (1L << (SBC - 27)) | (1L << (BIT - 27)) | (1L << (RES - 27)) | (1L << (SET - 27)) | (1L << (RET - 27)) | (1L << (LDH - 27)) | (1L << (CALL - 27)))) != 0)) ) {
 			ErrorHandler.RecoverInline(this);
@@ -461,7 +479,9 @@ public partial class GBASMParser : Parser {
 		public OffsetContext offset() {
 			return GetRuleContext<OffsetContext>(0);
 		}
-		public ITerminalNode LABEL() { return GetToken(GBASMParser.LABEL, 0); }
+		public Jump_targetContext jump_target() {
+			return GetRuleContext<Jump_targetContext>(0);
+		}
 		public MemoryContext memory() {
 			return GetRuleContext<MemoryContext>(0);
 		}
@@ -487,41 +507,41 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 59;
+			State = 68;
 			switch ( Interpreter.AdaptivePredict(TokenStream,2,Context) ) {
 			case 1:
 				{
-				State = 52; register();
+				State = 61; register();
 				}
 				break;
 			case 2:
 				{
-				State = 53; value();
+				State = 62; value();
 				}
 				break;
 			case 3:
 				{
-				State = 54; negvalue();
+				State = 63; negvalue();
 				}
 				break;
 			case 4:
 				{
-				State = 55; flag();
+				State = 64; flag();
 				}
 				break;
 			case 5:
 				{
-				State = 56; offset();
+				State = 65; offset();
 				}
 				break;
 			case 6:
 				{
-				State = 57; Match(LABEL);
+				State = 66; jump_target();
 				}
 				break;
 			case 7:
 				{
-				State = 58; memory();
+				State = 67; memory();
 				}
 				break;
 			}
@@ -569,8 +589,8 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 61; Match(MEMSTART);
-			State = 64;
+			State = 70; Match(MEMSTART);
+			State = 73;
 			switch (TokenStream.La(1)) {
 			case A:
 			case B:
@@ -588,19 +608,19 @@ public partial class GBASMParser : Parser {
 			case HLPLUS:
 			case HLMINUS:
 				{
-				State = 62; register();
+				State = 71; register();
 				}
 				break;
 			case Integer:
 			case Hexval:
 				{
-				State = 63; value();
+				State = 72; value();
 				}
 				break;
 			default:
 				throw new NoViableAltException(this);
 			}
-			State = 66; Match(MEMEND);
+			State = 75; Match(MEMEND);
 			}
 		}
 		catch (RecognitionException re) {
@@ -645,21 +665,21 @@ public partial class GBASMParser : Parser {
 		OffsetContext _localctx = new OffsetContext(Context, State);
 		EnterRule(_localctx, 16, RULE_offset);
 		try {
-			State = 75;
+			State = 84;
 			switch ( Interpreter.AdaptivePredict(TokenStream,4,Context) ) {
 			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 68; register();
-				State = 69; Match(Plus);
-				State = 70; value();
+				State = 77; register();
+				State = 78; Match(Plus);
+				State = 79; value();
 				}
 				break;
 			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 72; register();
-				State = 73; negvalue();
+				State = 81; register();
+				State = 82; negvalue();
 				}
 				break;
 			}
@@ -714,7 +734,7 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 77;
+			State = 86;
 			_la = TokenStream.La(1);
 			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << A) | (1L << B) | (1L << C) | (1L << D) | (1L << E) | (1L << F) | (1L << H) | (1L << L) | (1L << AF) | (1L << BC) | (1L << DE) | (1L << HL) | (1L << SP) | (1L << HLPLUS) | (1L << HLMINUS))) != 0)) ) {
 			ErrorHandler.RecoverInline(this);
@@ -763,7 +783,7 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 79;
+			State = 88;
 			_la = TokenStream.La(1);
 			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << Z) | (1L << C) | (1L << NZ) | (1L << NC))) != 0)) ) {
 			ErrorHandler.RecoverInline(this);
@@ -810,7 +830,7 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 81;
+			State = 90;
 			_la = TokenStream.La(1);
 			if ( !(_la==Integer || _la==Hexval) ) {
 			ErrorHandler.RecoverInline(this);
@@ -858,8 +878,46 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 83; Match(Neg);
-			State = 84; value();
+			State = 92; Match(Neg);
+			State = 93; value();
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			ErrorHandler.ReportError(this, re);
+			ErrorHandler.Recover(this, re);
+		}
+		finally {
+			ExitRule();
+		}
+		return _localctx;
+	}
+
+	public partial class Jump_targetContext : ParserRuleContext {
+		public ITerminalNode LABEL() { return GetToken(GBASMParser.LABEL, 0); }
+		public Jump_targetContext(ParserRuleContext parent, int invokingState)
+			: base(parent, invokingState)
+		{
+		}
+		public override int RuleIndex { get { return RULE_jump_target; } }
+		public override void EnterRule(IParseTreeListener listener) {
+			IGBASMListener typedListener = listener as IGBASMListener;
+			if (typedListener != null) typedListener.EnterJump_target(this);
+		}
+		public override void ExitRule(IParseTreeListener listener) {
+			IGBASMListener typedListener = listener as IGBASMListener;
+			if (typedListener != null) typedListener.ExitJump_target(this);
+		}
+	}
+
+	[RuleVersion(0)]
+	public Jump_targetContext jump_target() {
+		Jump_targetContext _localctx = new Jump_targetContext(Context, State);
+		EnterRule(_localctx, 26, RULE_jump_target);
+		try {
+			EnterOuterAlt(_localctx, 1);
+			{
+			State = 95; Match(LABEL);
 			}
 		}
 		catch (RecognitionException re) {
@@ -874,36 +932,40 @@ public partial class GBASMParser : Parser {
 	}
 
 	public static readonly string _serializedATN =
-		"\x3\x430\xD6D1\x8206\xAD2D\x4417\xAEF1\x8D80\xAADD\x3NY\x4\x2\t\x2\x4"+
-		"\x3\t\x3\x4\x4\t\x4\x4\x5\t\x5\x4\x6\t\x6\x4\a\t\a\x4\b\t\b\x4\t\t\t\x4"+
-		"\n\t\n\x4\v\t\v\x4\f\t\f\x4\r\t\r\x4\xE\t\xE\x3\x2\x3\x2\x3\x2\x3\x3\x3"+
-		"\x3\x3\x3\x3\x3\x5\x3$\n\x3\x3\x4\x3\x4\x3\x4\x3\x4\x3\x4\x3\x4\x3\x4"+
-		"\x3\x4\x3\x4\x5\x4/\n\x4\x3\x5\x3\x5\x3\x6\x3\x6\x3\a\x3\a\x3\b\x3\b\x3"+
-		"\b\x3\b\x3\b\x3\b\x3\b\x5\b>\n\b\x3\t\x3\t\x3\t\x5\t\x43\n\t\x3\t\x3\t"+
-		"\x3\n\x3\n\x3\n\x3\n\x3\n\x3\n\x3\n\x5\nN\n\n\x3\v\x3\v\x3\f\x3\f\x3\r"+
-		"\x3\r\x3\xE\x3\xE\x3\xE\x3\xE\x2\x2\xF\x2\x4\x6\b\n\f\xE\x10\x12\x14\x16"+
-		"\x18\x1A\x2\b\a\x2$%..:@\x42\x42\x46J\x5\x2\x1E#/\x39\x44\x45\x6\x2\x1D"+
-		"\x1F&.\x41\x41\x43\x43\x4\x2\x4\x10\x19\x1A\x5\x2\x3\x3\x6\x6\x11\x12"+
-		"\x3\x2\x15\x16V\x2\x1C\x3\x2\x2\x2\x4#\x3\x2\x2\x2\x6.\x3\x2\x2\x2\b\x30"+
-		"\x3\x2\x2\x2\n\x32\x3\x2\x2\x2\f\x34\x3\x2\x2\x2\xE=\x3\x2\x2\x2\x10?"+
-		"\x3\x2\x2\x2\x12M\x3\x2\x2\x2\x14O\x3\x2\x2\x2\x16Q\x3\x2\x2\x2\x18S\x3"+
-		"\x2\x2\x2\x1AU\x3\x2\x2\x2\x1C\x1D\x5\x4\x3\x2\x1D\x1E\a\x2\x2\x3\x1E"+
-		"\x3\x3\x2\x2\x2\x1F \x5\x6\x4\x2 !\x5\x4\x3\x2!$\x3\x2\x2\x2\"$\x5\x6"+
-		"\x4\x2#\x1F\x3\x2\x2\x2#\"\x3\x2\x2\x2$\x5\x3\x2\x2\x2%/\x5\b\x5\x2&\'"+
-		"\x5\n\x6\x2\'(\x5\xE\b\x2(/\x3\x2\x2\x2)*\x5\f\a\x2*+\x5\xE\b\x2+,\aL"+
-		"\x2\x2,-\x5\xE\b\x2-/\x3\x2\x2\x2.%\x3\x2\x2\x2.&\x3\x2\x2\x2.)\x3\x2"+
-		"\x2\x2/\a\x3\x2\x2\x2\x30\x31\t\x2\x2\x2\x31\t\x3\x2\x2\x2\x32\x33\t\x3"+
-		"\x2\x2\x33\v\x3\x2\x2\x2\x34\x35\t\x4\x2\x2\x35\r\x3\x2\x2\x2\x36>\x5"+
-		"\x14\v\x2\x37>\x5\x18\r\x2\x38>\x5\x1A\xE\x2\x39>\x5\x16\f\x2:>\x5\x12"+
-		"\n\x2;>\aK\x2\x2<>\x5\x10\t\x2=\x36\x3\x2\x2\x2=\x37\x3\x2\x2\x2=\x38"+
-		"\x3\x2\x2\x2=\x39\x3\x2\x2\x2=:\x3\x2\x2\x2=;\x3\x2\x2\x2=<\x3\x2\x2\x2"+
-		">\xF\x3\x2\x2\x2?\x42\a\x1B\x2\x2@\x43\x5\x14\v\x2\x41\x43\x5\x18\r\x2"+
-		"\x42@\x3\x2\x2\x2\x42\x41\x3\x2\x2\x2\x43\x44\x3\x2\x2\x2\x44\x45\a\x1C"+
-		"\x2\x2\x45\x11\x3\x2\x2\x2\x46G\x5\x14\v\x2GH\a\x18\x2\x2HI\x5\x18\r\x2"+
-		"IN\x3\x2\x2\x2JK\x5\x14\v\x2KL\x5\x1A\xE\x2LN\x3\x2\x2\x2M\x46\x3\x2\x2"+
-		"\x2MJ\x3\x2\x2\x2N\x13\x3\x2\x2\x2OP\t\x5\x2\x2P\x15\x3\x2\x2\x2QR\t\x6"+
-		"\x2\x2R\x17\x3\x2\x2\x2ST\t\a\x2\x2T\x19\x3\x2\x2\x2UV\a\x17\x2\x2VW\x5"+
-		"\x18\r\x2W\x1B\x3\x2\x2\x2\a#.=\x42M";
+		"\x3\x430\xD6D1\x8206\xAD2D\x4417\xAEF1\x8D80\xAADD\x3N\x64\x4\x2\t\x2"+
+		"\x4\x3\t\x3\x4\x4\t\x4\x4\x5\t\x5\x4\x6\t\x6\x4\a\t\a\x4\b\t\b\x4\t\t"+
+		"\t\x4\n\t\n\x4\v\t\v\x4\f\t\f\x4\r\t\r\x4\xE\t\xE\x4\xF\t\xF\x3\x2\x3"+
+		"\x2\x3\x2\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3"+
+		"\x3\x3\x5\x3-\n\x3\x3\x4\x3\x4\x3\x4\x3\x4\x3\x4\x3\x4\x3\x4\x3\x4\x3"+
+		"\x4\x5\x4\x38\n\x4\x3\x5\x3\x5\x3\x6\x3\x6\x3\a\x3\a\x3\b\x3\b\x3\b\x3"+
+		"\b\x3\b\x3\b\x3\b\x5\bG\n\b\x3\t\x3\t\x3\t\x5\tL\n\t\x3\t\x3\t\x3\n\x3"+
+		"\n\x3\n\x3\n\x3\n\x3\n\x3\n\x5\nW\n\n\x3\v\x3\v\x3\f\x3\f\x3\r\x3\r\x3"+
+		"\xE\x3\xE\x3\xE\x3\xF\x3\xF\x3\xF\x2\x2\x10\x2\x4\x6\b\n\f\xE\x10\x12"+
+		"\x14\x16\x18\x1A\x1C\x2\b\a\x2$%..:@\x42\x42\x46J\x5\x2\x1E#/\x39\x44"+
+		"\x45\x6\x2\x1D\x1F&.\x41\x41\x43\x43\x4\x2\x4\x10\x19\x1A\x5\x2\x3\x3"+
+		"\x6\x6\x11\x12\x3\x2\x15\x16\x62\x2\x1E\x3\x2\x2\x2\x4,\x3\x2\x2\x2\x6"+
+		"\x37\x3\x2\x2\x2\b\x39\x3\x2\x2\x2\n;\x3\x2\x2\x2\f=\x3\x2\x2\x2\xE\x46"+
+		"\x3\x2\x2\x2\x10H\x3\x2\x2\x2\x12V\x3\x2\x2\x2\x14X\x3\x2\x2\x2\x16Z\x3"+
+		"\x2\x2\x2\x18\\\x3\x2\x2\x2\x1A^\x3\x2\x2\x2\x1C\x61\x3\x2\x2\x2\x1E\x1F"+
+		"\x5\x4\x3\x2\x1F \a\x2\x2\x3 \x3\x3\x2\x2\x2!\"\x5\x6\x4\x2\"#\x5\x1C"+
+		"\xF\x2#$\x5\x4\x3\x2$-\x3\x2\x2\x2%&\x5\x6\x4\x2&\'\x5\x1C\xF\x2\'-\x3"+
+		"\x2\x2\x2()\x5\x6\x4\x2)*\x5\x4\x3\x2*-\x3\x2\x2\x2+-\x5\x6\x4\x2,!\x3"+
+		"\x2\x2\x2,%\x3\x2\x2\x2,(\x3\x2\x2\x2,+\x3\x2\x2\x2-\x5\x3\x2\x2\x2.\x38"+
+		"\x5\b\x5\x2/\x30\x5\n\x6\x2\x30\x31\x5\xE\b\x2\x31\x38\x3\x2\x2\x2\x32"+
+		"\x33\x5\f\a\x2\x33\x34\x5\xE\b\x2\x34\x35\aL\x2\x2\x35\x36\x5\xE\b\x2"+
+		"\x36\x38\x3\x2\x2\x2\x37.\x3\x2\x2\x2\x37/\x3\x2\x2\x2\x37\x32\x3\x2\x2"+
+		"\x2\x38\a\x3\x2\x2\x2\x39:\t\x2\x2\x2:\t\x3\x2\x2\x2;<\t\x3\x2\x2<\v\x3"+
+		"\x2\x2\x2=>\t\x4\x2\x2>\r\x3\x2\x2\x2?G\x5\x14\v\x2@G\x5\x18\r\x2\x41"+
+		"G\x5\x1A\xE\x2\x42G\x5\x16\f\x2\x43G\x5\x12\n\x2\x44G\x5\x1C\xF\x2\x45"+
+		"G\x5\x10\t\x2\x46?\x3\x2\x2\x2\x46@\x3\x2\x2\x2\x46\x41\x3\x2\x2\x2\x46"+
+		"\x42\x3\x2\x2\x2\x46\x43\x3\x2\x2\x2\x46\x44\x3\x2\x2\x2\x46\x45\x3\x2"+
+		"\x2\x2G\xF\x3\x2\x2\x2HK\a\x1B\x2\x2IL\x5\x14\v\x2JL\x5\x18\r\x2KI\x3"+
+		"\x2\x2\x2KJ\x3\x2\x2\x2LM\x3\x2\x2\x2MN\a\x1C\x2\x2N\x11\x3\x2\x2\x2O"+
+		"P\x5\x14\v\x2PQ\a\x18\x2\x2QR\x5\x18\r\x2RW\x3\x2\x2\x2ST\x5\x14\v\x2"+
+		"TU\x5\x1A\xE\x2UW\x3\x2\x2\x2VO\x3\x2\x2\x2VS\x3\x2\x2\x2W\x13\x3\x2\x2"+
+		"\x2XY\t\x5\x2\x2Y\x15\x3\x2\x2\x2Z[\t\x6\x2\x2[\x17\x3\x2\x2\x2\\]\t\a"+
+		"\x2\x2]\x19\x3\x2\x2\x2^_\a\x17\x2\x2_`\x5\x18\r\x2`\x1B\x3\x2\x2\x2\x61"+
+		"\x62\aK\x2\x2\x62\x1D\x3\x2\x2\x2\a,\x37\x46KV";
 	public static readonly ATN _ATN =
 		new ATNDeserializer().Deserialize(_serializedATN.ToCharArray());
 }

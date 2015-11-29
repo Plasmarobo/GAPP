@@ -1,7 +1,7 @@
 grammar GBASM;
 
 eval : exp EOF;
-exp : op exp | op;
+exp : op jump_target exp | op jump_target | op exp | op;
 
 op : monad | biad arg | triad arg SEPARATOR arg;
 
@@ -11,7 +11,7 @@ biad : INC|DEC|SUB|AND|XOR|OR|CP|POP|PUSH|RLC|RRC|RL|RR|SLA|SRA|SWAP|SRL|JP|JR;
 
 triad : RET|JR|JP|CALL|LD|LDD|LDI|LDH|ADD|ADC|SBC|BIT|RES|SET;
 
-arg : (register|value|negvalue|flag|offset|LABEL|memory);
+arg : (register|value|negvalue|flag|offset|jump_target|memory);
 
 memory : MEMSTART (register|value) MEMEND;
 
@@ -45,6 +45,7 @@ RST_DIGITS : '00' | '10' | '20' | '30' | '08' | '18' | '28' | '38';
 value : (Hexval|Integer);
 negvalue : Neg value;
 
+jump_target : LABEL;
 
 Integer : (Digit+);
 Hexval  : ('0x' HexDigit+)|(HexDigit+ ('h'|'H'));
@@ -112,5 +113,5 @@ RETI: 'RETI' | 'reti';
 
 LABEL : ':' ('a'..'z'|'A'..'Z'|'0'..'9')+;
 SEPARATOR : ',';
-WS : (' '|'\t'|'\n'|'\r') ->skip;
-COMMENT : ';' ~('\n'|'\r')* '\r'? '\n' ->skip;
+WS : (' '|'\t'|'\n'|'\r') ->channel(HIDDEN);
+COMMENT : ';' ~('\n'|'\r')* '\r'? '\n' ->channel(HIDDEN);

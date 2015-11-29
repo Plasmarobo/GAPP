@@ -30,7 +30,15 @@ namespace GAPPDebugger.Controls
 
         private void CompileAndRun(object sender, RoutedEventArgs e)
         {
-            assembler.AssembleString(Assembly.Text);
+            List<Byte> rom = assembler.AssembleString(Assembly.Text);
+            int lines = assembler.GetLength();
+            Assembly.Clear();
+            Execution.Clear();
+            for(int i = 0; i < lines; ++i)
+            {
+                Assembly.Text += assembler.GetLine(i) + "\n";
+                Execution.Text += assembler.GetByteString(i) + "\n";
+            }
         }
 
         private void SaveASM(object sender, RoutedEventArgs e)
