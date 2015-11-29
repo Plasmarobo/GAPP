@@ -1,8 +1,9 @@
 grammar GBASM;
 
 eval : exp EOF;
-exp : op jump_target exp | op jump_target | op exp | op;
+exp : sys exp | op exp | sys | op;
 
+sys : include | section | label | db;
 op : monad | biad arg | triad arg SEPARATOR arg;
 
 monad : NOP|RLCA|RRCA|STOP|RLA|RRA|DAA|CPL|SCF|CCF|HALT|RETI|DI|EI|RST|RET;
@@ -11,7 +12,7 @@ biad : INC|DEC|SUB|AND|XOR|OR|CP|POP|PUSH|RLC|RRC|RL|RR|SLA|SRA|SWAP|SRL|JP|JR;
 
 triad : RET|JR|JP|CALL|LD|LDD|LDI|LDH|ADD|ADC|SBC|BIT|RES|SET;
 
-arg : (register|value|negvalue|flag|offset|jump_target|memory);
+arg : (register|value|negvalue|flag|offset|jump|memory);
 
 memory : MEMSTART (register|value) MEMEND;
 
@@ -20,6 +21,13 @@ offset : register Plus value | register negvalue;
 register : A|B|C|D|E|F|H|L|AF|BC|DE|HL|SP|HLPLUS|HLMINUS;
 
 flag : NZ | NC | Z | C;
+
+db : literal | value | literal SEPARATOR db | value SEPARATOR db;
+include : 'INCLUDE' literal;
+section : 'SECTION' literal | 'SECTION' literal SEPARATOR 'HOME' '[' value ']';
+literal : '"' STRING '"';
+jump : STRING;
+label : STRING ':';
 
 Z : 'Z';
 
@@ -45,10 +53,8 @@ RST_DIGITS : '00' | '10' | '20' | '30' | '08' | '18' | '28' | '38';
 value : (Hexval|Integer);
 negvalue : Neg value;
 
-jump_target : LABEL;
-
 Integer : (Digit+);
-Hexval  : ('0x' HexDigit+)|(HexDigit+ ('h'|'H'));
+Hexval  : ('0x' HexDigit+)|(HexDigit+ ('h'|'H'))|('$' HexDigit+);
 Neg : '-';
 Plus : '+';
 fragment HexDigit : ('0'..'9'|'a'..'f'|'A'..'F');
@@ -111,7 +117,8 @@ STOP : 'STOP 0' | 'STOP' | 'stop 0' | 'stop';
 HALT: 'HALT' | 'halt';
 RETI: 'RETI' | 'reti';
 
-LABEL : ':' ('a'..'z'|'A'..'Z'|'0'..'9')+;
+
+STRING : ('a'..'z'|'A'..'Z'|'0'..'9')+;
 SEPARATOR : ',';
 WS : (' '|'\t'|'\n'|'\r') ->channel(HIDDEN);
 COMMENT : ';' ~('\n'|'\r')* '\r'? '\n' ->channel(HIDDEN);

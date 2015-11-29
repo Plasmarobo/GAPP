@@ -57,6 +57,18 @@ public partial class GBASMBaseListener : IGBASMListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitExp([NotNull] GBASMParser.ExpContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="GBASMParser.sys"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterSys([NotNull] GBASMParser.SysContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="GBASMParser.sys"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitSys([NotNull] GBASMParser.SysContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="GBASMParser.op"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
@@ -165,6 +177,78 @@ public partial class GBASMBaseListener : IGBASMListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitFlag([NotNull] GBASMParser.FlagContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="GBASMParser.db"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterDb([NotNull] GBASMParser.DbContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="GBASMParser.db"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitDb([NotNull] GBASMParser.DbContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="GBASMParser.include"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterInclude([NotNull] GBASMParser.IncludeContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="GBASMParser.include"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitInclude([NotNull] GBASMParser.IncludeContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="GBASMParser.section"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterSection([NotNull] GBASMParser.SectionContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="GBASMParser.section"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitSection([NotNull] GBASMParser.SectionContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="GBASMParser.literal"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterLiteral([NotNull] GBASMParser.LiteralContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="GBASMParser.literal"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitLiteral([NotNull] GBASMParser.LiteralContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="GBASMParser.jump"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterJump([NotNull] GBASMParser.JumpContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="GBASMParser.jump"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitJump([NotNull] GBASMParser.JumpContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="GBASMParser.label"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterLabel([NotNull] GBASMParser.LabelContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="GBASMParser.label"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitLabel([NotNull] GBASMParser.LabelContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="GBASMParser.value"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
@@ -188,18 +272,6 @@ public partial class GBASMBaseListener : IGBASMListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitNegvalue([NotNull] GBASMParser.NegvalueContext context) { }
-	/// <summary>
-	/// Enter a parse tree produced by <see cref="GBASMParser.jump_target"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterJump_target([NotNull] GBASMParser.Jump_targetContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="GBASMParser.jump_target"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitJump_target([NotNull] GBASMParser.Jump_targetContext context) { }
 
 	/// <inheritdoc/>
 	/// <remarks>The default implementation does nothing.</remarks>
