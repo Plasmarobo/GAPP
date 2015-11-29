@@ -126,3 +126,13 @@ List<String^>^ GBLib::Decompile(Queue<Byte> ^rom)
 	}
 	return text;
 }
+
+void GBLib::LoadRom(String ^ filename)
+{
+	using namespace Runtime::InteropServices;
+	const char* chars =
+		(const char*) (Marshal::StringToHGlobalAnsi(filename)).ToPointer();
+	std::string str = chars;
+	Marshal::FreeHGlobal(IntPtr((void*) chars));
+	gbcpu->RunGBFile(str);
+}

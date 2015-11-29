@@ -20,7 +20,7 @@ namespace GAPPDebugger.Controls
     /// </summary>
     public partial class GBMemory : UserControl
     {
-
+        
         private List<MemoryRow> memory;
 
         public GBMemory()

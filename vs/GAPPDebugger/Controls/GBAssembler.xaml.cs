@@ -30,7 +30,7 @@ namespace GAPPDebugger.Controls
 
         private void CompileAndRun(object sender, RoutedEventArgs e)
         {
-            assembler.Assemble(Assembly.Text);
+            assembler.AssembleString(Assembly.Text);
         }
 
         private void SaveASM(object sender, RoutedEventArgs e)

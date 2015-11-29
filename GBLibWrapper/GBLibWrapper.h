@@ -51,6 +51,7 @@ namespace GBLibWrapper {
 		List<Byte>^ DumpMemory();
 		List<Byte>^ Assemble(List<String^> ^text);
 		List<String^>^ Decompile(Queue<Byte> ^rom);
+		void LoadRom(String ^ filename);
 
 		virtual ~GBLib();
 	};

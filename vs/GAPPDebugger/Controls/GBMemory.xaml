@@ -8,7 +8,7 @@
              d:DesignHeight="300" d:DesignWidth="320">
     <StackPanel Width="320" Height="300">
         <TextBox x:Name="SearchBox" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" TextChanged="SearchBox_TextChanged" Width="320"/>
-        <ScrollViewer Width="320" Height="277" Margin="0,2,0,0" >
+        <ScrollViewer Width="320" Height="277" Margin="0,2,0,0" Background="Gray" >
             <StackPanel x:Name="MemoryContents" Orientation="Vertical"/>
         </ScrollViewer>
         
