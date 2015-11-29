@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
+using System.Globalization;
 
 namespace GAPPDebugger
 {
@@ -547,7 +548,7 @@ namespace GAPPDebugger
                         {
                             rom.Add(0xE9);
                         }
-                        else if (src.loc == Locations.IMM)
+                        else if (src.loc == Locations.IMM || src.loc == Locations.WIDE_IMM)
                         {
                             src.isWide = true;
                             rom.Add(0xC3);
@@ -1144,6 +1145,7 @@ namespace GAPPDebugger
         public void PrintLine(String line)
         {
             window.ConsoleWin.Text += line + "\n";
+            window.ConsoleWin.UpdateLayout();
         }
 
         public List<Byte> Assemble()
@@ -1195,12 +1197,26 @@ namespace GAPPDebugger
 
         public void EnterExp(GBASMParser.ExpContext context)
         {
-            rom_ptr = rom.Count;
-            lines.Add(inputStream.GetText(new Interval((int)context.Start.StartIndex, (int)context.Stop.StopIndex)));
+            PrintLine("Start Exp");
         }
 
         public void ExitExp(GBASMParser.ExpContext context)
         {
+            PrintLine("End Exp");
+        }
+
+        public void EnterOp(GBASMParser.OpContext context)
+        {
+            PrintLine("Start op");
+            rom_ptr = rom.Count;
+            lines.Add(inputStream.GetText(new Interval((int)context.Start.StartIndex, (int)context.Stop.StopIndex)));
+            currentInst = new Instruction();
+        }
+
+        public void ExitOp(GBASMParser.OpContext context)
+        {
+            PrintLine("End Op");
+            currentInst.AppendTo(rom);
             String str = "";
             for (int i = rom_ptr; i < rom.Count; ++i)
             {
@@ -1209,20 +1225,9 @@ namespace GAPPDebugger
             lineToBytes.Add(str);
         }
 
-        public void EnterOp(GBASMParser.OpContext context)
-        {
-            currentInst = new Instruction();
-        }
-
-        public void ExitOp(GBASMParser.OpContext context)
-        {
-            currentInst.AppendTo(rom); 
-        }
-
         public void EnterMonad(GBASMParser.MonadContext context)
         {
             PrintLine("Monad Detected");
-            PrintLine(context.GetText());
             argFSM = ArgFSM.COMPLETE;
             currentInst.op = MapOp(context.GetText());
             currentInst.src.loc = Locations.NONE;
@@ -1237,7 +1242,6 @@ namespace GAPPDebugger
         public void EnterBiad(GBASMParser.BiadContext context)
         {
             PrintLine("Biad Detected");
-            PrintLine(context.GetText());
             argFSM = ArgFSM.ARG;
             currentInst.op = MapOp(context.GetText());
         }
@@ -1250,7 +1254,6 @@ namespace GAPPDebugger
         public void EnterTriad(GBASMParser.TriadContext context)
         {
             PrintLine("Triad Detected");
-            PrintLine(context.GetText());
             argFSM = ArgFSM.SRC;
             currentInst.op = MapOp(context.GetText());
         }
@@ -1382,27 +1385,55 @@ namespace GAPPDebugger
 
         }
 
+        protected Int16 ParseNum(String s)
+        {
+            Int16 value;
+            if(s.Length > 0 && s[0] == '$')
+            {
+                value = Int16.Parse(s.Substring(1), NumberStyles.HexNumber);
+            }
+            else if (s.Length > 2 && s[1] == 'x')
+            {
+                value = Int16.Parse(s.Substring(2), NumberStyles.HexNumber);
+            }
+            else if (s.Length > 1 && s.Last() == 'h' || s.Last() == 'H')
+            {
+                value = Int16.Parse(s.Substring(0, s.Length-1), NumberStyles.HexNumber);
+            }
+            else
+            {
+                value = Int16.Parse(s);
+            }
+            return value;
+        }
+
         public void EnterValue(GBASMParser.ValueContext context)
         {
             
             PrintLine("Numeric Value");
-            PrintLine(context.GetText());
-            Int16 value = Int16.Parse(context.GetText());
+            
+            String s = context.GetText();
+           
+            PrintLine(s);
+            Int16 value = ParseNum(s);
             if(!isSection)
             {
-                if (Math.Abs(value) > 255)
+                if (db_stack > 0)
                 {
-                    SetArgLoc(Locations.WIDE_IMM);
+                    rom.Add((Byte)value);
                 }
                 else
                 {
-                    SetArgLoc(Locations.IMM);
+                    if (Math.Abs(value) > 255)
+                    {
+                        SetArgLoc(Locations.WIDE_IMM);
+                    }
+                    else
+                    {
+                        SetArgLoc(Locations.IMM);
+                    }
+                    SetArgVal(value);
                 }
-                SetArgVal(value);
-            }
-            else if (db_stack > 0)
-            {
-                rom.Add((Byte)value);
             }
             else
             {
@@ -1421,9 +1452,9 @@ namespace GAPPDebugger
         public void EnterNegvalue(GBASMParser.NegvalueContext context)
         {
             PrintLine("Signed Value");
-            PrintLine(context.GetText());
+            
 
-            Int16 value = Int16.Parse(context.GetText());
+            Int16 value = (Int16)(-ParseNum(context.GetText().Substring(1)));
             if (db_stack > 0)
             {
                 rom.Add((Byte)value);
@@ -1451,7 +1482,7 @@ namespace GAPPDebugger
 
         public void EnterEveryRule(ParserRuleContext ctx)
         {
-            //throw new NotImplementedException();
+            PrintLine(ctx.GetText());
         }
 
         public void ExitEveryRule(ParserRuleContext ctx)
@@ -1461,6 +1492,9 @@ namespace GAPPDebugger
 
         public void VisitErrorNode(Antlr4.Runtime.Tree.IErrorNode node)
         {
+            PrintLine("!!ERROR!!");
+            PrintLine(node.GetText());
+            //node.
             //throw new NotImplementedException();
         }
 
@@ -1488,16 +1522,25 @@ namespace GAPPDebugger
 
         public void EnterSys(GBASMParser.SysContext context)
         {
-            //throw new NotImplementedException();
+            PrintLine("Starting Sys");
+            rom_ptr = rom.Count;
+            lines.Add(inputStream.GetText(new Interval((int)context.Start.StartIndex, (int)context.Stop.StopIndex)));
         }
 
         public void ExitSys(GBASMParser.SysContext context)
         {
-            //throw new NotImplementedException();
+            PrintLine("Ending Sys");
+            String str = "";
+            for (int i = rom_ptr; i < rom.Count; ++i)
+            {
+                str = str + "0x" + rom[i].ToString("X2") + " ";
+            }
+            lineToBytes.Add(str);
         }
 
         public void EnterInclude(GBASMParser.IncludeContext context)
         {
+            PrintLine("Include Statement");
             //Implement in preprocessor
             //throw new NotImplementedException();
         }
@@ -1509,30 +1552,13 @@ namespace GAPPDebugger
 
         public void EnterSection(GBASMParser.SectionContext context)
         {
-            PrintLine("Padding section");
+            PrintLine("Starting Section");
             isSection = true;
         }
 
         public void ExitSection(GBASMParser.SectionContext context)
         {
             isSection = false;
-        }
-
-        public void EnterLiteral(GBASMParser.LiteralContext context)
-        {
-            if(db_stack > 0)
-            {
-                String s = context.GetText();
-                for(int i = 0; i < s.Length; ++i)
-                {
-                    rom.Add((Byte)s[i]);
-                }
-            }
-        }
-
-        public void ExitLiteral(GBASMParser.LiteralContext context)
-        {
-            //throw new NotImplementedException();
         }
 
         public void EnterJump(GBASMParser.JumpContext context)
@@ -1567,7 +1593,7 @@ namespace GAPPDebugger
 
         public void EnterLabel(GBASMParser.LabelContext context)
         {
-            PrintLine("Label");
+            PrintLine("Label Defined");
 
             String label = context.GetText();
             label = label.Substring(0, label.Length - 1); //Chop the colon
@@ -1587,15 +1613,47 @@ namespace GAPPDebugger
             //throw new NotImplementedException();
         }
 
+        public void EnterData(GBASMParser.DataContext context)
+        {
+            PrintLine("DB");
+            db_stack += 1;
+            PrintLine("DB at " + db_stack.ToString());
+        }
+
+        public void ExitData(GBASMParser.DataContext context)
+        {
+            db_stack -= 1;
+
+            PrintLine("DB at " + db_stack.ToString());
+        }
+
 
         public void EnterDb(GBASMParser.DbContext context)
         {
-            db_stack += 1;
+            //throw new NotImplementedException();
         }
 
         public void ExitDb(GBASMParser.DbContext context)
         {
-            db_stack -= 1;
+            //throw new NotImplementedException();
+        }
+
+        public void EnterString_data(GBASMParser.String_dataContext context)
+        {
+            PrintLine("Literal Value");
+            if (db_stack > 0)
+            {
+                String s = context.GetText();
+                for (int i = 0; i < s.Length; ++i)
+                {
+                    rom.Add((Byte)s[i]);
+                }
+            }
+        }
+
+        public void ExitString_data(GBASMParser.String_dataContext context)
+        {
+            //throw new NotImplementedException();
         }
     }
 }

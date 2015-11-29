@@ -1,9 +1,9 @@
 grammar GBASM;
 
 eval : exp EOF;
-exp : sys exp | op exp | sys | op;
+exp : exp op | exp sys | op | sys;
 
-sys : include | section | label | db;
+sys : include | section | label | data;
 op : monad | biad arg | triad arg SEPARATOR arg;
 
 monad : NOP|RLCA|RRCA|STOP|RLA|RRA|DAA|CPL|SCF|CCF|HALT|RETI|DI|EI|RST|RET;
@@ -14,7 +14,7 @@ triad : RET|JR|JP|CALL|LD|LDD|LDI|LDH|ADD|ADC|SBC|BIT|RES|SET;
 
 arg : (register|value|negvalue|flag|offset|jump|memory);
 
-memory : MEMSTART (register|value) MEMEND;
+memory : MEMSTART (register|value|jump) MEMEND;
 
 offset : register Plus value | register negvalue;
 
@@ -22,12 +22,14 @@ register : A|B|C|D|E|F|H|L|AF|BC|DE|HL|SP|HLPLUS|HLMINUS;
 
 flag : NZ | NC | Z | C;
 
-db : literal | value | literal SEPARATOR db | value SEPARATOR db;
-include : 'INCLUDE' literal;
-section : 'SECTION' literal | 'SECTION' literal SEPARATOR 'HOME' '[' value ']';
-literal : '"' STRING '"';
-jump : STRING;
-label : STRING ':';
+data : DB db;
+db : string_data | value | string_data SEPARATOR db | value SEPARATOR db;
+include : INCLUDE string_data;
+section : SECTION string_data SEPARATOR HOME '[' value ']';
+
+string_data: STRINGLITERAL;
+jump : LIMSTRING;
+label : LIMSTRING ':';
 
 Z : 'Z';
 
@@ -75,6 +77,8 @@ RR : 'RR' | 'rr';
 DI : 'DI' | 'di';
 EI : 'EI' | 'ei';
 
+DB : 'DB';
+
 LDD : 'LDD' | 'ldd';
 LDI : 'LDI' | 'ldi';
 ADD: 'ADD' | 'add';
@@ -117,8 +121,12 @@ STOP : 'STOP 0' | 'STOP' | 'stop 0' | 'stop';
 HALT: 'HALT' | 'halt';
 RETI: 'RETI' | 'reti';
 
+HOME: 'HOME';
+SECTION: 'SECTION';
+INCLUDE: 'INCLUDE';
 
-STRING : ('a'..'z'|'A'..'Z'|'0'..'9')+;
+STRINGLITERAL : '"' ~["\r\n]* '"';
+LIMSTRING : ('_'|'a'..'z'|'A'..'Z'|'0'..'9')+;
 SEPARATOR : ',';
 WS : (' '|'\t'|'\n'|'\r') ->channel(HIDDEN);
 COMMENT : ';' ~('\n'|'\r')* '\r'? '\n' ->channel(HIDDEN);

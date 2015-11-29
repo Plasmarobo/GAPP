@@ -177,6 +177,18 @@ public partial class GBASMBaseListener : IGBASMListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitFlag([NotNull] GBASMParser.FlagContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="GBASMParser.data"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterData([NotNull] GBASMParser.DataContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="GBASMParser.data"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitData([NotNull] GBASMParser.DataContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="GBASMParser.db"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
@@ -213,17 +225,17 @@ public partial class GBASMBaseListener : IGBASMListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitSection([NotNull] GBASMParser.SectionContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="GBASMParser.literal"/>.
+	/// Enter a parse tree produced by <see cref="GBASMParser.string_data"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void EnterLiteral([NotNull] GBASMParser.LiteralContext context) { }
+	public virtual void EnterString_data([NotNull] GBASMParser.String_dataContext context) { }
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="GBASMParser.literal"/>.
+	/// Exit a parse tree produced by <see cref="GBASMParser.string_data"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void ExitLiteral([NotNull] GBASMParser.LiteralContext context) { }
+	public virtual void ExitString_data([NotNull] GBASMParser.String_dataContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="GBASMParser.jump"/>.
 	/// <para>The default implementation does nothing.</para>

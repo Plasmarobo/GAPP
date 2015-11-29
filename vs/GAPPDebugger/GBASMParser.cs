@@ -31,47 +31,48 @@ using DFA = Antlr4.Runtime.Dfa.DFA;
 [System.CLSCompliant(false)]
 public partial class GBASMParser : Parser {
 	public const int
-		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, T__6=7, Z=8, A=9, B=10, 
-		C=11, D=12, E=13, F=14, H=15, L=16, AF=17, BC=18, DE=19, HL=20, SP=21, 
-		NZ=22, NC=23, RST_VALUE=24, RST_DIGITS=25, Integer=26, Hexval=27, Neg=28, 
-		Plus=29, HLPLUS=30, HLMINUS=31, MEMSTART=32, MEMEND=33, LD=34, JR=35, 
-		JP=36, OR=37, CP=38, RL=39, RR=40, DI=41, EI=42, LDD=43, LDI=44, ADD=45, 
-		ADC=46, SBC=47, BIT=48, RES=49, SET=50, RET=51, INC=52, DEC=53, SUB=54, 
-		AND=55, XOR=56, RLC=57, RRC=58, POP=59, SLA=60, SRA=61, SRL=62, NOP=63, 
-		RLA=64, RRA=65, DAA=66, CPL=67, SCF=68, CCF=69, LDH=70, RST=71, CALL=72, 
-		PUSH=73, SWAP=74, RLCA=75, RRCA=76, STOP=77, HALT=78, RETI=79, STRING=80, 
-		SEPARATOR=81, WS=82, COMMENT=83;
+		T__0=1, T__1=2, T__2=3, Z=4, A=5, B=6, C=7, D=8, E=9, F=10, H=11, L=12, 
+		AF=13, BC=14, DE=15, HL=16, SP=17, NZ=18, NC=19, RST_VALUE=20, RST_DIGITS=21, 
+		Integer=22, Hexval=23, Neg=24, Plus=25, HLPLUS=26, HLMINUS=27, MEMSTART=28, 
+		MEMEND=29, LD=30, JR=31, JP=32, OR=33, CP=34, RL=35, RR=36, DI=37, EI=38, 
+		DB=39, LDD=40, LDI=41, ADD=42, ADC=43, SBC=44, BIT=45, RES=46, SET=47, 
+		RET=48, INC=49, DEC=50, SUB=51, AND=52, XOR=53, RLC=54, RRC=55, POP=56, 
+		SLA=57, SRA=58, SRL=59, NOP=60, RLA=61, RRA=62, DAA=63, CPL=64, SCF=65, 
+		CCF=66, LDH=67, RST=68, CALL=69, PUSH=70, SWAP=71, RLCA=72, RRCA=73, STOP=74, 
+		HALT=75, RETI=76, HOME=77, SECTION=78, INCLUDE=79, STRINGLITERAL=80, LIMSTRING=81, 
+		SEPARATOR=82, WS=83, COMMENT=84;
 	public const int
 		RULE_eval = 0, RULE_exp = 1, RULE_sys = 2, RULE_op = 3, RULE_monad = 4, 
 		RULE_biad = 5, RULE_triad = 6, RULE_arg = 7, RULE_memory = 8, RULE_offset = 9, 
-		RULE_register = 10, RULE_flag = 11, RULE_db = 12, RULE_include = 13, RULE_section = 14, 
-		RULE_literal = 15, RULE_jump = 16, RULE_label = 17, RULE_value = 18, RULE_negvalue = 19;
+		RULE_register = 10, RULE_flag = 11, RULE_data = 12, RULE_db = 13, RULE_include = 14, 
+		RULE_section = 15, RULE_string_data = 16, RULE_jump = 17, RULE_label = 18, 
+		RULE_value = 19, RULE_negvalue = 20;
 	public static readonly string[] ruleNames = {
 		"eval", "exp", "sys", "op", "monad", "biad", "triad", "arg", "memory", 
-		"offset", "register", "flag", "db", "include", "section", "literal", "jump", 
-		"label", "value", "negvalue"
+		"offset", "register", "flag", "data", "db", "include", "section", "string_data", 
+		"jump", "label", "value", "negvalue"
 	};
 
 	private static readonly string[] _LiteralNames = {
-		null, "'INCLUDE'", "'SECTION'", "'HOME'", "'['", "']'", "'\"'", "':'", 
-		"'Z'", "'A'", "'B'", "'C'", "'D'", "'E'", "'F'", "'H'", "'L'", "'AF'", 
-		"'BC'", "'DE'", "'HL'", "'SP'", "'NZ'", "'NC'", null, null, null, null, 
-		"'-'", "'+'", null, null, "'('", "')'", null, null, null, null, null, 
+		null, "'['", "']'", "':'", "'Z'", "'A'", "'B'", "'C'", "'D'", "'E'", "'F'", 
+		"'H'", "'L'", "'AF'", "'BC'", "'DE'", "'HL'", "'SP'", "'NZ'", "'NC'", 
+		null, null, null, null, "'-'", "'+'", null, null, "'('", "')'", null, 
+		null, null, null, null, null, null, null, null, "'DB'", null, null, null, 
 		null, null, null, null, null, null, null, null, null, null, null, null, 
 		null, null, null, null, null, null, null, null, null, null, null, null, 
-		null, null, null, null, null, null, null, null, null, null, null, null, 
-		null, null, null, null, null, null, "','"
+		null, null, null, null, null, null, null, null, null, null, "'HOME'", 
+		"'SECTION'", "'INCLUDE'", null, null, "','"
 	};
 	private static readonly string[] _SymbolicNames = {
-		null, null, null, null, null, null, null, null, "Z", "A", "B", "C", "D", 
-		"E", "F", "H", "L", "AF", "BC", "DE", "HL", "SP", "NZ", "NC", "RST_VALUE", 
-		"RST_DIGITS", "Integer", "Hexval", "Neg", "Plus", "HLPLUS", "HLMINUS", 
-		"MEMSTART", "MEMEND", "LD", "JR", "JP", "OR", "CP", "RL", "RR", "DI", 
-		"EI", "LDD", "LDI", "ADD", "ADC", "SBC", "BIT", "RES", "SET", "RET", "INC", 
-		"DEC", "SUB", "AND", "XOR", "RLC", "RRC", "POP", "SLA", "SRA", "SRL", 
-		"NOP", "RLA", "RRA", "DAA", "CPL", "SCF", "CCF", "LDH", "RST", "CALL", 
-		"PUSH", "SWAP", "RLCA", "RRCA", "STOP", "HALT", "RETI", "STRING", "SEPARATOR", 
-		"WS", "COMMENT"
+		null, null, null, null, "Z", "A", "B", "C", "D", "E", "F", "H", "L", "AF", 
+		"BC", "DE", "HL", "SP", "NZ", "NC", "RST_VALUE", "RST_DIGITS", "Integer", 
+		"Hexval", "Neg", "Plus", "HLPLUS", "HLMINUS", "MEMSTART", "MEMEND", "LD", 
+		"JR", "JP", "OR", "CP", "RL", "RR", "DI", "EI", "DB", "LDD", "LDI", "ADD", 
+		"ADC", "SBC", "BIT", "RES", "SET", "RET", "INC", "DEC", "SUB", "AND", 
+		"XOR", "RLC", "RRC", "POP", "SLA", "SRA", "SRL", "NOP", "RLA", "RRA", 
+		"DAA", "CPL", "SCF", "CCF", "LDH", "RST", "CALL", "PUSH", "SWAP", "RLCA", 
+		"RRCA", "STOP", "HALT", "RETI", "HOME", "SECTION", "INCLUDE", "STRINGLITERAL", 
+		"LIMSTRING", "SEPARATOR", "WS", "COMMENT"
 	};
 	public static readonly IVocabulary DefaultVocabulary = new Vocabulary(_LiteralNames, _SymbolicNames);
 
@@ -122,8 +123,8 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 40; exp();
-			State = 41; Match(Eof);
+			State = 42; exp(0);
+			State = 43; Match(Eof);
 			}
 		}
 		catch (RecognitionException re) {
@@ -138,14 +139,14 @@ public partial class GBASMParser : Parser {
 	}
 
 	public partial class ExpContext : ParserRuleContext {
+		public OpContext op() {
+			return GetRuleContext<OpContext>(0);
+		}
 		public SysContext sys() {
 			return GetRuleContext<SysContext>(0);
 		}
 		public ExpContext exp() {
 			return GetRuleContext<ExpContext>(0);
-		}
-		public OpContext op() {
-			return GetRuleContext<OpContext>(0);
 		}
 		public ExpContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -164,37 +165,120 @@ public partial class GBASMParser : Parser {
 
 	[RuleVersion(0)]
 	public ExpContext exp() {
-		ExpContext _localctx = new ExpContext(Context, State);
-		EnterRule(_localctx, 2, RULE_exp);
+		return exp(0);
+	}
+
+	private ExpContext exp(int _p) {
+		ParserRuleContext _parentctx = Context;
+		int _parentState = State;
+		ExpContext _localctx = new ExpContext(Context, _parentState);
+		ExpContext _prevctx = _localctx;
+		int _startState = 2;
+		EnterRecursionRule(_localctx, 2, RULE_exp, _p);
 		try {
-			State = 51;
-			switch ( Interpreter.AdaptivePredict(TokenStream,0,Context) ) {
-			case 1:
-				EnterOuterAlt(_localctx, 1);
-				{
-				State = 43; sys();
-				State = 44; exp();
-				}
-				break;
-			case 2:
-				EnterOuterAlt(_localctx, 2);
+			int _alt;
+			EnterOuterAlt(_localctx, 1);
+			{
+			State = 48;
+			switch (TokenStream.La(1)) {
+			case LD:
+			case JR:
+			case JP:
+			case OR:
+			case CP:
+			case RL:
+			case RR:
+			case DI:
+			case EI:
+			case LDD:
+			case LDI:
+			case ADD:
+			case ADC:
+			case SBC:
+			case BIT:
+			case RES:
+			case SET:
+			case RET:
+			case INC:
+			case DEC:
+			case SUB:
+			case AND:
+			case XOR:
+			case RLC:
+			case RRC:
+			case POP:
+			case SLA:
+			case SRA:
+			case SRL:
+			case NOP:
+			case RLA:
+			case RRA:
+			case DAA:
+			case CPL:
+			case SCF:
+			case CCF:
+			case LDH:
+			case RST:
+			case CALL:
+			case PUSH:
+			case SWAP:
+			case RLCA:
+			case RRCA:
+			case STOP:
+			case HALT:
+			case RETI:
 				{
 				State = 46; op();
-				State = 47; exp();
 				}
 				break;
-			case 3:
-				EnterOuterAlt(_localctx, 3);
+			case DB:
+			case SECTION:
+			case INCLUDE:
+			case LIMSTRING:
 				{
-				State = 49; sys();
+				State = 47; sys();
 				}
 				break;
-			case 4:
-				EnterOuterAlt(_localctx, 4);
-				{
-				State = 50; op();
+			default:
+				throw new NoViableAltException(this);
+			}
+			Context.Stop = TokenStream.Lt(-1);
+			State = 56;
+			ErrorHandler.Sync(this);
+			_alt = Interpreter.AdaptivePredict(TokenStream,2,Context);
+			while ( _alt!=2 && _alt!=global::Antlr4.Runtime.Atn.ATN.InvalidAltNumber ) {
+				if ( _alt==1 ) {
+					if ( ParseListeners!=null )
+						TriggerExitRuleEvent();
+					_prevctx = _localctx;
+					{
+					State = 54;
+					switch ( Interpreter.AdaptivePredict(TokenStream,1,Context) ) {
+					case 1:
+						{
+						_localctx = new ExpContext(_parentctx, _parentState);
+						PushNewRecursionContext(_localctx, _startState, RULE_exp);
+						State = 50;
+						if (!(Precpred(Context, 4))) throw new FailedPredicateException(this, "Precpred(Context, 4)");
+						State = 51; op();
+						}
+						break;
+					case 2:
+						{
+						_localctx = new ExpContext(_parentctx, _parentState);
+						PushNewRecursionContext(_localctx, _startState, RULE_exp);
+						State = 52;
+						if (!(Precpred(Context, 3))) throw new FailedPredicateException(this, "Precpred(Context, 3)");
+						State = 53; sys();
+						}
+						break;
+					}
+					} 
 				}
-				break;
+				State = 58;
+				ErrorHandler.Sync(this);
+				_alt = Interpreter.AdaptivePredict(TokenStream,2,Context);
+			}
 			}
 		}
 		catch (RecognitionException re) {
@@ -203,7 +287,7 @@ public partial class GBASMParser : Parser {
 			ErrorHandler.Recover(this, re);
 		}
 		finally {
-			ExitRule();
+			UnrollRecursionContexts(_parentctx);
 		}
 		return _localctx;
 	}
@@ -218,8 +302,8 @@ public partial class GBASMParser : Parser {
 		public LabelContext label() {
 			return GetRuleContext<LabelContext>(0);
 		}
-		public DbContext db() {
-			return GetRuleContext<DbContext>(0);
+		public DataContext data() {
+			return GetRuleContext<DataContext>(0);
 		}
 		public SysContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -241,32 +325,30 @@ public partial class GBASMParser : Parser {
 		SysContext _localctx = new SysContext(Context, State);
 		EnterRule(_localctx, 4, RULE_sys);
 		try {
-			State = 57;
+			State = 63;
 			switch (TokenStream.La(1)) {
-			case T__0:
+			case INCLUDE:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 53; include();
+				State = 59; include();
 				}
 				break;
-			case T__1:
+			case SECTION:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 54; section();
+				State = 60; section();
 				}
 				break;
-			case STRING:
+			case LIMSTRING:
 				EnterOuterAlt(_localctx, 3);
 				{
-				State = 55; label();
+				State = 61; label();
 				}
 				break;
-			case T__5:
-			case Integer:
-			case Hexval:
+			case DB:
 				EnterOuterAlt(_localctx, 4);
 				{
-				State = 56; db();
+				State = 62; data();
 				}
 				break;
 			default:
@@ -321,28 +403,28 @@ public partial class GBASMParser : Parser {
 		OpContext _localctx = new OpContext(Context, State);
 		EnterRule(_localctx, 6, RULE_op);
 		try {
-			State = 68;
-			switch ( Interpreter.AdaptivePredict(TokenStream,2,Context) ) {
+			State = 74;
+			switch ( Interpreter.AdaptivePredict(TokenStream,4,Context) ) {
 			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 59; monad();
+				State = 65; monad();
 				}
 				break;
 			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 60; biad();
-				State = 61; arg();
+				State = 66; biad();
+				State = 67; arg();
 				}
 				break;
 			case 3:
 				EnterOuterAlt(_localctx, 3);
 				{
-				State = 63; triad();
-				State = 64; arg();
-				State = 65; Match(SEPARATOR);
-				State = 66; arg();
+				State = 69; triad();
+				State = 70; arg();
+				State = 71; Match(SEPARATOR);
+				State = 72; arg();
 				}
 				break;
 			}
@@ -398,9 +480,9 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 70;
+			State = 76;
 			_la = TokenStream.La(1);
-			if ( !(((((_la - 41)) & ~0x3f) == 0 && ((1L << (_la - 41)) & ((1L << (DI - 41)) | (1L << (EI - 41)) | (1L << (RET - 41)) | (1L << (NOP - 41)) | (1L << (RLA - 41)) | (1L << (RRA - 41)) | (1L << (DAA - 41)) | (1L << (CPL - 41)) | (1L << (SCF - 41)) | (1L << (CCF - 41)) | (1L << (RST - 41)) | (1L << (RLCA - 41)) | (1L << (RRCA - 41)) | (1L << (STOP - 41)) | (1L << (HALT - 41)) | (1L << (RETI - 41)))) != 0)) ) {
+			if ( !(((((_la - 37)) & ~0x3f) == 0 && ((1L << (_la - 37)) & ((1L << (DI - 37)) | (1L << (EI - 37)) | (1L << (RET - 37)) | (1L << (NOP - 37)) | (1L << (RLA - 37)) | (1L << (RRA - 37)) | (1L << (DAA - 37)) | (1L << (CPL - 37)) | (1L << (SCF - 37)) | (1L << (CCF - 37)) | (1L << (RST - 37)) | (1L << (RLCA - 37)) | (1L << (RRCA - 37)) | (1L << (STOP - 37)) | (1L << (HALT - 37)) | (1L << (RETI - 37)))) != 0)) ) {
 			ErrorHandler.RecoverInline(this);
 			}
 			else {
@@ -462,9 +544,9 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 72;
+			State = 78;
 			_la = TokenStream.La(1);
-			if ( !(((((_la - 35)) & ~0x3f) == 0 && ((1L << (_la - 35)) & ((1L << (JR - 35)) | (1L << (JP - 35)) | (1L << (OR - 35)) | (1L << (CP - 35)) | (1L << (RL - 35)) | (1L << (RR - 35)) | (1L << (INC - 35)) | (1L << (DEC - 35)) | (1L << (SUB - 35)) | (1L << (AND - 35)) | (1L << (XOR - 35)) | (1L << (RLC - 35)) | (1L << (RRC - 35)) | (1L << (POP - 35)) | (1L << (SLA - 35)) | (1L << (SRA - 35)) | (1L << (SRL - 35)) | (1L << (PUSH - 35)) | (1L << (SWAP - 35)))) != 0)) ) {
+			if ( !(((((_la - 31)) & ~0x3f) == 0 && ((1L << (_la - 31)) & ((1L << (JR - 31)) | (1L << (JP - 31)) | (1L << (OR - 31)) | (1L << (CP - 31)) | (1L << (RL - 31)) | (1L << (RR - 31)) | (1L << (INC - 31)) | (1L << (DEC - 31)) | (1L << (SUB - 31)) | (1L << (AND - 31)) | (1L << (XOR - 31)) | (1L << (RLC - 31)) | (1L << (RRC - 31)) | (1L << (POP - 31)) | (1L << (SLA - 31)) | (1L << (SRA - 31)) | (1L << (SRL - 31)) | (1L << (PUSH - 31)) | (1L << (SWAP - 31)))) != 0)) ) {
 			ErrorHandler.RecoverInline(this);
 			}
 			else {
@@ -521,9 +603,9 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 74;
+			State = 80;
 			_la = TokenStream.La(1);
-			if ( !(((((_la - 34)) & ~0x3f) == 0 && ((1L << (_la - 34)) & ((1L << (LD - 34)) | (1L << (JR - 34)) | (1L << (JP - 34)) | (1L << (LDD - 34)) | (1L << (LDI - 34)) | (1L << (ADD - 34)) | (1L << (ADC - 34)) | (1L << (SBC - 34)) | (1L << (BIT - 34)) | (1L << (RES - 34)) | (1L << (SET - 34)) | (1L << (RET - 34)) | (1L << (LDH - 34)) | (1L << (CALL - 34)))) != 0)) ) {
+			if ( !(((((_la - 30)) & ~0x3f) == 0 && ((1L << (_la - 30)) & ((1L << (LD - 30)) | (1L << (JR - 30)) | (1L << (JP - 30)) | (1L << (LDD - 30)) | (1L << (LDI - 30)) | (1L << (ADD - 30)) | (1L << (ADC - 30)) | (1L << (SBC - 30)) | (1L << (BIT - 30)) | (1L << (RES - 30)) | (1L << (SET - 30)) | (1L << (RET - 30)) | (1L << (LDH - 30)) | (1L << (CALL - 30)))) != 0)) ) {
 			ErrorHandler.RecoverInline(this);
 			}
 			else {
@@ -586,41 +668,41 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 83;
-			switch ( Interpreter.AdaptivePredict(TokenStream,3,Context) ) {
+			State = 89;
+			switch ( Interpreter.AdaptivePredict(TokenStream,5,Context) ) {
 			case 1:
 				{
-				State = 76; register();
+				State = 82; register();
 				}
 				break;
 			case 2:
 				{
-				State = 77; value();
+				State = 83; value();
 				}
 				break;
 			case 3:
 				{
-				State = 78; negvalue();
+				State = 84; negvalue();
 				}
 				break;
 			case 4:
 				{
-				State = 79; flag();
+				State = 85; flag();
 				}
 				break;
 			case 5:
 				{
-				State = 80; offset();
+				State = 86; offset();
 				}
 				break;
 			case 6:
 				{
-				State = 81; jump();
+				State = 87; jump();
 				}
 				break;
 			case 7:
 				{
-				State = 82; memory();
+				State = 88; memory();
 				}
 				break;
 			}
@@ -646,6 +728,9 @@ public partial class GBASMParser : Parser {
 		public ValueContext value() {
 			return GetRuleContext<ValueContext>(0);
 		}
+		public JumpContext jump() {
+			return GetRuleContext<JumpContext>(0);
+		}
 		public MemoryContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
@@ -668,8 +753,8 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 85; Match(MEMSTART);
-			State = 88;
+			State = 91; Match(MEMSTART);
+			State = 95;
 			switch (TokenStream.La(1)) {
 			case A:
 			case B:
@@ -687,19 +772,24 @@ public partial class GBASMParser : Parser {
 			case HLPLUS:
 			case HLMINUS:
 				{
-				State = 86; register();
+				State = 92; register();
 				}
 				break;
 			case Integer:
 			case Hexval:
 				{
-				State = 87; value();
+				State = 93; value();
+				}
+				break;
+			case LIMSTRING:
+				{
+				State = 94; jump();
 				}
 				break;
 			default:
 				throw new NoViableAltException(this);
 			}
-			State = 90; Match(MEMEND);
+			State = 97; Match(MEMEND);
 			}
 		}
 		catch (RecognitionException re) {
@@ -744,21 +834,21 @@ public partial class GBASMParser : Parser {
 		OffsetContext _localctx = new OffsetContext(Context, State);
 		EnterRule(_localctx, 18, RULE_offset);
 		try {
-			State = 99;
-			switch ( Interpreter.AdaptivePredict(TokenStream,5,Context) ) {
+			State = 106;
+			switch ( Interpreter.AdaptivePredict(TokenStream,7,Context) ) {
 			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 92; register();
-				State = 93; Match(Plus);
-				State = 94; value();
+				State = 99; register();
+				State = 100; Match(Plus);
+				State = 101; value();
 				}
 				break;
 			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 96; register();
-				State = 97; negvalue();
+				State = 103; register();
+				State = 104; negvalue();
 				}
 				break;
 			}
@@ -813,7 +903,7 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 101;
+			State = 108;
 			_la = TokenStream.La(1);
 			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << A) | (1L << B) | (1L << C) | (1L << D) | (1L << E) | (1L << F) | (1L << H) | (1L << L) | (1L << AF) | (1L << BC) | (1L << DE) | (1L << HL) | (1L << SP) | (1L << HLPLUS) | (1L << HLMINUS))) != 0)) ) {
 			ErrorHandler.RecoverInline(this);
@@ -862,7 +952,7 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 103;
+			State = 110;
 			_la = TokenStream.La(1);
 			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << Z) | (1L << C) | (1L << NZ) | (1L << NC))) != 0)) ) {
 			ErrorHandler.RecoverInline(this);
@@ -883,9 +973,51 @@ public partial class GBASMParser : Parser {
 		return _localctx;
 	}
 
+	public partial class DataContext : ParserRuleContext {
+		public ITerminalNode DB() { return GetToken(GBASMParser.DB, 0); }
+		public DbContext db() {
+			return GetRuleContext<DbContext>(0);
+		}
+		public DataContext(ParserRuleContext parent, int invokingState)
+			: base(parent, invokingState)
+		{
+		}
+		public override int RuleIndex { get { return RULE_data; } }
+		public override void EnterRule(IParseTreeListener listener) {
+			IGBASMListener typedListener = listener as IGBASMListener;
+			if (typedListener != null) typedListener.EnterData(this);
+		}
+		public override void ExitRule(IParseTreeListener listener) {
+			IGBASMListener typedListener = listener as IGBASMListener;
+			if (typedListener != null) typedListener.ExitData(this);
+		}
+	}
+
+	[RuleVersion(0)]
+	public DataContext data() {
+		DataContext _localctx = new DataContext(Context, State);
+		EnterRule(_localctx, 24, RULE_data);
+		try {
+			EnterOuterAlt(_localctx, 1);
+			{
+			State = 112; Match(DB);
+			State = 113; db();
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			ErrorHandler.ReportError(this, re);
+			ErrorHandler.Recover(this, re);
+		}
+		finally {
+			ExitRule();
+		}
+		return _localctx;
+	}
+
 	public partial class DbContext : ParserRuleContext {
-		public LiteralContext literal() {
-			return GetRuleContext<LiteralContext>(0);
+		public String_dataContext string_data() {
+			return GetRuleContext<String_dataContext>(0);
 		}
 		public ValueContext value() {
 			return GetRuleContext<ValueContext>(0);
@@ -912,36 +1044,36 @@ public partial class GBASMParser : Parser {
 	[RuleVersion(0)]
 	public DbContext db() {
 		DbContext _localctx = new DbContext(Context, State);
-		EnterRule(_localctx, 24, RULE_db);
+		EnterRule(_localctx, 26, RULE_db);
 		try {
-			State = 115;
-			switch ( Interpreter.AdaptivePredict(TokenStream,6,Context) ) {
+			State = 125;
+			switch ( Interpreter.AdaptivePredict(TokenStream,8,Context) ) {
 			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 105; literal();
+				State = 115; string_data();
 				}
 				break;
 			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 106; value();
+				State = 116; value();
 				}
 				break;
 			case 3:
 				EnterOuterAlt(_localctx, 3);
 				{
-				State = 107; literal();
-				State = 108; Match(SEPARATOR);
-				State = 109; db();
+				State = 117; string_data();
+				State = 118; Match(SEPARATOR);
+				State = 119; db();
 				}
 				break;
 			case 4:
 				EnterOuterAlt(_localctx, 4);
 				{
-				State = 111; value();
-				State = 112; Match(SEPARATOR);
-				State = 113; db();
+				State = 121; value();
+				State = 122; Match(SEPARATOR);
+				State = 123; db();
 				}
 				break;
 			}
@@ -958,8 +1090,9 @@ public partial class GBASMParser : Parser {
 	}
 
 	public partial class IncludeContext : ParserRuleContext {
-		public LiteralContext literal() {
-			return GetRuleContext<LiteralContext>(0);
+		public ITerminalNode INCLUDE() { return GetToken(GBASMParser.INCLUDE, 0); }
+		public String_dataContext string_data() {
+			return GetRuleContext<String_dataContext>(0);
 		}
 		public IncludeContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
@@ -979,12 +1112,12 @@ public partial class GBASMParser : Parser {
 	[RuleVersion(0)]
 	public IncludeContext include() {
 		IncludeContext _localctx = new IncludeContext(Context, State);
-		EnterRule(_localctx, 26, RULE_include);
+		EnterRule(_localctx, 28, RULE_include);
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 117; Match(T__0);
-			State = 118; literal();
+			State = 127; Match(INCLUDE);
+			State = 128; string_data();
 			}
 		}
 		catch (RecognitionException re) {
@@ -999,10 +1132,12 @@ public partial class GBASMParser : Parser {
 	}
 
 	public partial class SectionContext : ParserRuleContext {
-		public LiteralContext literal() {
-			return GetRuleContext<LiteralContext>(0);
+		public ITerminalNode SECTION() { return GetToken(GBASMParser.SECTION, 0); }
+		public String_dataContext string_data() {
+			return GetRuleContext<String_dataContext>(0);
 		}
 		public ITerminalNode SEPARATOR() { return GetToken(GBASMParser.SEPARATOR, 0); }
+		public ITerminalNode HOME() { return GetToken(GBASMParser.HOME, 0); }
 		public ValueContext value() {
 			return GetRuleContext<ValueContext>(0);
 		}
@@ -1024,29 +1159,17 @@ public partial class GBASMParser : Parser {
 	[RuleVersion(0)]
 	public SectionContext section() {
 		SectionContext _localctx = new SectionContext(Context, State);
-		EnterRule(_localctx, 28, RULE_section);
+		EnterRule(_localctx, 30, RULE_section);
 		try {
-			State = 130;
-			switch ( Interpreter.AdaptivePredict(TokenStream,7,Context) ) {
-			case 1:
-				EnterOuterAlt(_localctx, 1);
-				{
-				State = 120; Match(T__1);
-				State = 121; literal();
-				}
-				break;
-			case 2:
-				EnterOuterAlt(_localctx, 2);
-				{
-				State = 122; Match(T__1);
-				State = 123; literal();
-				State = 124; Match(SEPARATOR);
-				State = 125; Match(T__2);
-				State = 126; Match(T__3);
-				State = 127; value();
-				State = 128; Match(T__4);
-				}
-				break;
+			EnterOuterAlt(_localctx, 1);
+			{
+			State = 130; Match(SECTION);
+			State = 131; string_data();
+			State = 132; Match(SEPARATOR);
+			State = 133; Match(HOME);
+			State = 134; Match(T__0);
+			State = 135; value();
+			State = 136; Match(T__1);
 			}
 		}
 		catch (RecognitionException re) {
@@ -1060,33 +1183,31 @@ public partial class GBASMParser : Parser {
 		return _localctx;
 	}
 
-	public partial class LiteralContext : ParserRuleContext {
-		public ITerminalNode STRING() { return GetToken(GBASMParser.STRING, 0); }
-		public LiteralContext(ParserRuleContext parent, int invokingState)
+	public partial class String_dataContext : ParserRuleContext {
+		public ITerminalNode STRINGLITERAL() { return GetToken(GBASMParser.STRINGLITERAL, 0); }
+		public String_dataContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_literal; } }
+		public override int RuleIndex { get { return RULE_string_data; } }
 		public override void EnterRule(IParseTreeListener listener) {
 			IGBASMListener typedListener = listener as IGBASMListener;
-			if (typedListener != null) typedListener.EnterLiteral(this);
+			if (typedListener != null) typedListener.EnterString_data(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
 			IGBASMListener typedListener = listener as IGBASMListener;
-			if (typedListener != null) typedListener.ExitLiteral(this);
+			if (typedListener != null) typedListener.ExitString_data(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public LiteralContext literal() {
-		LiteralContext _localctx = new LiteralContext(Context, State);
-		EnterRule(_localctx, 30, RULE_literal);
+	public String_dataContext string_data() {
+		String_dataContext _localctx = new String_dataContext(Context, State);
+		EnterRule(_localctx, 32, RULE_string_data);
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 132; Match(T__5);
-			State = 133; Match(STRING);
-			State = 134; Match(T__5);
+			State = 138; Match(STRINGLITERAL);
 			}
 		}
 		catch (RecognitionException re) {
@@ -1101,7 +1222,7 @@ public partial class GBASMParser : Parser {
 	}
 
 	public partial class JumpContext : ParserRuleContext {
-		public ITerminalNode STRING() { return GetToken(GBASMParser.STRING, 0); }
+		public ITerminalNode LIMSTRING() { return GetToken(GBASMParser.LIMSTRING, 0); }
 		public JumpContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
@@ -1120,11 +1241,11 @@ public partial class GBASMParser : Parser {
 	[RuleVersion(0)]
 	public JumpContext jump() {
 		JumpContext _localctx = new JumpContext(Context, State);
-		EnterRule(_localctx, 32, RULE_jump);
+		EnterRule(_localctx, 34, RULE_jump);
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 136; Match(STRING);
+			State = 140; Match(LIMSTRING);
 			}
 		}
 		catch (RecognitionException re) {
@@ -1139,7 +1260,7 @@ public partial class GBASMParser : Parser {
 	}
 
 	public partial class LabelContext : ParserRuleContext {
-		public ITerminalNode STRING() { return GetToken(GBASMParser.STRING, 0); }
+		public ITerminalNode LIMSTRING() { return GetToken(GBASMParser.LIMSTRING, 0); }
 		public LabelContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
@@ -1158,12 +1279,12 @@ public partial class GBASMParser : Parser {
 	[RuleVersion(0)]
 	public LabelContext label() {
 		LabelContext _localctx = new LabelContext(Context, State);
-		EnterRule(_localctx, 34, RULE_label);
+		EnterRule(_localctx, 36, RULE_label);
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 138; Match(STRING);
-			State = 139; Match(T__6);
+			State = 142; Match(LIMSTRING);
+			State = 143; Match(T__2);
 			}
 		}
 		catch (RecognitionException re) {
@@ -1198,12 +1319,12 @@ public partial class GBASMParser : Parser {
 	[RuleVersion(0)]
 	public ValueContext value() {
 		ValueContext _localctx = new ValueContext(Context, State);
-		EnterRule(_localctx, 36, RULE_value);
+		EnterRule(_localctx, 38, RULE_value);
 		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 141;
+			State = 145;
 			_la = TokenStream.La(1);
 			if ( !(_la==Integer || _la==Hexval) ) {
 			ErrorHandler.RecoverInline(this);
@@ -1247,12 +1368,12 @@ public partial class GBASMParser : Parser {
 	[RuleVersion(0)]
 	public NegvalueContext negvalue() {
 		NegvalueContext _localctx = new NegvalueContext(Context, State);
-		EnterRule(_localctx, 38, RULE_negvalue);
+		EnterRule(_localctx, 40, RULE_negvalue);
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 143; Match(Neg);
-			State = 144; value();
+			State = 147; Match(Neg);
+			State = 148; value();
 			}
 		}
 		catch (RecognitionException re) {
@@ -1266,57 +1387,73 @@ public partial class GBASMParser : Parser {
 		return _localctx;
 	}
 
+	public override bool Sempred(RuleContext _localctx, int ruleIndex, int predIndex) {
+		switch (ruleIndex) {
+		case 1: return exp_sempred((ExpContext)_localctx, predIndex);
+		}
+		return true;
+	}
+	private bool exp_sempred(ExpContext _localctx, int predIndex) {
+		switch (predIndex) {
+		case 0: return Precpred(Context, 4);
+		case 1: return Precpred(Context, 3);
+		}
+		return true;
+	}
+
 	public static readonly string _serializedATN =
-		"\x3\x430\xD6D1\x8206\xAD2D\x4417\xAEF1\x8D80\xAADD\x3U\x95\x4\x2\t\x2"+
+		"\x3\x430\xD6D1\x8206\xAD2D\x4417\xAEF1\x8D80\xAADD\x3V\x99\x4\x2\t\x2"+
 		"\x4\x3\t\x3\x4\x4\t\x4\x4\x5\t\x5\x4\x6\t\x6\x4\a\t\a\x4\b\t\b\x4\t\t"+
 		"\t\x4\n\t\n\x4\v\t\v\x4\f\t\f\x4\r\t\r\x4\xE\t\xE\x4\xF\t\xF\x4\x10\t"+
 		"\x10\x4\x11\t\x11\x4\x12\t\x12\x4\x13\t\x13\x4\x14\t\x14\x4\x15\t\x15"+
-		"\x3\x2\x3\x2\x3\x2\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3\x3\x5"+
-		"\x3\x36\n\x3\x3\x4\x3\x4\x3\x4\x3\x4\x5\x4<\n\x4\x3\x5\x3\x5\x3\x5\x3"+
-		"\x5\x3\x5\x3\x5\x3\x5\x3\x5\x3\x5\x5\x5G\n\x5\x3\x6\x3\x6\x3\a\x3\a\x3"+
-		"\b\x3\b\x3\t\x3\t\x3\t\x3\t\x3\t\x3\t\x3\t\x5\tV\n\t\x3\n\x3\n\x3\n\x5"+
-		"\n[\n\n\x3\n\x3\n\x3\v\x3\v\x3\v\x3\v\x3\v\x3\v\x3\v\x5\v\x66\n\v\x3\f"+
-		"\x3\f\x3\r\x3\r\x3\xE\x3\xE\x3\xE\x3\xE\x3\xE\x3\xE\x3\xE\x3\xE\x3\xE"+
-		"\x3\xE\x5\xEv\n\xE\x3\xF\x3\xF\x3\xF\x3\x10\x3\x10\x3\x10\x3\x10\x3\x10"+
-		"\x3\x10\x3\x10\x3\x10\x3\x10\x3\x10\x5\x10\x85\n\x10\x3\x11\x3\x11\x3"+
-		"\x11\x3\x11\x3\x12\x3\x12\x3\x13\x3\x13\x3\x13\x3\x14\x3\x14\x3\x15\x3"+
-		"\x15\x3\x15\x3\x15\x2\x2\x16\x2\x4\x6\b\n\f\xE\x10\x12\x14\x16\x18\x1A"+
-		"\x1C\x1E \"$&(\x2\b\a\x2+,\x35\x35\x41GIIMQ\x5\x2%*\x36@KL\x6\x2$&-\x35"+
-		"HHJJ\x4\x2\v\x17 !\x5\x2\n\n\r\r\x18\x19\x3\x2\x1C\x1D\x94\x2*\x3\x2\x2"+
-		"\x2\x4\x35\x3\x2\x2\x2\x6;\x3\x2\x2\x2\b\x46\x3\x2\x2\x2\nH\x3\x2\x2\x2"+
-		"\fJ\x3\x2\x2\x2\xEL\x3\x2\x2\x2\x10U\x3\x2\x2\x2\x12W\x3\x2\x2\x2\x14"+
-		"\x65\x3\x2\x2\x2\x16g\x3\x2\x2\x2\x18i\x3\x2\x2\x2\x1Au\x3\x2\x2\x2\x1C"+
-		"w\x3\x2\x2\x2\x1E\x84\x3\x2\x2\x2 \x86\x3\x2\x2\x2\"\x8A\x3\x2\x2\x2$"+
-		"\x8C\x3\x2\x2\x2&\x8F\x3\x2\x2\x2(\x91\x3\x2\x2\x2*+\x5\x4\x3\x2+,\a\x2"+
-		"\x2\x3,\x3\x3\x2\x2\x2-.\x5\x6\x4\x2./\x5\x4\x3\x2/\x36\x3\x2\x2\x2\x30"+
-		"\x31\x5\b\x5\x2\x31\x32\x5\x4\x3\x2\x32\x36\x3\x2\x2\x2\x33\x36\x5\x6"+
-		"\x4\x2\x34\x36\x5\b\x5\x2\x35-\x3\x2\x2\x2\x35\x30\x3\x2\x2\x2\x35\x33"+
-		"\x3\x2\x2\x2\x35\x34\x3\x2\x2\x2\x36\x5\x3\x2\x2\x2\x37<\x5\x1C\xF\x2"+
-		"\x38<\x5\x1E\x10\x2\x39<\x5$\x13\x2:<\x5\x1A\xE\x2;\x37\x3\x2\x2\x2;\x38"+
-		"\x3\x2\x2\x2;\x39\x3\x2\x2\x2;:\x3\x2\x2\x2<\a\x3\x2\x2\x2=G\x5\n\x6\x2"+
-		">?\x5\f\a\x2?@\x5\x10\t\x2@G\x3\x2\x2\x2\x41\x42\x5\xE\b\x2\x42\x43\x5"+
-		"\x10\t\x2\x43\x44\aS\x2\x2\x44\x45\x5\x10\t\x2\x45G\x3\x2\x2\x2\x46=\x3"+
-		"\x2\x2\x2\x46>\x3\x2\x2\x2\x46\x41\x3\x2\x2\x2G\t\x3\x2\x2\x2HI\t\x2\x2"+
-		"\x2I\v\x3\x2\x2\x2JK\t\x3\x2\x2K\r\x3\x2\x2\x2LM\t\x4\x2\x2M\xF\x3\x2"+
-		"\x2\x2NV\x5\x16\f\x2OV\x5&\x14\x2PV\x5(\x15\x2QV\x5\x18\r\x2RV\x5\x14"+
-		"\v\x2SV\x5\"\x12\x2TV\x5\x12\n\x2UN\x3\x2\x2\x2UO\x3\x2\x2\x2UP\x3\x2"+
-		"\x2\x2UQ\x3\x2\x2\x2UR\x3\x2\x2\x2US\x3\x2\x2\x2UT\x3\x2\x2\x2V\x11\x3"+
-		"\x2\x2\x2WZ\a\"\x2\x2X[\x5\x16\f\x2Y[\x5&\x14\x2ZX\x3\x2\x2\x2ZY\x3\x2"+
-		"\x2\x2[\\\x3\x2\x2\x2\\]\a#\x2\x2]\x13\x3\x2\x2\x2^_\x5\x16\f\x2_`\a\x1F"+
-		"\x2\x2`\x61\x5&\x14\x2\x61\x66\x3\x2\x2\x2\x62\x63\x5\x16\f\x2\x63\x64"+
-		"\x5(\x15\x2\x64\x66\x3\x2\x2\x2\x65^\x3\x2\x2\x2\x65\x62\x3\x2\x2\x2\x66"+
-		"\x15\x3\x2\x2\x2gh\t\x5\x2\x2h\x17\x3\x2\x2\x2ij\t\x6\x2\x2j\x19\x3\x2"+
-		"\x2\x2kv\x5 \x11\x2lv\x5&\x14\x2mn\x5 \x11\x2no\aS\x2\x2op\x5\x1A\xE\x2"+
-		"pv\x3\x2\x2\x2qr\x5&\x14\x2rs\aS\x2\x2st\x5\x1A\xE\x2tv\x3\x2\x2\x2uk"+
-		"\x3\x2\x2\x2ul\x3\x2\x2\x2um\x3\x2\x2\x2uq\x3\x2\x2\x2v\x1B\x3\x2\x2\x2"+
-		"wx\a\x3\x2\x2xy\x5 \x11\x2y\x1D\x3\x2\x2\x2z{\a\x4\x2\x2{\x85\x5 \x11"+
-		"\x2|}\a\x4\x2\x2}~\x5 \x11\x2~\x7F\aS\x2\x2\x7F\x80\a\x5\x2\x2\x80\x81"+
-		"\a\x6\x2\x2\x81\x82\x5&\x14\x2\x82\x83\a\a\x2\x2\x83\x85\x3\x2\x2\x2\x84"+
-		"z\x3\x2\x2\x2\x84|\x3\x2\x2\x2\x85\x1F\x3\x2\x2\x2\x86\x87\a\b\x2\x2\x87"+
-		"\x88\aR\x2\x2\x88\x89\a\b\x2\x2\x89!\x3\x2\x2\x2\x8A\x8B\aR\x2\x2\x8B"+
-		"#\x3\x2\x2\x2\x8C\x8D\aR\x2\x2\x8D\x8E\a\t\x2\x2\x8E%\x3\x2\x2\x2\x8F"+
-		"\x90\t\a\x2\x2\x90\'\x3\x2\x2\x2\x91\x92\a\x1E\x2\x2\x92\x93\x5&\x14\x2"+
-		"\x93)\x3\x2\x2\x2\n\x35;\x46UZ\x65u\x84";
+		"\x4\x16\t\x16\x3\x2\x3\x2\x3\x2\x3\x3\x3\x3\x3\x3\x5\x3\x33\n\x3\x3\x3"+
+		"\x3\x3\x3\x3\x3\x3\a\x3\x39\n\x3\f\x3\xE\x3<\v\x3\x3\x4\x3\x4\x3\x4\x3"+
+		"\x4\x5\x4\x42\n\x4\x3\x5\x3\x5\x3\x5\x3\x5\x3\x5\x3\x5\x3\x5\x3\x5\x3"+
+		"\x5\x5\x5M\n\x5\x3\x6\x3\x6\x3\a\x3\a\x3\b\x3\b\x3\t\x3\t\x3\t\x3\t\x3"+
+		"\t\x3\t\x3\t\x5\t\\\n\t\x3\n\x3\n\x3\n\x3\n\x5\n\x62\n\n\x3\n\x3\n\x3"+
+		"\v\x3\v\x3\v\x3\v\x3\v\x3\v\x3\v\x5\vm\n\v\x3\f\x3\f\x3\r\x3\r\x3\xE\x3"+
+		"\xE\x3\xE\x3\xF\x3\xF\x3\xF\x3\xF\x3\xF\x3\xF\x3\xF\x3\xF\x3\xF\x3\xF"+
+		"\x5\xF\x80\n\xF\x3\x10\x3\x10\x3\x10\x3\x11\x3\x11\x3\x11\x3\x11\x3\x11"+
+		"\x3\x11\x3\x11\x3\x11\x3\x12\x3\x12\x3\x13\x3\x13\x3\x14\x3\x14\x3\x14"+
+		"\x3\x15\x3\x15\x3\x16\x3\x16\x3\x16\x3\x16\x2\x3\x4\x17\x2\x4\x6\b\n\f"+
+		"\xE\x10\x12\x14\x16\x18\x1A\x1C\x1E \"$&(*\x2\b\a\x2\'(\x32\x32>\x44\x46"+
+		"\x46JN\x5\x2!&\x33=HI\x6\x2 \"*\x32\x45\x45GG\x4\x2\a\x13\x1C\x1D\x5\x2"+
+		"\x6\x6\t\t\x14\x15\x3\x2\x18\x19\x97\x2,\x3\x2\x2\x2\x4\x32\x3\x2\x2\x2"+
+		"\x6\x41\x3\x2\x2\x2\bL\x3\x2\x2\x2\nN\x3\x2\x2\x2\fP\x3\x2\x2\x2\xER\x3"+
+		"\x2\x2\x2\x10[\x3\x2\x2\x2\x12]\x3\x2\x2\x2\x14l\x3\x2\x2\x2\x16n\x3\x2"+
+		"\x2\x2\x18p\x3\x2\x2\x2\x1Ar\x3\x2\x2\x2\x1C\x7F\x3\x2\x2\x2\x1E\x81\x3"+
+		"\x2\x2\x2 \x84\x3\x2\x2\x2\"\x8C\x3\x2\x2\x2$\x8E\x3\x2\x2\x2&\x90\x3"+
+		"\x2\x2\x2(\x93\x3\x2\x2\x2*\x95\x3\x2\x2\x2,-\x5\x4\x3\x2-.\a\x2\x2\x3"+
+		".\x3\x3\x2\x2\x2/\x30\b\x3\x1\x2\x30\x33\x5\b\x5\x2\x31\x33\x5\x6\x4\x2"+
+		"\x32/\x3\x2\x2\x2\x32\x31\x3\x2\x2\x2\x33:\x3\x2\x2\x2\x34\x35\f\x6\x2"+
+		"\x2\x35\x39\x5\b\x5\x2\x36\x37\f\x5\x2\x2\x37\x39\x5\x6\x4\x2\x38\x34"+
+		"\x3\x2\x2\x2\x38\x36\x3\x2\x2\x2\x39<\x3\x2\x2\x2:\x38\x3\x2\x2\x2:;\x3"+
+		"\x2\x2\x2;\x5\x3\x2\x2\x2<:\x3\x2\x2\x2=\x42\x5\x1E\x10\x2>\x42\x5 \x11"+
+		"\x2?\x42\x5&\x14\x2@\x42\x5\x1A\xE\x2\x41=\x3\x2\x2\x2\x41>\x3\x2\x2\x2"+
+		"\x41?\x3\x2\x2\x2\x41@\x3\x2\x2\x2\x42\a\x3\x2\x2\x2\x43M\x5\n\x6\x2\x44"+
+		"\x45\x5\f\a\x2\x45\x46\x5\x10\t\x2\x46M\x3\x2\x2\x2GH\x5\xE\b\x2HI\x5"+
+		"\x10\t\x2IJ\aT\x2\x2JK\x5\x10\t\x2KM\x3\x2\x2\x2L\x43\x3\x2\x2\x2L\x44"+
+		"\x3\x2\x2\x2LG\x3\x2\x2\x2M\t\x3\x2\x2\x2NO\t\x2\x2\x2O\v\x3\x2\x2\x2"+
+		"PQ\t\x3\x2\x2Q\r\x3\x2\x2\x2RS\t\x4\x2\x2S\xF\x3\x2\x2\x2T\\\x5\x16\f"+
+		"\x2U\\\x5(\x15\x2V\\\x5*\x16\x2W\\\x5\x18\r\x2X\\\x5\x14\v\x2Y\\\x5$\x13"+
+		"\x2Z\\\x5\x12\n\x2[T\x3\x2\x2\x2[U\x3\x2\x2\x2[V\x3\x2\x2\x2[W\x3\x2\x2"+
+		"\x2[X\x3\x2\x2\x2[Y\x3\x2\x2\x2[Z\x3\x2\x2\x2\\\x11\x3\x2\x2\x2]\x61\a"+
+		"\x1E\x2\x2^\x62\x5\x16\f\x2_\x62\x5(\x15\x2`\x62\x5$\x13\x2\x61^\x3\x2"+
+		"\x2\x2\x61_\x3\x2\x2\x2\x61`\x3\x2\x2\x2\x62\x63\x3\x2\x2\x2\x63\x64\a"+
+		"\x1F\x2\x2\x64\x13\x3\x2\x2\x2\x65\x66\x5\x16\f\x2\x66g\a\x1B\x2\x2gh"+
+		"\x5(\x15\x2hm\x3\x2\x2\x2ij\x5\x16\f\x2jk\x5*\x16\x2km\x3\x2\x2\x2l\x65"+
+		"\x3\x2\x2\x2li\x3\x2\x2\x2m\x15\x3\x2\x2\x2no\t\x5\x2\x2o\x17\x3\x2\x2"+
+		"\x2pq\t\x6\x2\x2q\x19\x3\x2\x2\x2rs\a)\x2\x2st\x5\x1C\xF\x2t\x1B\x3\x2"+
+		"\x2\x2u\x80\x5\"\x12\x2v\x80\x5(\x15\x2wx\x5\"\x12\x2xy\aT\x2\x2yz\x5"+
+		"\x1C\xF\x2z\x80\x3\x2\x2\x2{|\x5(\x15\x2|}\aT\x2\x2}~\x5\x1C\xF\x2~\x80"+
+		"\x3\x2\x2\x2\x7Fu\x3\x2\x2\x2\x7Fv\x3\x2\x2\x2\x7Fw\x3\x2\x2\x2\x7F{\x3"+
+		"\x2\x2\x2\x80\x1D\x3\x2\x2\x2\x81\x82\aQ\x2\x2\x82\x83\x5\"\x12\x2\x83"+
+		"\x1F\x3\x2\x2\x2\x84\x85\aP\x2\x2\x85\x86\x5\"\x12\x2\x86\x87\aT\x2\x2"+
+		"\x87\x88\aO\x2\x2\x88\x89\a\x3\x2\x2\x89\x8A\x5(\x15\x2\x8A\x8B\a\x4\x2"+
+		"\x2\x8B!\x3\x2\x2\x2\x8C\x8D\aR\x2\x2\x8D#\x3\x2\x2\x2\x8E\x8F\aS\x2\x2"+
+		"\x8F%\x3\x2\x2\x2\x90\x91\aS\x2\x2\x91\x92\a\x5\x2\x2\x92\'\x3\x2\x2\x2"+
+		"\x93\x94\t\a\x2\x2\x94)\x3\x2\x2\x2\x95\x96\a\x1A\x2\x2\x96\x97\x5(\x15"+
+		"\x2\x97+\x3\x2\x2\x2\v\x32\x38:\x41L[\x61l\x7F";
 	public static readonly ATN _ATN =
 		new ATNDeserializer().Deserialize(_serializedATN.ToCharArray());
 }

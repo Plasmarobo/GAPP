@@ -149,6 +149,16 @@ public interface IGBASMListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitFlag([NotNull] GBASMParser.FlagContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="GBASMParser.data"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterData([NotNull] GBASMParser.DataContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="GBASMParser.data"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitData([NotNull] GBASMParser.DataContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="GBASMParser.db"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -179,15 +189,15 @@ public interface IGBASMListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitSection([NotNull] GBASMParser.SectionContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="GBASMParser.literal"/>.
+	/// Enter a parse tree produced by <see cref="GBASMParser.string_data"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterLiteral([NotNull] GBASMParser.LiteralContext context);
+	void EnterString_data([NotNull] GBASMParser.String_dataContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="GBASMParser.literal"/>.
+	/// Exit a parse tree produced by <see cref="GBASMParser.string_data"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitLiteral([NotNull] GBASMParser.LiteralContext context);
+	void ExitString_data([NotNull] GBASMParser.String_dataContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="GBASMParser.jump"/>.
 	/// </summary>
