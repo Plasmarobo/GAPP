@@ -339,6 +339,7 @@ namespace GAPPDebugger
                                     break;
                                 case Locations.IMM:
                                 case Locations.WIDE_IMM:
+                                    src.isWide = true;
                                     encode_src = true;
                                     if (dst.loc == Locations.SP)
                                     {
@@ -347,6 +348,7 @@ namespace GAPPDebugger
                                     else
                                     {
                                         rom.Add(0xEA);
+                                        
                                     }
                                     break;
                                 default:
@@ -358,7 +360,7 @@ namespace GAPPDebugger
                         else
                         {
                             //Not loading into memory
-                            if (dst.loc != Locations.IMM && dst.loc != Locations.WIDE_IMM)
+                            if (dst.loc >= Locations.B && dst.loc <= Locations.A)
                             {
                                 switch (src.loc)
                                 {
@@ -448,7 +450,14 @@ namespace GAPPDebugger
                                         rom.Add(0x11);
                                         break;
                                     case Locations.HL:
-                                        rom.Add(0x21);
+                                        if (dst.loc != Locations.OFFSET)
+                                        {
+                                            rom.Add(0x21);
+                                        }
+                                        else
+                                        {
+                                            rom.Add(0xF8);
+                                        }
                                         break;
                                     case Locations.SP:
                                         rom.Add(0x31);
@@ -463,6 +472,7 @@ namespace GAPPDebugger
                         if(src.isFlag)
                         {
                             encode_dst = true;
+                            dst.isWide = false;
                             switch(src.loc)
                             {
                                 case Locations.NZ_FLAG:
@@ -485,12 +495,14 @@ namespace GAPPDebugger
                         {
                             rom.Add(0x18);
                             encode_src = true;
+                            src.isWide = false;
                         }
                         break;
                     case Instructions.JP:
                         if(src.isFlag)
                         {
                             encode_dst = true;
+                            dst.isWide = true;
                             switch(src.loc)
                             {
                                 case Locations.NZ_FLAG:
@@ -515,6 +527,7 @@ namespace GAPPDebugger
                         }
                         else if (src.loc == Locations.IMM)
                         {
+                            src.isWide = true;
                             rom.Add(0xC3);
                             encode_src = true;
                         }
@@ -938,27 +951,32 @@ namespace GAPPDebugger
                             if(src.loc == Locations.NZ_FLAG)
                             {
                                 encode_dst = true;
+                                dst.isWide = true;
                                 rom.Add(0xC4);
                             }
                             else if (src.loc == Locations.NC_FLAG)
                             {
                                 encode_dst = true;
+                                dst.isWide = true;
                                 rom.Add(0xD4);
                             }
                             else if (src.loc == Locations.Z_FLAG)
                             {
                                 encode_dst = true;
+                                dst.isWide = true;
                                 rom.Add(0xCC);
                             }
                             else if (src.loc == Locations.C_FLAG)
                             {
                                 encode_dst = true;
+                                dst.isWide = true;
                                 rom.Add(0xDC);
                             }
                             else
                             {
                                 rom.Add(0xCD);
                                 encode_src = true;
+                                src.isWide = true;
                             }
                         }
                         break;
@@ -1219,6 +1237,7 @@ namespace GAPPDebugger
             //SetArgLoc(Locations.MEM);
             LocationInfo l = GetCurrentArg();
             l.isMem = true;
+            l.isWide = true;
         }
 
         public void ExitMemory(GBASMParser.MemoryContext context)
@@ -1327,6 +1346,14 @@ namespace GAPPDebugger
             PrintLine("Numeric Value");
             PrintLine(context.GetText());
             Int16 value = Int16.Parse(context.GetText());
+            if (Math.Abs(value) > 255)
+            {
+                SetArgLoc(Locations.WIDE_IMM);
+            }
+            else
+            {
+                SetArgLoc(Locations.IMM);
+            }
             SetArgVal(value);
         }
 
@@ -1339,7 +1366,16 @@ namespace GAPPDebugger
         {
             PrintLine("Signed Value");
             PrintLine(context.GetText());
+
             Int16 value = Int16.Parse(context.GetText());
+            if (Math.Abs(value) > 127)
+            {
+                SetArgLoc(Locations.WIDE_IMM);
+            }
+            else
+            {
+                SetArgLoc(Locations.IMM);
+            }
             SetArgVal(value);
         }
 
