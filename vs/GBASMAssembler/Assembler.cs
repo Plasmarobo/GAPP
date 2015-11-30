@@ -14,13 +14,44 @@ namespace GBASMAssembler
     public delegate void OnMessagePrintedHandler(String message);
     public delegate void OnAssemblyComplete(List<Byte> rom);
     public delegate void OnVerboseUpdate(String message);
+    public delegate void OnAssemblerError(String message);
     
+    public class LabelInfo
+    {
+        public int startByte;
+        public int endByte;
+        public int labelOffset;
+        public bool isRelative;
+        public int byteStringIndex;
+
+        public LabelInfo()
+        {
+            startByte = 0;
+            endByte = 0;
+            labelOffset = 0;
+            isRelative = false;
+            byteStringIndex = 0;
+        }
+
+        public LabelInfo(int s, int e, int o, bool r, int bs)
+        {
+            startByte = s;
+            endByte = e;
+            labelOffset = 0;
+            isRelative = r;
+            byteStringIndex = bs;
+        }
+
+        
+    }
+
     public class Assembler : IGBASMListener
     {
         public event OnProgressUpdatedHandler ProgressUpdated;
         public event OnMessagePrintedHandler MessagePrinted;
         public event OnAssemblyComplete AssemblyComplete;
         public event OnVerboseUpdate VerboseUpdate;
+        public event OnAssemblerError AssemblerError;
 
         private List<Byte> rom;
         private List<String> lineToBytes;
@@ -32,8 +63,10 @@ namespace GBASMAssembler
         private bool isSection;
         private int db_stack;
         private Dictionary<String, int> jumpAddressIndex;
-        private Dictionary<String, List<int>> unProcessedJumpLabels;
+        private Dictionary<String, List<LabelInfo>> unProcessedJumpLabels;
         private int rom_ptr;
+        private bool skip_line_inc = false;
+        private String label_buf;
 
         protected Instruction currentInst;
         protected enum ArgFSM
@@ -157,7 +190,7 @@ namespace GBASMAssembler
             db_stack = 0;
             isSection = false;
             jumpAddressIndex = new Dictionary<string,int>();
-            unProcessedJumpLabels = new Dictionary<string, List<int>>(); ;
+            unProcessedJumpLabels = new Dictionary<string, List<LabelInfo>>(); ;
             parser.BuildParseTree = true;
             Antlr4.Runtime.Tree.IParseTree tree = parser.eval();
             Antlr4.Runtime.Tree.ParseTreeWalker.Default.Walk(this, tree);
@@ -398,24 +431,28 @@ namespace GBASMAssembler
 
         }
 
-        protected Int16 ParseNum(String s)
+        protected Int32 ParseNum(String s)
         {
-            Int16 value;
+            Int32 value;
             if(s.Length > 0 && s[0] == '$')
             {
-                value = Int16.Parse(s.Substring(1), NumberStyles.HexNumber);
+                value = Int32.Parse(s.Substring(1), NumberStyles.HexNumber);
             }
             else if (s.Length > 2 && s[1] == 'x')
             {
-                value = Int16.Parse(s.Substring(2), NumberStyles.HexNumber);
+                value = Int32.Parse(s.Substring(2), NumberStyles.HexNumber);
             }
             else if (s.Length > 1 && s.Last() == 'h' || s.Last() == 'H')
             {
-                value = Int16.Parse(s.Substring(0, s.Length-1), NumberStyles.HexNumber);
+                value = Int32.Parse(s.Substring(0, s.Length-1), NumberStyles.HexNumber);
             }
             else
             {
-                value = Int16.Parse(s);
+                value = Int32.Parse(s);
+            }
+            if (value > Int16.MaxValue || value < Int16.MinValue)
+            {
+                ErrorMsg("Integer cannot be represented in 16 bits");
             }
             return value;
         }
@@ -428,7 +465,7 @@ namespace GBASMAssembler
             String s = context.GetText();
            
             PrintLine(s);
-            Int16 value = ParseNum(s);
+            Int16 value = (Int16)ParseNum(s);
             if(!isSection)
             {
                 if (db_stack > 0)
@@ -491,8 +528,6 @@ namespace GBASMAssembler
 
         }
 
-       
-
         public void EnterEveryRule(ParserRuleContext ctx)
         {
             
@@ -512,8 +547,7 @@ namespace GBASMAssembler
 
         public void VisitErrorNode(Antlr4.Runtime.Tree.IErrorNode node)
         {
-            PrintLine("ERROR!");
-            PrintLine(node.GetText());
+            ErrorMsg(node.GetText());
         }
 
         public void VisitTerminal(Antlr4.Runtime.Tree.ITerminalNode node)
@@ -540,13 +574,23 @@ namespace GBASMAssembler
         {
             PrintLine("Starting Sys");
             rom_ptr = rom.Count;
-            lines.Add(inputStream.GetText(new Interval((int)context.Start.StartIndex, (int)context.Stop.StopIndex)));
+            label_buf += inputStream.GetText(new Interval((int)context.Start.StartIndex, (int)context.Stop.StopIndex));
+            
         }
 
         public void ExitSys(GBASMParser.SysContext context)
         {
             PrintLine("Ending Sys");
-            lineToBytes.Add(BuildByteString());
+            if (skip_line_inc)
+            {
+                skip_line_inc = false;
+            }
+            else
+            {
+                lines.Add(label_buf);
+                label_buf = "";
+                lineToBytes.Add(BuildByteString());
+            }
         }
 
         public void EnterInclude(GBASMParser.IncludeContext context)
@@ -574,27 +618,45 @@ namespace GBASMAssembler
 
         public void EnterJump(GBASMParser.JumpContext context)
         {
-            PrintLine("Label Encountered");
+            PrintLine("Label Dereference");
             String label = context.GetText();
+
+            LabelInfo l = new LabelInfo();
+            l.startByte = rom.Count;
+            l.isRelative = currentInst.op == Instructions.JR;
+            switch (currentInst.op)
+            {
+                case Instructions.JR:
+                    SetArgLoc(Locations.IMM);
+                    break;
+                case Instructions.JP:
+                default:
+                    SetArgLoc(Locations.WIDE_IMM);
+                    break;
+            }
+            l.labelOffset = l.startByte + currentInst.GetCurrentOffset();
+            l.endByte = l.labelOffset + ((l.isRelative) ? 1 : 2);
+            l.byteStringIndex = lineToBytes.Count + 1;
+
             
             if (jumpAddressIndex.ContainsKey(label))
             {
-                SetArgVal((short)jumpAddressIndex[label]);
+                SetArgVal((Int16)jumpAddressIndex[label]);
             }
             else
             {
-                SetArgVal(0x0000);
+                SetArgVal(0);
                 //CALCULATE SPACE REQUIRED
                 if(!unProcessedJumpLabels.ContainsKey(label))
                 {
-                    unProcessedJumpLabels.Add(label, new List<int>());
+                    unProcessedJumpLabels.Add(label, new List<LabelInfo>());
                 }
                 //An arg size of NONE should not effect current address calculations
                 //SRC should always be set before DST is set
-                unProcessedJumpLabels[label].Add(currentInst.GetCurrentOffset());
+                unProcessedJumpLabels[label].Add(l);
             }
-            SetArgLoc(Locations.WIDE_IMM); //Reserves space for our address
-            //unProcessedJumpLabels 
+            
+            
         }
 
         public void ExitJump(GBASMParser.JumpContext context)
@@ -605,16 +667,15 @@ namespace GBASMAssembler
         public void EnterLabel(GBASMParser.LabelContext context)
         {
             PrintLine("Label Defined");
-
+            skip_line_inc = true;
             String label = context.GetText();
             label = label.Substring(0, label.Length - 1); //Chop the colon
             jumpAddressIndex.Add(label, rom.Count);
             if(unProcessedJumpLabels.ContainsKey(label))
             {
-                foreach(int index in unProcessedJumpLabels[label])
+                foreach(LabelInfo info in unProcessedJumpLabels[label])
                 {
-                    rom[index] = (Byte)(rom.Count >> 8);
-                    rom[index + 1] = (Byte)(rom.Count & 0xFF);
+                    ResolveLabel(jumpAddressIndex[label], info);
                 }
             }
         }
@@ -665,6 +726,47 @@ namespace GBASMAssembler
         public void ExitString_data(GBASMParser.String_dataContext context)
         {
             //throw new NotImplementedException();
+        }
+
+        public void ResolveLabel(int addr, LabelInfo info)
+        {
+            //Assume size has been allocated
+            if (info.isRelative)
+            {
+                //Determine distance and direction
+                int delta = addr - info.startByte;
+                //We can't insert, because that would be destructive to all following labels and jumps
+                if(delta > 127 || delta < -128)
+                {
+                    ErrorMsg("Realtive Jump out of range (-128 to 127)");
+                }
+                rom[info.labelOffset] = (Byte)(delta & 0xFF);
+            }
+            else
+            {
+                rom[info.labelOffset] = (Byte)((addr >> 8) & 0xFF);
+                rom[info.labelOffset + 1] = (Byte)(addr & 0xFF);
+            }
+
+            String bs = "";
+            for (int i = info.startByte; i < info.endByte; ++i)
+            {
+                bs += rom[i].ToString("X2");
+                if (i < (info.endByte - 1))
+                {
+                    bs += " ";
+                }
+            }
+            lineToBytes[info.byteStringIndex] = bs;
+        }
+
+        protected void ErrorMsg(String msg)
+        {
+            if(AssemblerError != null)
+            {
+                Int32 lineno = lines.Count + 1;
+                AssemblerError("Line " + lineno.ToString() + ":" + msg);
+            }
         }
     }
 }

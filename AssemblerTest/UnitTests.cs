@@ -573,13 +573,21 @@ namespace AssemblerTest
             //Absolute labels
             assembler.AssembleString("ZERO: JP ZERO");
             Assert.AreEqual("0xC3 0x00 0x00", assembler.GetByteString(0));
-            assembler.AssembleString("JP TEN\nNOP\nNOP\nNOP\nNOP\nNOP\nNOP\nTEN:NOP");
-            Assert.AreEqual("0xC3", assembler.GetByteString(0));
-            Assert.AreEqual("0x00", assembler.GetByteString(1));
-            Assert.AreEqual("0x0A", assembler.GetByteString(2));
-            //Currently unsupported: Relative labels
-            //assembler.AssembleString("JR X\nNOP\nNOP\nNOP\nNOP\nNOP\nNOP\nX: NOP");
-            //assembler.AssembleString("ZERO: NOP\nNOP\nNOP\nNOP\nNOP\nNOP\nNOP\nJR ZERO");
+            assembler.AssembleString("JP NINE\nNOP\nNOP\nNOP\nNOP\nNOP\nNOP\nNINE:NOP");
+            Assert.AreEqual("0xC3 0x00 0x09", assembler.GetByteString(0));
+            for(int i = 1; i < 8; ++i)
+            {
+                Assert.AreEqual("0x00", assembler.GetByteString(i));
+            }
+            //Relative labels
+            assembler.AssembleString("JR X\nNOP\nNOP\nNOP\nNOP\nNOP\nNOP\nX: NOP");
+            Assert.AreEqual("0x18 0x08", assembler.GetByteString(0));
+            assembler.AssembleString("ZERO: NOP\nNOP\nNOP\nNOP\nNOP\nNOP\nNOP\nJR ZERO");
+            for (int i = 0; i < 7; ++i)
+            {
+                Assert.AreEqual("0x00", assembler.GetByteString(i));
+            }
+            Assert.AreEqual("0x18 0xF9", assembler.GetByteString(7));
             
         }
     }
