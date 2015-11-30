@@ -3,14 +3,14 @@ grammar GBASM;
 eval : exp EOF;
 exp : exp op | exp sys | op | sys;
 
-sys : include | section | label | data;
 op : monad | biad arg | triad arg SEPARATOR arg;
+sys : include | section | data | label;
 
-monad : NOP|RLCA|RRCA|STOP|RLA|RRA|DAA|CPL|SCF|CCF|HALT|RETI|DI|EI|RST|RET;
+triad : JR|JP|CALL|LD|LDD|LDI|LDH|ADD|ADC|SBC|BIT|RES|SET;
 
-biad : INC|DEC|SUB|AND|XOR|OR|CP|POP|PUSH|RLC|RRC|RL|RR|SLA|SRA|SWAP|SRL|JP|JR;
+biad : INC|DEC|SUB|AND|XOR|OR|CP|POP|PUSH|RLC|RRC|RL|RR|SLA|SRA|SWAP|SRL|JP|JR|STOP|RST|RET;
 
-triad : RET|JR|JP|CALL|LD|LDD|LDI|LDH|ADD|ADC|SBC|BIT|RES|SET;
+monad : NOP|RLCA|RRCA|STOP|RLA|RRA|DAA|CPL|SCF|CCF|HALT|RETI|DI|EI|RET|STOP;
 
 arg : (register|value|negvalue|flag|offset|jump|memory);
 
@@ -49,18 +49,16 @@ SP : 'SP';
 NZ : 'NZ';
 NC : 'NC';
 
-RST_VALUE : '0x' RST_DIGITS | RST_DIGITS 'H';
-RST_DIGITS : '00' | '10' | '20' | '30' | '08' | '18' | '28' | '38';
+value : Number;
+negvalue : (Neg Number);
 
-value : (Hexval|Integer);
-negvalue : Neg value;
 
-Integer : (Digit+);
-Hexval  : ('0x' HexDigit+)|(HexDigit+ ('h'|'H'))|('$' HexDigit+);
 Neg : '-';
 Plus : '+';
-fragment HexDigit : ('0'..'9'|'a'..'f'|'A'..'F');
-fragment Digit : '0'..'9';
+Number : Digit+ | '0' [xX] HexDigit+ | '$' HexDigit+ | HexDigit+ [hH];
+fragment HexDigit : Digit | ('a'..'f') | ('A'..'F');
+fragment Digit : ('0'..'9');
+
 
 HLPLUS : 'HL+' | 'HLI';
 HLMINUS : 'HL-' | 'HLD';
@@ -109,7 +107,7 @@ CPL : 'CPL' | 'cpl';
 SCF : 'SCF' | 'scf';
 CCF : 'CCF' | 'ccf';
 LDH : 'LDH' | 'ldh';
-RST : 'RST' RST_VALUE | 'rst' RST_VALUE;
+RST : 'RST' | 'rst';
 CALL : 'CALL' | 'call';
 
 PUSH : 'PUSH' | 'push';
@@ -117,7 +115,7 @@ PUSH : 'PUSH' | 'push';
 SWAP : 'SWAP' | 'swap';
 RLCA : 'RLCA' | 'rlca';
 RRCA : 'RRCA' | 'rrca';
-STOP : 'STOP 0' | 'STOP' | 'stop 0' | 'stop';
+STOP : 'STOP' | 'stop';
 HALT: 'HALT' | 'halt';
 RETI: 'RETI' | 'reti';
 
@@ -126,7 +124,7 @@ SECTION: 'SECTION';
 INCLUDE: 'INCLUDE';
 
 STRINGLITERAL : '"' ~["\r\n]* '"';
-LIMSTRING : ('_'|'a'..'z'|'A'..'Z'|'0'..'9')+;
+LIMSTRING : ('_'|'a'..'z'|'A'..'Z')+;
 SEPARATOR : ',';
 WS : (' '|'\t'|'\n'|'\r') ->channel(HIDDEN);
 COMMENT : ';' ~('\n'|'\r')* '\r'? '\n' ->channel(HIDDEN);

@@ -57,18 +57,6 @@ public partial class GBASMBaseListener : IGBASMListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitExp([NotNull] GBASMParser.ExpContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="GBASMParser.sys"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void EnterSys([NotNull] GBASMParser.SysContext context) { }
-	/// <summary>
-	/// Exit a parse tree produced by <see cref="GBASMParser.sys"/>.
-	/// <para>The default implementation does nothing.</para>
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	public virtual void ExitSys([NotNull] GBASMParser.SysContext context) { }
-	/// <summary>
 	/// Enter a parse tree produced by <see cref="GBASMParser.op"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
@@ -81,17 +69,29 @@ public partial class GBASMBaseListener : IGBASMListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitOp([NotNull] GBASMParser.OpContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="GBASMParser.monad"/>.
+	/// Enter a parse tree produced by <see cref="GBASMParser.sys"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void EnterMonad([NotNull] GBASMParser.MonadContext context) { }
+	public virtual void EnterSys([NotNull] GBASMParser.SysContext context) { }
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="GBASMParser.monad"/>.
+	/// Exit a parse tree produced by <see cref="GBASMParser.sys"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void ExitMonad([NotNull] GBASMParser.MonadContext context) { }
+	public virtual void ExitSys([NotNull] GBASMParser.SysContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="GBASMParser.triad"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterTriad([NotNull] GBASMParser.TriadContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="GBASMParser.triad"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitTriad([NotNull] GBASMParser.TriadContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="GBASMParser.biad"/>.
 	/// <para>The default implementation does nothing.</para>
@@ -105,17 +105,17 @@ public partial class GBASMBaseListener : IGBASMListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitBiad([NotNull] GBASMParser.BiadContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="GBASMParser.triad"/>.
+	/// Enter a parse tree produced by <see cref="GBASMParser.monad"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void EnterTriad([NotNull] GBASMParser.TriadContext context) { }
+	public virtual void EnterMonad([NotNull] GBASMParser.MonadContext context) { }
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="GBASMParser.triad"/>.
+	/// Exit a parse tree produced by <see cref="GBASMParser.monad"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void ExitTriad([NotNull] GBASMParser.TriadContext context) { }
+	public virtual void ExitMonad([NotNull] GBASMParser.MonadContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="GBASMParser.arg"/>.
 	/// <para>The default implementation does nothing.</para>

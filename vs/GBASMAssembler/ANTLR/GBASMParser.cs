@@ -32,23 +32,22 @@ using DFA = Antlr4.Runtime.Dfa.DFA;
 public partial class GBASMParser : Parser {
 	public const int
 		T__0=1, T__1=2, T__2=3, Z=4, A=5, B=6, C=7, D=8, E=9, F=10, H=11, L=12, 
-		AF=13, BC=14, DE=15, HL=16, SP=17, NZ=18, NC=19, RST_VALUE=20, RST_DIGITS=21, 
-		Integer=22, Hexval=23, Neg=24, Plus=25, HLPLUS=26, HLMINUS=27, MEMSTART=28, 
-		MEMEND=29, LD=30, JR=31, JP=32, OR=33, CP=34, RL=35, RR=36, DI=37, EI=38, 
-		DB=39, LDD=40, LDI=41, ADD=42, ADC=43, SBC=44, BIT=45, RES=46, SET=47, 
-		RET=48, INC=49, DEC=50, SUB=51, AND=52, XOR=53, RLC=54, RRC=55, POP=56, 
-		SLA=57, SRA=58, SRL=59, NOP=60, RLA=61, RRA=62, DAA=63, CPL=64, SCF=65, 
-		CCF=66, LDH=67, RST=68, CALL=69, PUSH=70, SWAP=71, RLCA=72, RRCA=73, STOP=74, 
-		HALT=75, RETI=76, HOME=77, SECTION=78, INCLUDE=79, STRINGLITERAL=80, LIMSTRING=81, 
-		SEPARATOR=82, WS=83, COMMENT=84;
+		AF=13, BC=14, DE=15, HL=16, SP=17, NZ=18, NC=19, Neg=20, Plus=21, Number=22, 
+		HLPLUS=23, HLMINUS=24, MEMSTART=25, MEMEND=26, LD=27, JR=28, JP=29, OR=30, 
+		CP=31, RL=32, RR=33, DI=34, EI=35, DB=36, LDD=37, LDI=38, ADD=39, ADC=40, 
+		SBC=41, BIT=42, RES=43, SET=44, RET=45, INC=46, DEC=47, SUB=48, AND=49, 
+		XOR=50, RLC=51, RRC=52, POP=53, SLA=54, SRA=55, SRL=56, NOP=57, RLA=58, 
+		RRA=59, DAA=60, CPL=61, SCF=62, CCF=63, LDH=64, RST=65, CALL=66, PUSH=67, 
+		SWAP=68, RLCA=69, RRCA=70, STOP=71, HALT=72, RETI=73, HOME=74, SECTION=75, 
+		INCLUDE=76, STRINGLITERAL=77, LIMSTRING=78, SEPARATOR=79, WS=80, COMMENT=81;
 	public const int
-		RULE_eval = 0, RULE_exp = 1, RULE_sys = 2, RULE_op = 3, RULE_monad = 4, 
-		RULE_biad = 5, RULE_triad = 6, RULE_arg = 7, RULE_memory = 8, RULE_offset = 9, 
+		RULE_eval = 0, RULE_exp = 1, RULE_op = 2, RULE_sys = 3, RULE_triad = 4, 
+		RULE_biad = 5, RULE_monad = 6, RULE_arg = 7, RULE_memory = 8, RULE_offset = 9, 
 		RULE_register = 10, RULE_flag = 11, RULE_data = 12, RULE_db = 13, RULE_include = 14, 
 		RULE_section = 15, RULE_string_data = 16, RULE_jump = 17, RULE_label = 18, 
 		RULE_value = 19, RULE_negvalue = 20;
 	public static readonly string[] ruleNames = {
-		"eval", "exp", "sys", "op", "monad", "biad", "triad", "arg", "memory", 
+		"eval", "exp", "op", "sys", "triad", "biad", "monad", "arg", "memory", 
 		"offset", "register", "flag", "data", "db", "include", "section", "string_data", 
 		"jump", "label", "value", "negvalue"
 	};
@@ -56,23 +55,23 @@ public partial class GBASMParser : Parser {
 	private static readonly string[] _LiteralNames = {
 		null, "'['", "']'", "':'", "'Z'", "'A'", "'B'", "'C'", "'D'", "'E'", "'F'", 
 		"'H'", "'L'", "'AF'", "'BC'", "'DE'", "'HL'", "'SP'", "'NZ'", "'NC'", 
-		null, null, null, null, "'-'", "'+'", null, null, "'('", "')'", null, 
-		null, null, null, null, null, null, null, null, "'DB'", null, null, null, 
+		"'-'", "'+'", null, null, null, "'('", "')'", null, null, null, null, 
+		null, null, null, null, null, "'DB'", null, null, null, null, null, null, 
 		null, null, null, null, null, null, null, null, null, null, null, null, 
 		null, null, null, null, null, null, null, null, null, null, null, null, 
-		null, null, null, null, null, null, null, null, null, null, "'HOME'", 
-		"'SECTION'", "'INCLUDE'", null, null, "','"
+		null, null, null, null, null, null, null, "'HOME'", "'SECTION'", "'INCLUDE'", 
+		null, null, "','"
 	};
 	private static readonly string[] _SymbolicNames = {
 		null, null, null, null, "Z", "A", "B", "C", "D", "E", "F", "H", "L", "AF", 
-		"BC", "DE", "HL", "SP", "NZ", "NC", "RST_VALUE", "RST_DIGITS", "Integer", 
-		"Hexval", "Neg", "Plus", "HLPLUS", "HLMINUS", "MEMSTART", "MEMEND", "LD", 
-		"JR", "JP", "OR", "CP", "RL", "RR", "DI", "EI", "DB", "LDD", "LDI", "ADD", 
-		"ADC", "SBC", "BIT", "RES", "SET", "RET", "INC", "DEC", "SUB", "AND", 
-		"XOR", "RLC", "RRC", "POP", "SLA", "SRA", "SRL", "NOP", "RLA", "RRA", 
-		"DAA", "CPL", "SCF", "CCF", "LDH", "RST", "CALL", "PUSH", "SWAP", "RLCA", 
-		"RRCA", "STOP", "HALT", "RETI", "HOME", "SECTION", "INCLUDE", "STRINGLITERAL", 
-		"LIMSTRING", "SEPARATOR", "WS", "COMMENT"
+		"BC", "DE", "HL", "SP", "NZ", "NC", "Neg", "Plus", "Number", "HLPLUS", 
+		"HLMINUS", "MEMSTART", "MEMEND", "LD", "JR", "JP", "OR", "CP", "RL", "RR", 
+		"DI", "EI", "DB", "LDD", "LDI", "ADD", "ADC", "SBC", "BIT", "RES", "SET", 
+		"RET", "INC", "DEC", "SUB", "AND", "XOR", "RLC", "RRC", "POP", "SLA", 
+		"SRA", "SRL", "NOP", "RLA", "RRA", "DAA", "CPL", "SCF", "CCF", "LDH", 
+		"RST", "CALL", "PUSH", "SWAP", "RLCA", "RRCA", "STOP", "HALT", "RETI", 
+		"HOME", "SECTION", "INCLUDE", "STRINGLITERAL", "LIMSTRING", "SEPARATOR", 
+		"WS", "COMMENT"
 	};
 	public static readonly IVocabulary DefaultVocabulary = new Vocabulary(_LiteralNames, _SymbolicNames);
 
@@ -292,80 +291,6 @@ public partial class GBASMParser : Parser {
 		return _localctx;
 	}
 
-	public partial class SysContext : ParserRuleContext {
-		public IncludeContext include() {
-			return GetRuleContext<IncludeContext>(0);
-		}
-		public SectionContext section() {
-			return GetRuleContext<SectionContext>(0);
-		}
-		public LabelContext label() {
-			return GetRuleContext<LabelContext>(0);
-		}
-		public DataContext data() {
-			return GetRuleContext<DataContext>(0);
-		}
-		public SysContext(ParserRuleContext parent, int invokingState)
-			: base(parent, invokingState)
-		{
-		}
-		public override int RuleIndex { get { return RULE_sys; } }
-		public override void EnterRule(IParseTreeListener listener) {
-			IGBASMListener typedListener = listener as IGBASMListener;
-			if (typedListener != null) typedListener.EnterSys(this);
-		}
-		public override void ExitRule(IParseTreeListener listener) {
-			IGBASMListener typedListener = listener as IGBASMListener;
-			if (typedListener != null) typedListener.ExitSys(this);
-		}
-	}
-
-	[RuleVersion(0)]
-	public SysContext sys() {
-		SysContext _localctx = new SysContext(Context, State);
-		EnterRule(_localctx, 4, RULE_sys);
-		try {
-			State = 63;
-			switch (TokenStream.La(1)) {
-			case INCLUDE:
-				EnterOuterAlt(_localctx, 1);
-				{
-				State = 59; include();
-				}
-				break;
-			case SECTION:
-				EnterOuterAlt(_localctx, 2);
-				{
-				State = 60; section();
-				}
-				break;
-			case LIMSTRING:
-				EnterOuterAlt(_localctx, 3);
-				{
-				State = 61; label();
-				}
-				break;
-			case DB:
-				EnterOuterAlt(_localctx, 4);
-				{
-				State = 62; data();
-				}
-				break;
-			default:
-				throw new NoViableAltException(this);
-			}
-		}
-		catch (RecognitionException re) {
-			_localctx.exception = re;
-			ErrorHandler.ReportError(this, re);
-			ErrorHandler.Recover(this, re);
-		}
-		finally {
-			ExitRule();
-		}
-		return _localctx;
-	}
-
 	public partial class OpContext : ParserRuleContext {
 		public MonadContext monad() {
 			return GetRuleContext<MonadContext>(0);
@@ -401,30 +326,30 @@ public partial class GBASMParser : Parser {
 	[RuleVersion(0)]
 	public OpContext op() {
 		OpContext _localctx = new OpContext(Context, State);
-		EnterRule(_localctx, 6, RULE_op);
+		EnterRule(_localctx, 4, RULE_op);
 		try {
-			State = 74;
-			switch ( Interpreter.AdaptivePredict(TokenStream,4,Context) ) {
+			State = 68;
+			switch ( Interpreter.AdaptivePredict(TokenStream,3,Context) ) {
 			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
-				State = 65; monad();
+				State = 59; monad();
 				}
 				break;
 			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
-				State = 66; biad();
-				State = 67; arg();
+				State = 60; biad();
+				State = 61; arg();
 				}
 				break;
 			case 3:
 				EnterOuterAlt(_localctx, 3);
 				{
-				State = 69; triad();
-				State = 70; arg();
-				State = 71; Match(SEPARATOR);
-				State = 72; arg();
+				State = 63; triad();
+				State = 64; arg();
+				State = 65; Match(SEPARATOR);
+				State = 66; arg();
 				}
 				break;
 			}
@@ -440,49 +365,120 @@ public partial class GBASMParser : Parser {
 		return _localctx;
 	}
 
-	public partial class MonadContext : ParserRuleContext {
-		public ITerminalNode NOP() { return GetToken(GBASMParser.NOP, 0); }
-		public ITerminalNode RLCA() { return GetToken(GBASMParser.RLCA, 0); }
-		public ITerminalNode RRCA() { return GetToken(GBASMParser.RRCA, 0); }
-		public ITerminalNode STOP() { return GetToken(GBASMParser.STOP, 0); }
-		public ITerminalNode RLA() { return GetToken(GBASMParser.RLA, 0); }
-		public ITerminalNode RRA() { return GetToken(GBASMParser.RRA, 0); }
-		public ITerminalNode DAA() { return GetToken(GBASMParser.DAA, 0); }
-		public ITerminalNode CPL() { return GetToken(GBASMParser.CPL, 0); }
-		public ITerminalNode SCF() { return GetToken(GBASMParser.SCF, 0); }
-		public ITerminalNode CCF() { return GetToken(GBASMParser.CCF, 0); }
-		public ITerminalNode HALT() { return GetToken(GBASMParser.HALT, 0); }
-		public ITerminalNode RETI() { return GetToken(GBASMParser.RETI, 0); }
-		public ITerminalNode DI() { return GetToken(GBASMParser.DI, 0); }
-		public ITerminalNode EI() { return GetToken(GBASMParser.EI, 0); }
-		public ITerminalNode RST() { return GetToken(GBASMParser.RST, 0); }
-		public ITerminalNode RET() { return GetToken(GBASMParser.RET, 0); }
-		public MonadContext(ParserRuleContext parent, int invokingState)
+	public partial class SysContext : ParserRuleContext {
+		public IncludeContext include() {
+			return GetRuleContext<IncludeContext>(0);
+		}
+		public SectionContext section() {
+			return GetRuleContext<SectionContext>(0);
+		}
+		public DataContext data() {
+			return GetRuleContext<DataContext>(0);
+		}
+		public LabelContext label() {
+			return GetRuleContext<LabelContext>(0);
+		}
+		public SysContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_monad; } }
+		public override int RuleIndex { get { return RULE_sys; } }
 		public override void EnterRule(IParseTreeListener listener) {
 			IGBASMListener typedListener = listener as IGBASMListener;
-			if (typedListener != null) typedListener.EnterMonad(this);
+			if (typedListener != null) typedListener.EnterSys(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
 			IGBASMListener typedListener = listener as IGBASMListener;
-			if (typedListener != null) typedListener.ExitMonad(this);
+			if (typedListener != null) typedListener.ExitSys(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public MonadContext monad() {
-		MonadContext _localctx = new MonadContext(Context, State);
-		EnterRule(_localctx, 8, RULE_monad);
+	public SysContext sys() {
+		SysContext _localctx = new SysContext(Context, State);
+		EnterRule(_localctx, 6, RULE_sys);
+		try {
+			State = 74;
+			switch (TokenStream.La(1)) {
+			case INCLUDE:
+				EnterOuterAlt(_localctx, 1);
+				{
+				State = 70; include();
+				}
+				break;
+			case SECTION:
+				EnterOuterAlt(_localctx, 2);
+				{
+				State = 71; section();
+				}
+				break;
+			case DB:
+				EnterOuterAlt(_localctx, 3);
+				{
+				State = 72; data();
+				}
+				break;
+			case LIMSTRING:
+				EnterOuterAlt(_localctx, 4);
+				{
+				State = 73; label();
+				}
+				break;
+			default:
+				throw new NoViableAltException(this);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			ErrorHandler.ReportError(this, re);
+			ErrorHandler.Recover(this, re);
+		}
+		finally {
+			ExitRule();
+		}
+		return _localctx;
+	}
+
+	public partial class TriadContext : ParserRuleContext {
+		public ITerminalNode JR() { return GetToken(GBASMParser.JR, 0); }
+		public ITerminalNode JP() { return GetToken(GBASMParser.JP, 0); }
+		public ITerminalNode CALL() { return GetToken(GBASMParser.CALL, 0); }
+		public ITerminalNode LD() { return GetToken(GBASMParser.LD, 0); }
+		public ITerminalNode LDD() { return GetToken(GBASMParser.LDD, 0); }
+		public ITerminalNode LDI() { return GetToken(GBASMParser.LDI, 0); }
+		public ITerminalNode LDH() { return GetToken(GBASMParser.LDH, 0); }
+		public ITerminalNode ADD() { return GetToken(GBASMParser.ADD, 0); }
+		public ITerminalNode ADC() { return GetToken(GBASMParser.ADC, 0); }
+		public ITerminalNode SBC() { return GetToken(GBASMParser.SBC, 0); }
+		public ITerminalNode BIT() { return GetToken(GBASMParser.BIT, 0); }
+		public ITerminalNode RES() { return GetToken(GBASMParser.RES, 0); }
+		public ITerminalNode SET() { return GetToken(GBASMParser.SET, 0); }
+		public TriadContext(ParserRuleContext parent, int invokingState)
+			: base(parent, invokingState)
+		{
+		}
+		public override int RuleIndex { get { return RULE_triad; } }
+		public override void EnterRule(IParseTreeListener listener) {
+			IGBASMListener typedListener = listener as IGBASMListener;
+			if (typedListener != null) typedListener.EnterTriad(this);
+		}
+		public override void ExitRule(IParseTreeListener listener) {
+			IGBASMListener typedListener = listener as IGBASMListener;
+			if (typedListener != null) typedListener.ExitTriad(this);
+		}
+	}
+
+	[RuleVersion(0)]
+	public TriadContext triad() {
+		TriadContext _localctx = new TriadContext(Context, State);
+		EnterRule(_localctx, 8, RULE_triad);
 		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 76;
 			_la = TokenStream.La(1);
-			if ( !(((((_la - 37)) & ~0x3f) == 0 && ((1L << (_la - 37)) & ((1L << (DI - 37)) | (1L << (EI - 37)) | (1L << (RET - 37)) | (1L << (NOP - 37)) | (1L << (RLA - 37)) | (1L << (RRA - 37)) | (1L << (DAA - 37)) | (1L << (CPL - 37)) | (1L << (SCF - 37)) | (1L << (CCF - 37)) | (1L << (RST - 37)) | (1L << (RLCA - 37)) | (1L << (RRCA - 37)) | (1L << (STOP - 37)) | (1L << (HALT - 37)) | (1L << (RETI - 37)))) != 0)) ) {
+			if ( !(((((_la - 27)) & ~0x3f) == 0 && ((1L << (_la - 27)) & ((1L << (LD - 27)) | (1L << (JR - 27)) | (1L << (JP - 27)) | (1L << (LDD - 27)) | (1L << (LDI - 27)) | (1L << (ADD - 27)) | (1L << (ADC - 27)) | (1L << (SBC - 27)) | (1L << (BIT - 27)) | (1L << (RES - 27)) | (1L << (SET - 27)) | (1L << (LDH - 27)) | (1L << (CALL - 27)))) != 0)) ) {
 			ErrorHandler.RecoverInline(this);
 			}
 			else {
@@ -521,6 +517,9 @@ public partial class GBASMParser : Parser {
 		public ITerminalNode SRL() { return GetToken(GBASMParser.SRL, 0); }
 		public ITerminalNode JP() { return GetToken(GBASMParser.JP, 0); }
 		public ITerminalNode JR() { return GetToken(GBASMParser.JR, 0); }
+		public ITerminalNode STOP() { return GetToken(GBASMParser.STOP, 0); }
+		public ITerminalNode RST() { return GetToken(GBASMParser.RST, 0); }
+		public ITerminalNode RET() { return GetToken(GBASMParser.RET, 0); }
 		public BiadContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
@@ -546,7 +545,7 @@ public partial class GBASMParser : Parser {
 			{
 			State = 78;
 			_la = TokenStream.La(1);
-			if ( !(((((_la - 31)) & ~0x3f) == 0 && ((1L << (_la - 31)) & ((1L << (JR - 31)) | (1L << (JP - 31)) | (1L << (OR - 31)) | (1L << (CP - 31)) | (1L << (RL - 31)) | (1L << (RR - 31)) | (1L << (INC - 31)) | (1L << (DEC - 31)) | (1L << (SUB - 31)) | (1L << (AND - 31)) | (1L << (XOR - 31)) | (1L << (RLC - 31)) | (1L << (RRC - 31)) | (1L << (POP - 31)) | (1L << (SLA - 31)) | (1L << (SRA - 31)) | (1L << (SRL - 31)) | (1L << (PUSH - 31)) | (1L << (SWAP - 31)))) != 0)) ) {
+			if ( !(((((_la - 28)) & ~0x3f) == 0 && ((1L << (_la - 28)) & ((1L << (JR - 28)) | (1L << (JP - 28)) | (1L << (OR - 28)) | (1L << (CP - 28)) | (1L << (RL - 28)) | (1L << (RR - 28)) | (1L << (RET - 28)) | (1L << (INC - 28)) | (1L << (DEC - 28)) | (1L << (SUB - 28)) | (1L << (AND - 28)) | (1L << (XOR - 28)) | (1L << (RLC - 28)) | (1L << (RRC - 28)) | (1L << (POP - 28)) | (1L << (SLA - 28)) | (1L << (SRA - 28)) | (1L << (SRL - 28)) | (1L << (RST - 28)) | (1L << (PUSH - 28)) | (1L << (SWAP - 28)) | (1L << (STOP - 28)))) != 0)) ) {
 			ErrorHandler.RecoverInline(this);
 			}
 			else {
@@ -565,47 +564,51 @@ public partial class GBASMParser : Parser {
 		return _localctx;
 	}
 
-	public partial class TriadContext : ParserRuleContext {
+	public partial class MonadContext : ParserRuleContext {
+		public ITerminalNode NOP() { return GetToken(GBASMParser.NOP, 0); }
+		public ITerminalNode RLCA() { return GetToken(GBASMParser.RLCA, 0); }
+		public ITerminalNode RRCA() { return GetToken(GBASMParser.RRCA, 0); }
+		public ITerminalNode[] STOP() { return GetTokens(GBASMParser.STOP); }
+		public ITerminalNode STOP(int i) {
+			return GetToken(GBASMParser.STOP, i);
+		}
+		public ITerminalNode RLA() { return GetToken(GBASMParser.RLA, 0); }
+		public ITerminalNode RRA() { return GetToken(GBASMParser.RRA, 0); }
+		public ITerminalNode DAA() { return GetToken(GBASMParser.DAA, 0); }
+		public ITerminalNode CPL() { return GetToken(GBASMParser.CPL, 0); }
+		public ITerminalNode SCF() { return GetToken(GBASMParser.SCF, 0); }
+		public ITerminalNode CCF() { return GetToken(GBASMParser.CCF, 0); }
+		public ITerminalNode HALT() { return GetToken(GBASMParser.HALT, 0); }
+		public ITerminalNode RETI() { return GetToken(GBASMParser.RETI, 0); }
+		public ITerminalNode DI() { return GetToken(GBASMParser.DI, 0); }
+		public ITerminalNode EI() { return GetToken(GBASMParser.EI, 0); }
 		public ITerminalNode RET() { return GetToken(GBASMParser.RET, 0); }
-		public ITerminalNode JR() { return GetToken(GBASMParser.JR, 0); }
-		public ITerminalNode JP() { return GetToken(GBASMParser.JP, 0); }
-		public ITerminalNode CALL() { return GetToken(GBASMParser.CALL, 0); }
-		public ITerminalNode LD() { return GetToken(GBASMParser.LD, 0); }
-		public ITerminalNode LDD() { return GetToken(GBASMParser.LDD, 0); }
-		public ITerminalNode LDI() { return GetToken(GBASMParser.LDI, 0); }
-		public ITerminalNode LDH() { return GetToken(GBASMParser.LDH, 0); }
-		public ITerminalNode ADD() { return GetToken(GBASMParser.ADD, 0); }
-		public ITerminalNode ADC() { return GetToken(GBASMParser.ADC, 0); }
-		public ITerminalNode SBC() { return GetToken(GBASMParser.SBC, 0); }
-		public ITerminalNode BIT() { return GetToken(GBASMParser.BIT, 0); }
-		public ITerminalNode RES() { return GetToken(GBASMParser.RES, 0); }
-		public ITerminalNode SET() { return GetToken(GBASMParser.SET, 0); }
-		public TriadContext(ParserRuleContext parent, int invokingState)
+		public MonadContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_triad; } }
+		public override int RuleIndex { get { return RULE_monad; } }
 		public override void EnterRule(IParseTreeListener listener) {
 			IGBASMListener typedListener = listener as IGBASMListener;
-			if (typedListener != null) typedListener.EnterTriad(this);
+			if (typedListener != null) typedListener.EnterMonad(this);
 		}
 		public override void ExitRule(IParseTreeListener listener) {
 			IGBASMListener typedListener = listener as IGBASMListener;
-			if (typedListener != null) typedListener.ExitTriad(this);
+			if (typedListener != null) typedListener.ExitMonad(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public TriadContext triad() {
-		TriadContext _localctx = new TriadContext(Context, State);
-		EnterRule(_localctx, 12, RULE_triad);
+	public MonadContext monad() {
+		MonadContext _localctx = new MonadContext(Context, State);
+		EnterRule(_localctx, 12, RULE_monad);
 		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 80;
 			_la = TokenStream.La(1);
-			if ( !(((((_la - 30)) & ~0x3f) == 0 && ((1L << (_la - 30)) & ((1L << (LD - 30)) | (1L << (JR - 30)) | (1L << (JP - 30)) | (1L << (LDD - 30)) | (1L << (LDI - 30)) | (1L << (ADD - 30)) | (1L << (ADC - 30)) | (1L << (SBC - 30)) | (1L << (BIT - 30)) | (1L << (RES - 30)) | (1L << (SET - 30)) | (1L << (RET - 30)) | (1L << (LDH - 30)) | (1L << (CALL - 30)))) != 0)) ) {
+			if ( !(((((_la - 34)) & ~0x3f) == 0 && ((1L << (_la - 34)) & ((1L << (DI - 34)) | (1L << (EI - 34)) | (1L << (RET - 34)) | (1L << (NOP - 34)) | (1L << (RLA - 34)) | (1L << (RRA - 34)) | (1L << (DAA - 34)) | (1L << (CPL - 34)) | (1L << (SCF - 34)) | (1L << (CCF - 34)) | (1L << (RLCA - 34)) | (1L << (RRCA - 34)) | (1L << (STOP - 34)) | (1L << (HALT - 34)) | (1L << (RETI - 34)))) != 0)) ) {
 			ErrorHandler.RecoverInline(this);
 			}
 			else {
@@ -775,8 +778,7 @@ public partial class GBASMParser : Parser {
 				State = 92; register();
 				}
 				break;
-			case Integer:
-			case Hexval:
+			case Number:
 				{
 				State = 93; value();
 				}
@@ -1299,8 +1301,7 @@ public partial class GBASMParser : Parser {
 	}
 
 	public partial class ValueContext : ParserRuleContext {
-		public ITerminalNode Hexval() { return GetToken(GBASMParser.Hexval, 0); }
-		public ITerminalNode Integer() { return GetToken(GBASMParser.Integer, 0); }
+		public ITerminalNode Number() { return GetToken(GBASMParser.Number, 0); }
 		public ValueContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
@@ -1320,18 +1321,10 @@ public partial class GBASMParser : Parser {
 	public ValueContext value() {
 		ValueContext _localctx = new ValueContext(Context, State);
 		EnterRule(_localctx, 38, RULE_value);
-		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
-			State = 145;
-			_la = TokenStream.La(1);
-			if ( !(_la==Integer || _la==Hexval) ) {
-			ErrorHandler.RecoverInline(this);
-			}
-			else {
-			    Consume();
-			}
+			State = 145; Match(Number);
 			}
 		}
 		catch (RecognitionException re) {
@@ -1347,9 +1340,7 @@ public partial class GBASMParser : Parser {
 
 	public partial class NegvalueContext : ParserRuleContext {
 		public ITerminalNode Neg() { return GetToken(GBASMParser.Neg, 0); }
-		public ValueContext value() {
-			return GetRuleContext<ValueContext>(0);
-		}
+		public ITerminalNode Number() { return GetToken(GBASMParser.Number, 0); }
 		public NegvalueContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
@@ -1372,8 +1363,10 @@ public partial class GBASMParser : Parser {
 		try {
 			EnterOuterAlt(_localctx, 1);
 			{
+			{
 			State = 147; Match(Neg);
-			State = 148; value();
+			State = 148; Match(Number);
+			}
 			}
 		}
 		catch (RecognitionException re) {
@@ -1402,58 +1395,58 @@ public partial class GBASMParser : Parser {
 	}
 
 	public static readonly string _serializedATN =
-		"\x3\x430\xD6D1\x8206\xAD2D\x4417\xAEF1\x8D80\xAADD\x3V\x99\x4\x2\t\x2"+
+		"\x3\x430\xD6D1\x8206\xAD2D\x4417\xAEF1\x8D80\xAADD\x3S\x99\x4\x2\t\x2"+
 		"\x4\x3\t\x3\x4\x4\t\x4\x4\x5\t\x5\x4\x6\t\x6\x4\a\t\a\x4\b\t\b\x4\t\t"+
 		"\t\x4\n\t\n\x4\v\t\v\x4\f\t\f\x4\r\t\r\x4\xE\t\xE\x4\xF\t\xF\x4\x10\t"+
 		"\x10\x4\x11\t\x11\x4\x12\t\x12\x4\x13\t\x13\x4\x14\t\x14\x4\x15\t\x15"+
 		"\x4\x16\t\x16\x3\x2\x3\x2\x3\x2\x3\x3\x3\x3\x3\x3\x5\x3\x33\n\x3\x3\x3"+
 		"\x3\x3\x3\x3\x3\x3\a\x3\x39\n\x3\f\x3\xE\x3<\v\x3\x3\x4\x3\x4\x3\x4\x3"+
-		"\x4\x5\x4\x42\n\x4\x3\x5\x3\x5\x3\x5\x3\x5\x3\x5\x3\x5\x3\x5\x3\x5\x3"+
-		"\x5\x5\x5M\n\x5\x3\x6\x3\x6\x3\a\x3\a\x3\b\x3\b\x3\t\x3\t\x3\t\x3\t\x3"+
-		"\t\x3\t\x3\t\x5\t\\\n\t\x3\n\x3\n\x3\n\x3\n\x5\n\x62\n\n\x3\n\x3\n\x3"+
-		"\v\x3\v\x3\v\x3\v\x3\v\x3\v\x3\v\x5\vm\n\v\x3\f\x3\f\x3\r\x3\r\x3\xE\x3"+
+		"\x4\x3\x4\x3\x4\x3\x4\x3\x4\x3\x4\x5\x4G\n\x4\x3\x5\x3\x5\x3\x5\x3\x5"+
+		"\x5\x5M\n\x5\x3\x6\x3\x6\x3\a\x3\a\x3\b\x3\b\x3\t\x3\t\x3\t\x3\t\x3\t"+
+		"\x3\t\x3\t\x5\t\\\n\t\x3\n\x3\n\x3\n\x3\n\x5\n\x62\n\n\x3\n\x3\n\x3\v"+
+		"\x3\v\x3\v\x3\v\x3\v\x3\v\x3\v\x5\vm\n\v\x3\f\x3\f\x3\r\x3\r\x3\xE\x3"+
 		"\xE\x3\xE\x3\xF\x3\xF\x3\xF\x3\xF\x3\xF\x3\xF\x3\xF\x3\xF\x3\xF\x3\xF"+
 		"\x5\xF\x80\n\xF\x3\x10\x3\x10\x3\x10\x3\x11\x3\x11\x3\x11\x3\x11\x3\x11"+
 		"\x3\x11\x3\x11\x3\x11\x3\x12\x3\x12\x3\x13\x3\x13\x3\x14\x3\x14\x3\x14"+
 		"\x3\x15\x3\x15\x3\x16\x3\x16\x3\x16\x3\x16\x2\x3\x4\x17\x2\x4\x6\b\n\f"+
-		"\xE\x10\x12\x14\x16\x18\x1A\x1C\x1E \"$&(*\x2\b\a\x2\'(\x32\x32>\x44\x46"+
-		"\x46JN\x5\x2!&\x33=HI\x6\x2 \"*\x32\x45\x45GG\x4\x2\a\x13\x1C\x1D\x5\x2"+
-		"\x6\x6\t\t\x14\x15\x3\x2\x18\x19\x97\x2,\x3\x2\x2\x2\x4\x32\x3\x2\x2\x2"+
-		"\x6\x41\x3\x2\x2\x2\bL\x3\x2\x2\x2\nN\x3\x2\x2\x2\fP\x3\x2\x2\x2\xER\x3"+
-		"\x2\x2\x2\x10[\x3\x2\x2\x2\x12]\x3\x2\x2\x2\x14l\x3\x2\x2\x2\x16n\x3\x2"+
-		"\x2\x2\x18p\x3\x2\x2\x2\x1Ar\x3\x2\x2\x2\x1C\x7F\x3\x2\x2\x2\x1E\x81\x3"+
-		"\x2\x2\x2 \x84\x3\x2\x2\x2\"\x8C\x3\x2\x2\x2$\x8E\x3\x2\x2\x2&\x90\x3"+
-		"\x2\x2\x2(\x93\x3\x2\x2\x2*\x95\x3\x2\x2\x2,-\x5\x4\x3\x2-.\a\x2\x2\x3"+
-		".\x3\x3\x2\x2\x2/\x30\b\x3\x1\x2\x30\x33\x5\b\x5\x2\x31\x33\x5\x6\x4\x2"+
-		"\x32/\x3\x2\x2\x2\x32\x31\x3\x2\x2\x2\x33:\x3\x2\x2\x2\x34\x35\f\x6\x2"+
-		"\x2\x35\x39\x5\b\x5\x2\x36\x37\f\x5\x2\x2\x37\x39\x5\x6\x4\x2\x38\x34"+
-		"\x3\x2\x2\x2\x38\x36\x3\x2\x2\x2\x39<\x3\x2\x2\x2:\x38\x3\x2\x2\x2:;\x3"+
-		"\x2\x2\x2;\x5\x3\x2\x2\x2<:\x3\x2\x2\x2=\x42\x5\x1E\x10\x2>\x42\x5 \x11"+
-		"\x2?\x42\x5&\x14\x2@\x42\x5\x1A\xE\x2\x41=\x3\x2\x2\x2\x41>\x3\x2\x2\x2"+
-		"\x41?\x3\x2\x2\x2\x41@\x3\x2\x2\x2\x42\a\x3\x2\x2\x2\x43M\x5\n\x6\x2\x44"+
-		"\x45\x5\f\a\x2\x45\x46\x5\x10\t\x2\x46M\x3\x2\x2\x2GH\x5\xE\b\x2HI\x5"+
-		"\x10\t\x2IJ\aT\x2\x2JK\x5\x10\t\x2KM\x3\x2\x2\x2L\x43\x3\x2\x2\x2L\x44"+
-		"\x3\x2\x2\x2LG\x3\x2\x2\x2M\t\x3\x2\x2\x2NO\t\x2\x2\x2O\v\x3\x2\x2\x2"+
-		"PQ\t\x3\x2\x2Q\r\x3\x2\x2\x2RS\t\x4\x2\x2S\xF\x3\x2\x2\x2T\\\x5\x16\f"+
-		"\x2U\\\x5(\x15\x2V\\\x5*\x16\x2W\\\x5\x18\r\x2X\\\x5\x14\v\x2Y\\\x5$\x13"+
-		"\x2Z\\\x5\x12\n\x2[T\x3\x2\x2\x2[U\x3\x2\x2\x2[V\x3\x2\x2\x2[W\x3\x2\x2"+
-		"\x2[X\x3\x2\x2\x2[Y\x3\x2\x2\x2[Z\x3\x2\x2\x2\\\x11\x3\x2\x2\x2]\x61\a"+
-		"\x1E\x2\x2^\x62\x5\x16\f\x2_\x62\x5(\x15\x2`\x62\x5$\x13\x2\x61^\x3\x2"+
-		"\x2\x2\x61_\x3\x2\x2\x2\x61`\x3\x2\x2\x2\x62\x63\x3\x2\x2\x2\x63\x64\a"+
-		"\x1F\x2\x2\x64\x13\x3\x2\x2\x2\x65\x66\x5\x16\f\x2\x66g\a\x1B\x2\x2gh"+
-		"\x5(\x15\x2hm\x3\x2\x2\x2ij\x5\x16\f\x2jk\x5*\x16\x2km\x3\x2\x2\x2l\x65"+
-		"\x3\x2\x2\x2li\x3\x2\x2\x2m\x15\x3\x2\x2\x2no\t\x5\x2\x2o\x17\x3\x2\x2"+
-		"\x2pq\t\x6\x2\x2q\x19\x3\x2\x2\x2rs\a)\x2\x2st\x5\x1C\xF\x2t\x1B\x3\x2"+
-		"\x2\x2u\x80\x5\"\x12\x2v\x80\x5(\x15\x2wx\x5\"\x12\x2xy\aT\x2\x2yz\x5"+
-		"\x1C\xF\x2z\x80\x3\x2\x2\x2{|\x5(\x15\x2|}\aT\x2\x2}~\x5\x1C\xF\x2~\x80"+
-		"\x3\x2\x2\x2\x7Fu\x3\x2\x2\x2\x7Fv\x3\x2\x2\x2\x7Fw\x3\x2\x2\x2\x7F{\x3"+
-		"\x2\x2\x2\x80\x1D\x3\x2\x2\x2\x81\x82\aQ\x2\x2\x82\x83\x5\"\x12\x2\x83"+
-		"\x1F\x3\x2\x2\x2\x84\x85\aP\x2\x2\x85\x86\x5\"\x12\x2\x86\x87\aT\x2\x2"+
-		"\x87\x88\aO\x2\x2\x88\x89\a\x3\x2\x2\x89\x8A\x5(\x15\x2\x8A\x8B\a\x4\x2"+
-		"\x2\x8B!\x3\x2\x2\x2\x8C\x8D\aR\x2\x2\x8D#\x3\x2\x2\x2\x8E\x8F\aS\x2\x2"+
-		"\x8F%\x3\x2\x2\x2\x90\x91\aS\x2\x2\x91\x92\a\x5\x2\x2\x92\'\x3\x2\x2\x2"+
-		"\x93\x94\t\a\x2\x2\x94)\x3\x2\x2\x2\x95\x96\a\x1A\x2\x2\x96\x97\x5(\x15"+
-		"\x2\x97+\x3\x2\x2\x2\v\x32\x38:\x41L[\x61l\x7F";
+		"\xE\x10\x12\x14\x16\x18\x1A\x1C\x1E \"$&(*\x2\a\x6\x2\x1D\x1F\'.\x42\x42"+
+		"\x44\x44\a\x2\x1E#/:\x43\x43\x45\x46II\x6\x2$%//;\x41GK\x4\x2\a\x13\x19"+
+		"\x1A\x5\x2\x6\x6\t\t\x14\x15\x97\x2,\x3\x2\x2\x2\x4\x32\x3\x2\x2\x2\x6"+
+		"\x46\x3\x2\x2\x2\bL\x3\x2\x2\x2\nN\x3\x2\x2\x2\fP\x3\x2\x2\x2\xER\x3\x2"+
+		"\x2\x2\x10[\x3\x2\x2\x2\x12]\x3\x2\x2\x2\x14l\x3\x2\x2\x2\x16n\x3\x2\x2"+
+		"\x2\x18p\x3\x2\x2\x2\x1Ar\x3\x2\x2\x2\x1C\x7F\x3\x2\x2\x2\x1E\x81\x3\x2"+
+		"\x2\x2 \x84\x3\x2\x2\x2\"\x8C\x3\x2\x2\x2$\x8E\x3\x2\x2\x2&\x90\x3\x2"+
+		"\x2\x2(\x93\x3\x2\x2\x2*\x95\x3\x2\x2\x2,-\x5\x4\x3\x2-.\a\x2\x2\x3.\x3"+
+		"\x3\x2\x2\x2/\x30\b\x3\x1\x2\x30\x33\x5\x6\x4\x2\x31\x33\x5\b\x5\x2\x32"+
+		"/\x3\x2\x2\x2\x32\x31\x3\x2\x2\x2\x33:\x3\x2\x2\x2\x34\x35\f\x6\x2\x2"+
+		"\x35\x39\x5\x6\x4\x2\x36\x37\f\x5\x2\x2\x37\x39\x5\b\x5\x2\x38\x34\x3"+
+		"\x2\x2\x2\x38\x36\x3\x2\x2\x2\x39<\x3\x2\x2\x2:\x38\x3\x2\x2\x2:;\x3\x2"+
+		"\x2\x2;\x5\x3\x2\x2\x2<:\x3\x2\x2\x2=G\x5\xE\b\x2>?\x5\f\a\x2?@\x5\x10"+
+		"\t\x2@G\x3\x2\x2\x2\x41\x42\x5\n\x6\x2\x42\x43\x5\x10\t\x2\x43\x44\aQ"+
+		"\x2\x2\x44\x45\x5\x10\t\x2\x45G\x3\x2\x2\x2\x46=\x3\x2\x2\x2\x46>\x3\x2"+
+		"\x2\x2\x46\x41\x3\x2\x2\x2G\a\x3\x2\x2\x2HM\x5\x1E\x10\x2IM\x5 \x11\x2"+
+		"JM\x5\x1A\xE\x2KM\x5&\x14\x2LH\x3\x2\x2\x2LI\x3\x2\x2\x2LJ\x3\x2\x2\x2"+
+		"LK\x3\x2\x2\x2M\t\x3\x2\x2\x2NO\t\x2\x2\x2O\v\x3\x2\x2\x2PQ\t\x3\x2\x2"+
+		"Q\r\x3\x2\x2\x2RS\t\x4\x2\x2S\xF\x3\x2\x2\x2T\\\x5\x16\f\x2U\\\x5(\x15"+
+		"\x2V\\\x5*\x16\x2W\\\x5\x18\r\x2X\\\x5\x14\v\x2Y\\\x5$\x13\x2Z\\\x5\x12"+
+		"\n\x2[T\x3\x2\x2\x2[U\x3\x2\x2\x2[V\x3\x2\x2\x2[W\x3\x2\x2\x2[X\x3\x2"+
+		"\x2\x2[Y\x3\x2\x2\x2[Z\x3\x2\x2\x2\\\x11\x3\x2\x2\x2]\x61\a\x1B\x2\x2"+
+		"^\x62\x5\x16\f\x2_\x62\x5(\x15\x2`\x62\x5$\x13\x2\x61^\x3\x2\x2\x2\x61"+
+		"_\x3\x2\x2\x2\x61`\x3\x2\x2\x2\x62\x63\x3\x2\x2\x2\x63\x64\a\x1C\x2\x2"+
+		"\x64\x13\x3\x2\x2\x2\x65\x66\x5\x16\f\x2\x66g\a\x17\x2\x2gh\x5(\x15\x2"+
+		"hm\x3\x2\x2\x2ij\x5\x16\f\x2jk\x5*\x16\x2km\x3\x2\x2\x2l\x65\x3\x2\x2"+
+		"\x2li\x3\x2\x2\x2m\x15\x3\x2\x2\x2no\t\x5\x2\x2o\x17\x3\x2\x2\x2pq\t\x6"+
+		"\x2\x2q\x19\x3\x2\x2\x2rs\a&\x2\x2st\x5\x1C\xF\x2t\x1B\x3\x2\x2\x2u\x80"+
+		"\x5\"\x12\x2v\x80\x5(\x15\x2wx\x5\"\x12\x2xy\aQ\x2\x2yz\x5\x1C\xF\x2z"+
+		"\x80\x3\x2\x2\x2{|\x5(\x15\x2|}\aQ\x2\x2}~\x5\x1C\xF\x2~\x80\x3\x2\x2"+
+		"\x2\x7Fu\x3\x2\x2\x2\x7Fv\x3\x2\x2\x2\x7Fw\x3\x2\x2\x2\x7F{\x3\x2\x2\x2"+
+		"\x80\x1D\x3\x2\x2\x2\x81\x82\aN\x2\x2\x82\x83\x5\"\x12\x2\x83\x1F\x3\x2"+
+		"\x2\x2\x84\x85\aM\x2\x2\x85\x86\x5\"\x12\x2\x86\x87\aQ\x2\x2\x87\x88\a"+
+		"L\x2\x2\x88\x89\a\x3\x2\x2\x89\x8A\x5(\x15\x2\x8A\x8B\a\x4\x2\x2\x8B!"+
+		"\x3\x2\x2\x2\x8C\x8D\aO\x2\x2\x8D#\x3\x2\x2\x2\x8E\x8F\aP\x2\x2\x8F%\x3"+
+		"\x2\x2\x2\x90\x91\aP\x2\x2\x91\x92\a\x5\x2\x2\x92\'\x3\x2\x2\x2\x93\x94"+
+		"\a\x18\x2\x2\x94)\x3\x2\x2\x2\x95\x96\a\x16\x2\x2\x96\x97\a\x18\x2\x2"+
+		"\x97+\x3\x2\x2\x2\v\x32\x38:\x46L[\x61l\x7F";
 	public static readonly ATN _ATN =
 		new ATNDeserializer().Deserialize(_serializedATN.ToCharArray());
 }
