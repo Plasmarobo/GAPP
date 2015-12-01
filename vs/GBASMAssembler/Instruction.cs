@@ -63,7 +63,20 @@ namespace GBASMAssembler
             ERR_INSTRUCTION
         };
 
-        
+    public class OffsetInfo
+    {
+        public int op; //Always zero
+        public int src;
+        public int dst;
+        public int total;
+        public OffsetInfo()
+        {
+            op = 0;
+            src = 0;
+            dst = 0;
+            total = 0;
+        }
+    }
     public class Instruction
     {
         public Instructions op;
@@ -248,11 +261,20 @@ namespace GBASMAssembler
             return offset;
         }
 
-        public void AppendTo(List<Byte> rom)
+        public class OpEncodeOptions
         {
-            //Compile instruction to opcode
-            bool encode_dst = (dst.loc == Locations.WIDE_IMM) || (dst.loc == Locations.IMM) || (dst.loc == Locations.OFFSET);
-            bool encode_src = (src.loc == Locations.WIDE_IMM) || (src.loc == Locations.IMM) || (src.loc == Locations.OFFSET);
+            public Boolean encode_dst;
+            public Boolean encode_src;
+
+            public OpEncodeOptions()
+            {
+                encode_dst = false;
+                encode_src = false;
+            }
+        }
+
+        public void EncodeOp(List<Byte> rom, OpEncodeOptions opt)
+        {
             switch (op)
             {
                 case Instructions.LD:
@@ -428,7 +450,7 @@ namespace GBASMAssembler
                                     else
                                     {
                                         rom.Add(0xF8);
-                                        encode_dst = true;
+                                        opt.encode_dst = true;
                                         dst.isWide = false;
                                     }
                                     break;
@@ -464,7 +486,7 @@ namespace GBASMAssembler
                                 break;
                         }
                     }
-                    else if (src.loc == Locations.IMM)
+                    else
                     {
                         rom.Add(0x18);
                         src.isWide = false;
@@ -496,7 +518,7 @@ namespace GBASMAssembler
                     {
                         rom.Add(0xE9);
                     }
-                    else if (src.loc == Locations.IMM || src.loc == Locations.WIDE_IMM)
+                    else
                     {
                         src.isWide = true;
                         rom.Add(0xC3);
@@ -603,7 +625,7 @@ namespace GBASMAssembler
                                 {
                                     rom.Add(0xE8);
                                 }
-                                encode_dst = true;
+                                opt.encode_dst = true;
                                 break;
 
                             case Locations.SP:
@@ -665,17 +687,17 @@ namespace GBASMAssembler
                 case Instructions.BIT:
                     rom.Add(0xCB);
                     rom.Add(GetTableOffset(src, dst, 0x40));
-                    encode_src = false;
+                    opt.encode_src = false;
                     break;
                 case Instructions.RES:
                     rom.Add(0xCB);
                     rom.Add(GetTableOffset(src, dst, 0x80));
-                    encode_src = false;
+                    opt.encode_src = false;
                     break;
                 case Instructions.SET:
                     rom.Add(0xCB);
                     rom.Add(GetTableOffset(src, dst, 0xC0));
-                    encode_src = false;
+                    opt.encode_src = false;
                     break;
                 case Instructions.RET:
                     if (src.isFlag || src.loc == Locations.C)
@@ -918,7 +940,7 @@ namespace GBASMAssembler
                     {
                         rom.Add((Byte)(0xCF + src.val - 0x08));
                     }
-                    encode_src = false;
+                    opt.encode_src = false;
                     break;
                 case Instructions.CALL:
                     {
@@ -964,7 +986,7 @@ namespace GBASMAssembler
                     break;
                 case Instructions.STOP:
                     rom.Add(0x10);
-                    encode_src = false;
+                    opt.encode_src = false;
                     break;
                 case Instructions.HALT:
                     rom.Add(0x76);
@@ -975,22 +997,46 @@ namespace GBASMAssembler
                 default:
                     break;
             }
-            if (encode_src)
+}
+
+        public void AppendTo(List<Byte> rom)
+        {
+            //Compile instruction to opcode
+            OpEncodeOptions opt = new OpEncodeOptions();
+            opt.encode_dst = (dst.loc == Locations.WIDE_IMM) || (dst.loc == Locations.IMM) || (dst.loc == Locations.OFFSET);
+            opt.encode_src = (src.loc == Locations.WIDE_IMM) || (src.loc == Locations.IMM) || (src.loc == Locations.OFFSET);
+            EncodeOp(rom, opt);
+            if (opt.encode_src)
             {
                 InsertLocationInfo(rom, src);
             }
 
-            if (encode_dst)
+            if (opt.encode_dst)
             {
                 InsertLocationInfo(rom, dst);
             }
         }
 
-        public int GetCurrentOffset()
+        public OffsetInfo GetCurrentOffset()
         {
+            OffsetInfo offset = new OffsetInfo();
             List<Byte> nullrom = new List<byte>();
-            this.AppendTo(nullrom);
-            return nullrom.Count;
+            OpEncodeOptions opt = new OpEncodeOptions();
+            opt.encode_dst = (dst.loc == Locations.WIDE_IMM) || (dst.loc == Locations.IMM) || (dst.loc == Locations.OFFSET);
+            opt.encode_src = (src.loc == Locations.WIDE_IMM) || (src.loc == Locations.IMM) || (src.loc == Locations.OFFSET);
+            EncodeOp(nullrom, opt);
+            offset.src = nullrom.Count;
+            if (opt.encode_src)
+            {
+                InsertLocationInfo(nullrom, src);
+            }
+            offset.dst = nullrom.Count;
+            if (opt.encode_dst)
+            {
+                InsertLocationInfo(nullrom, dst);
+            }
+            offset.total = nullrom.Count;
+            return offset; ;
         }
 
         

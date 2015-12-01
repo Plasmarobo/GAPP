@@ -622,26 +622,20 @@ namespace GBASMAssembler
             String label = context.GetText();
 
             LabelInfo l = new LabelInfo();
+            OffsetInfo o;
             l.startByte = rom.Count;
             l.isRelative = currentInst.op == Instructions.JR;
-            switch (currentInst.op)
-            {
-                case Instructions.JR:
-                    SetArgLoc(Locations.IMM);
-                    break;
-                case Instructions.JP:
-                default:
-                    SetArgLoc(Locations.WIDE_IMM);
-                    break;
-            }
-            l.labelOffset = l.startByte + currentInst.GetCurrentOffset();
+            
+            o = currentInst.GetCurrentOffset();
+            l.labelOffset = l.startByte + o.total; //This will be 0 if no src is encoded
             l.endByte = l.labelOffset + ((l.isRelative) ? 1 : 2);
-            l.byteStringIndex = lineToBytes.Count + 1;
+            l.byteStringIndex = lineToBytes.Count;
 
             
+
             if (jumpAddressIndex.ContainsKey(label))
             {
-                SetArgVal((Int16)jumpAddressIndex[label]);
+                SetArgVal((Int16)ComputeJump(jumpAddressIndex[label], l));
             }
             else
             {
@@ -655,8 +649,17 @@ namespace GBASMAssembler
                 //SRC should always be set before DST is set
                 unProcessedJumpLabels[label].Add(l);
             }
-            
-            
+
+            switch (currentInst.op)
+            {
+                case Instructions.JR:
+                    SetArgLoc(Locations.IMM);
+                    break;
+                case Instructions.JP:
+                default:
+                    SetArgLoc(Locations.WIDE_IMM);
+                    break;
+            }
         }
 
         public void ExitJump(GBASMParser.JumpContext context)
@@ -728,19 +731,33 @@ namespace GBASMAssembler
             //throw new NotImplementedException();
         }
 
-        public void ResolveLabel(int addr, LabelInfo info)
+
+        private int ComputeJump(int addr, LabelInfo info)
         {
-            //Assume size has been allocated
             if (info.isRelative)
             {
                 //Determine distance and direction
                 int delta = addr - info.startByte;
                 //We can't insert, because that would be destructive to all following labels and jumps
-                if(delta > 127 || delta < -128)
+                if (delta > 127 || delta < -128)
                 {
                     ErrorMsg("Realtive Jump out of range (-128 to 127)");
                 }
-                rom[info.labelOffset] = (Byte)(delta & 0xFF);
+                return (delta & 0xFF);
+            }
+            else
+            {
+                return addr;
+            }
+        }
+
+        private void ResolveLabel(int addr, LabelInfo info)
+        {
+            //Assume size has been allocated
+            addr = ComputeJump(addr, info);
+            if(info.isRelative)
+            {
+                rom[info.labelOffset] = (Byte)addr;
             }
             else
             {
@@ -751,7 +768,7 @@ namespace GBASMAssembler
             String bs = "";
             for (int i = info.startByte; i < info.endByte; ++i)
             {
-                bs += rom[i].ToString("X2");
+                bs += "0x" + rom[i].ToString("X2");
                 if (i < (info.endByte - 1))
                 {
                     bs += " ";
