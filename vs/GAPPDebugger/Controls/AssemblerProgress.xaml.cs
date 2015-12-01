@@ -23,5 +23,16 @@ namespace GAPPDebugger.Controls
         {
             InitializeComponent();
         }
+
+        public void UpdateProgress(int amount, int max)
+        {
+            Progress.Maximum = max;
+            Progress.Value = amount;
+        }
+
+        public void PrintLine(String message)
+        {
+            this.ConsoleWin.Text += message + "\n";
+        }
     }
 }

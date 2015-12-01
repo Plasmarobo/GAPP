@@ -194,6 +194,10 @@ namespace GBASMAssembler
             parser.BuildParseTree = true;
             Antlr4.Runtime.Tree.IParseTree tree = parser.eval();
             Antlr4.Runtime.Tree.ParseTreeWalker.Default.Walk(this, tree);
+            if (AssemblyComplete != null)
+            {
+                AssemblyComplete(rom);
+            }
             return rom;
         }
 
@@ -221,10 +225,6 @@ namespace GBASMAssembler
         public void ExitEval(GBASMParser.EvalContext context)
         {
             PrintLine("Finished");
-            if (AssemblyComplete != null)
-            {
-                AssemblyComplete(rom);
-            }
         }
 
         public void EnterExp(GBASMParser.ExpContext context)
