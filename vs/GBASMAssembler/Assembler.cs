@@ -61,12 +61,27 @@ namespace GBASMAssembler
         private CommonTokenStream tokenStream;
         private GBASMParser parser;
         private bool isSection;
+        private bool isReptArg;
         private int db_stack;
         private Dictionary<String, int> jumpAddressIndex;
         private Dictionary<String, List<LabelInfo>> unProcessedJumpLabels;
         private int rom_ptr;
         private bool skip_line_inc = false;
         private String label_buf;
+
+        public class RepInfo
+        {
+            public int romStart;
+            public int linesStart;
+            public int reps;
+            public RepInfo(int start, int lines)
+            {
+                romStart = start;
+                reps = 1;
+                linesStart = lines;
+            }
+        }
+        private Stack<RepInfo> rep_stack;
 
         protected Instruction currentInst;
         protected enum ArgFSM
@@ -189,6 +204,8 @@ namespace GBASMAssembler
             argFSM = ArgFSM.COMPLETE;
             db_stack = 0;
             isSection = false;
+            isReptArg = false;
+            rep_stack = new Stack<RepInfo>();
             jumpAddressIndex = new Dictionary<string,int>();
             unProcessedJumpLabels = new Dictionary<string, List<LabelInfo>>(); ;
             parser.BuildParseTree = true;
@@ -466,30 +483,38 @@ namespace GBASMAssembler
            
             PrintLine(s);
             Int16 value = (Int16)ParseNum(s);
-            if(!isSection)
+            if (isReptArg)
             {
-                if (db_stack > 0)
-                {
-                    rom.Add((Byte)value);
-                }
-                else
-                {
-                    if (Math.Abs(value) > 255)
-                    {
-                        SetArgLoc(Locations.WIDE_IMM);
-                    }
-                    else
-                    {
-                        SetArgLoc(Locations.IMM);
-                    }
-                    SetArgVal(value);
-                }
+                isReptArg = false;
+                rep_stack.Peek().reps = value-1; //Offset for the fact the original code will be copied
             }
             else
             {
-                for(int i = rom.Count; i < value; ++i)
+                if (!isSection)
                 {
-                    rom.Add(0x00);
+                    if (db_stack > 0)
+                    {
+                        rom.Add((Byte)value);
+                    }
+                    else
+                    {
+                        if (Math.Abs(value) > 255)
+                        {
+                            SetArgLoc(Locations.WIDE_IMM);
+                        }
+                        else
+                        {
+                            SetArgLoc(Locations.IMM);
+                        }
+                        SetArgVal(value);
+                    }
+                }
+                else
+                {
+                    for (int i = rom.Count; i < value; ++i)
+                    {
+                        rom.Add(0x00);
+                    }
                 }
             }
         }
@@ -581,7 +606,7 @@ namespace GBASMAssembler
         public void ExitSys(GBASMParser.SysContext context)
         {
             PrintLine("Ending Sys");
-            if (skip_line_inc)
+            if (skip_line_inc || label_buf == "")
             {
                 skip_line_inc = false;
             }
@@ -719,7 +744,8 @@ namespace GBASMAssembler
             if (db_stack > 0)
             {
                 String s = context.GetText();
-                for (int i = 0; i < s.Length; ++i)
+                //Remove quotations
+                for (int i = 1; i < s.Length-1; ++i)
                 {
                     rom.Add((Byte)s[i]);
                 }
@@ -783,6 +809,39 @@ namespace GBASMAssembler
             {
                 Int32 lineno = lines.Count + 1;
                 AssemblerError("Line " + lineno.ToString() + ":" + msg);
+            }
+        }
+
+
+        public void EnterRepblock(GBASMParser.RepblockContext context)
+        {
+            //We do NOT support label resolution in rep blocks
+            //Absolute labels MIGHT work
+            isReptArg = true;
+            rep_stack.Push(new RepInfo(rom.Count, lines.Count));
+        }
+
+        public void ExitRepblock(GBASMParser.RepblockContext context)
+        {
+            RepInfo r = rep_stack.Pop();
+            
+            int romEnd = rom.Count;
+            int lineEnd = lines.Count;
+
+            while(r.reps > 0)
+            {
+                for (int index = r.linesStart; index < lineEnd; ++index )
+                {
+                    lines.Add(lines[index] + "; REPT" + rep_stack.Count.ToString());
+                    lineToBytes.Add(lineToBytes[index]);
+                }
+                for (int index = r.romStart; index < romEnd; ++index)
+                {
+                    rom.Add(rom[index]);
+                    
+                }
+                
+                r.reps--;
             }
         }
     }

@@ -516,9 +516,9 @@ namespace AssemblerTest
         {
             System.Diagnostics.Trace.WriteLine(message);
         }
-
+        //Assembler
         [TestMethod]
-        public void TestAllOpcodes()
+        public void AssemblerAllOpcodes()
         {
             Assembler assembler = new Assembler();
             //assembler.MessagePrinted += PrintTrace;
@@ -532,19 +532,9 @@ namespace AssemblerTest
             }
         }
 
+        
         [TestMethod]
-        public void TestIsolation()
-        {
-            Assembler assembler = new Assembler();
-            assembler.MessagePrinted += PrintTrace;
-            String test = "BIT 4,B";
-            assembler.AssembleString(test);
-            String result = assembler.GetByteString(0);
-            Assert.AreEqual(all_ops[test], result);
-        }
-
-        [TestMethod]
-        public void TestNumberFormats()
+        public void AssemblerNumberFormats()
         {
             Assembler assembler = new Assembler();
             
@@ -566,7 +556,7 @@ namespace AssemblerTest
         }
 
         [TestMethod]
-        public void TestLabels()
+        public void AssemblerLabels()
         {
             Assembler assembler = new Assembler();
             assembler.MessagePrinted += PrintTrace;
@@ -588,7 +578,62 @@ namespace AssemblerTest
                 Assert.AreEqual("0x00", assembler.GetByteString(i));
             }
             Assert.AreEqual("0x18 0xF9", assembler.GetByteString(7));
-            
+        }
+
+       
+
+        [TestMethod]
+        public void AssemblerData()
+        {
+            Assembler assembler = new Assembler();
+            assembler.MessagePrinted += PrintTrace;
+            //DB commands
+            assembler.AssembleString("DB 0x44");
+            Assert.AreEqual("0x44", assembler.GetByteString(0));
+            assembler.AssembleString("DB \"TEST\"");
+            Assert.AreEqual("0x54 0x45 0x53 0x54", assembler.GetByteString(0));
+            assembler.AssembleString("DB 0x44,\"TEST\"");
+            Assert.AreEqual("0x44 0x54 0x45 0x53 0x54", assembler.GetByteString(0));
+        }
+
+        [TestMethod]
+        public void AssemblerRept()
+        {
+            Assembler assembler = new Assembler();
+            assembler.MessagePrinted += PrintTrace;
+            //REPT blocks
+            assembler.AssembleString("rept 0x02\n DB 0x01\nendr\nNOP");
+            Assert.AreEqual("0x01", assembler.GetByteString(0));
+            Assert.AreEqual("0x01", assembler.GetByteString(1));
+            Assert.AreEqual("0x00", assembler.GetByteString(2));
+        }
+
+        [TestMethod]
+        public void AssemblerSections()
+        {
+            Assembler assembler = new Assembler();
+            assembler.MessagePrinted += PrintTrace;
+            //Test a section
+            List<Byte> rom = assembler.AssembleString("SECTION \"ENTRY\",HOME[$100]\nDB 0x01");
+            Assert.AreEqual("0x01", assembler.GetByteString(1));
+            for(int i = 0; i < 0x100; ++i)
+            {
+                Assert.AreEqual(0, rom[i]);
+            }
+        }
+
+        //GBLib
+        public class GBTestInfo
+        {
+            public String asm;
+            List<Byte> rom;
+
+
+        }
+        [TestMethod]
+        public void GBAllOps()
+        {
+
         }
     }
 }

@@ -4,7 +4,7 @@ eval : exp EOF;
 exp : exp op | exp sys | op | sys;
 
 op : monad | biad arg | triad arg SEPARATOR arg;
-sys : include | section | data | label;
+sys : include | section | data | label | repblock;
 
 triad : JR|JP|CALL|LD|LDD|LDI|LDH|ADD|ADC|SBC|BIT|RES|SET;
 
@@ -26,6 +26,7 @@ data : DB db;
 db : string_data | value | string_data SEPARATOR db | value SEPARATOR db;
 include : INCLUDE string_data;
 section : SECTION string_data SEPARATOR HOME '[' value ']';
+repblock : REPT value exp ENDR;
 
 string_data: STRINGLITERAL;
 jump : LIMSTRING;
@@ -118,6 +119,8 @@ RRCA : 'RRCA' | 'rrca';
 STOP : 'STOP' | 'stop';
 HALT: 'HALT' | 'halt';
 RETI: 'RETI' | 'reti';
+REPT: 'REPT' | 'rept';
+ENDR: 'ENDR' | 'endr';
 
 HOME: 'HOME';
 SECTION: 'SECTION';

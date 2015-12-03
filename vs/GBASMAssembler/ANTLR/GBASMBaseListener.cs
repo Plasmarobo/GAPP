@@ -225,6 +225,18 @@ public partial class GBASMBaseListener : IGBASMListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitSection([NotNull] GBASMParser.SectionContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="GBASMParser.repblock"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterRepblock([NotNull] GBASMParser.RepblockContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="GBASMParser.repblock"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitRepblock([NotNull] GBASMParser.RepblockContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="GBASMParser.string_data"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>

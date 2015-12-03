@@ -189,6 +189,16 @@ public interface IGBASMListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitSection([NotNull] GBASMParser.SectionContext context);
 	/// <summary>
+	/// Enter a parse tree produced by <see cref="GBASMParser.repblock"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterRepblock([NotNull] GBASMParser.RepblockContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="GBASMParser.repblock"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitRepblock([NotNull] GBASMParser.RepblockContext context);
+	/// <summary>
 	/// Enter a parse tree produced by <see cref="GBASMParser.string_data"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
