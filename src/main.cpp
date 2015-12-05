@@ -52,7 +52,7 @@ int main()
 	Display *display = new Display(gbcpu->GetMem(), gbcpu);
 	Input *input = new Input(gbcpu, gbcpu->GetMem());
 
-	gbcpu->RunGBFile("pokemon_blue.gb");
+	gbcpu->LoadGBFile("pokemon_blue.gb");
 	gbcpu->Start();
 	while (window.isOpen())
 	{

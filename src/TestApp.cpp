@@ -62,7 +62,7 @@ int main()
 		Display *display = new Display(gbcpu->GetMem(), gbcpu);
 		Input *input = new Input(gbcpu, gbcpu->GetMem());
 
-		gbcpu->RunGBFile(tests[i]);
+		gbcpu->LoadGBFile(tests[i]);
 		gbcpu->Start();
 		while (window.isOpen())
 		{

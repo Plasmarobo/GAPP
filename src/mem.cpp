@@ -355,6 +355,120 @@ Memory::~Memory()
 	}
 }
 
+void Memory::SetCartFromBytes(unsigned char *image, unsigned int size)
+{
+	unsigned char title[15];
+	memcpy(&(title[0]), &(image[0x134]), 15);
+	unsigned char color_setting = image[0x143];
+	unsigned short new_licensee;
+	memcpy(&new_licensee, &(image[0x144]), 2);
+	unsigned char sgb = image[0x146];
+	unsigned char type = image[0x147];
+	unsigned int rom_size = image[0x148];
+	unsigned int ram_size = image[0x149];
+	unsigned char country = image[0x14A];
+	unsigned char licensee = image[0x14B];
+	unsigned char header_check = image[0x14C];
+	unsigned char global_check = image[0x14D];
+
+	switch (rom_size)
+	{
+	case 0x00:
+		rom_size = 32000;
+		break;
+	case 0x01:
+		rom_size = 64000;
+		break;
+	case 0x02:
+		rom_size = 128000;
+		break;
+	case 0x03:
+		rom_size = 256000;
+		break;
+	case 0x04:
+		rom_size = 512000;
+		break;
+	case 0x05:
+		rom_size = 1024000;
+		break;
+	case 0x06:
+		rom_size = 2048000;
+		break;
+	case 0x07:
+		rom_size = 4096000;
+		break;
+	default:
+		Logger::RaiseError("MEMORY", "Invalid ROM size");
+		rom_size = 0;
+		break;
+	}
+
+	switch (ram_size)
+	{
+	case 0x00:
+		ram_size = 0;
+		break;
+	case 0x01:
+		ram_size = 2000;
+		break;
+	case 0x02:
+		ram_size = 8000;
+		break;
+	case 0x03:
+		ram_size = 32000;
+		break;
+	default:
+		Logger::RaiseError("MEMORY", "Invalid RAM size");
+		ram_size = 0;
+		break;
+	}
+
+	switch (type)
+	{
+	case 0x00: //ROM
+	case 0x08: //ROM+RAM
+	case 0x09: //ROM+RAM+BAT
+		m_cart = new Cart(image, rom_size, ram_size);
+		break;
+	case 0x01: //MBC1
+	case 0x02: //MBC1 + RAM
+	case 0x03: //MBC1+RAM+BAT
+		m_cart = new MBC1Cart(image, rom_size, ram_size);
+		break;
+	case 0x05: //MBC2
+	case 0x06: //MBC2+BAT
+		break;
+	case 0x0B: //MMM01
+	case 0x0C: //MMM01+RAM
+	case 0x0D: //MMM01+RAM+BAT
+		break;
+	case 0x0F: //MBC3+TIMER+BAT
+	case 0x10: //MBC3+RAM+BAT
+	case 0x11: //MBC3
+	case 0x12: //MBC3+RAM
+	case 0x13: //MBC3+RAM+BAT
+		m_cart = new MBC3Cart(image, rom_size, ram_size);
+		break;
+	case 0x15:
+	case 0x16:
+	case 0x17:
+	case 0x19:
+	case 0x1A:
+	case 0x1B:
+	case 0x1C:
+	case 0x1D:
+	case 0x1E:
+	case 0xFC:
+	case 0xFD:
+	case 0xFE:
+	case 0xFF:
+	default:
+		m_cart = new Cart(image, rom_size, ram_size);
+		Logger::RaiseError("MEMORY", "Unknown Cart Type");
+		break;
+	}
+}
+
 void Memory::LoadCartFromFile(std::string rom_file)
 {
 	unsigned char *image;
@@ -370,116 +484,7 @@ void Memory::LoadCartFromFile(std::string rom_file)
 		file.close();
 		//CHECK Memory controller
 		Logger::PrintInfo("MEMORY", "Loaded " + rom_file);
-		unsigned char title[15];
-		memcpy(&(title[0]), &(image[0x134]), 15);
-		unsigned char color_setting = image[0x143];
-		unsigned short new_licensee;
-		memcpy(&new_licensee, &(image[0x144]), 2);
-		unsigned char sgb = image[0x146];
-		unsigned char type = image[0x147];
-		unsigned int rom_size = image[0x148];
-		unsigned int ram_size = image[0x149];
-		unsigned char country = image[0x14A];
-		unsigned char licensee = image[0x14B];
-		unsigned char header_check = image[0x14C];
-		unsigned char global_check = image[0x14D];
-
-		switch (rom_size)
-		{
-		case 0x00:
-			rom_size = 32000;
-			break;
-		case 0x01:
-			rom_size = 64000;
-			break;
-		case 0x02:
-			rom_size = 128000;
-			break;
-		case 0x03:
-			rom_size = 256000;
-			break;
-		case 0x04:
-			rom_size = 512000;
-			break;
-		case 0x05:
-			rom_size = 1024000;
-			break;
-		case 0x06:
-			rom_size = 2048000;
-			break;
-		case 0x07:
-			rom_size = 4096000;
-			break;
-		default:
-			Logger::RaiseError("MEMORY", "Invalid ROM size");
-			rom_size = 0;
-			break;
-		}
-		
-		switch (ram_size)
-		{
-		case 0x00:
-			ram_size = 0;
-			break;
-		case 0x01:
-			ram_size = 2000;
-			break;
-		case 0x02:
-			ram_size = 8000;
-			break;
-		case 0x03:
-			ram_size = 32000;
-			break;
-		default:
-			Logger::RaiseError("MEMORY", "Invalid RAM size");
-			ram_size = 0;
-			break;
-		}
-
-		switch (type)
-		{
-		case 0x00: //ROM
-		case 0x08: //ROM+RAM
-		case 0x09: //ROM+RAM+BAT
-			m_cart = new Cart(image, rom_size, ram_size);
-			break;
-		case 0x01: //MBC1
-		case 0x02: //MBC1 + RAM
-		case 0x03: //MBC1+RAM+BAT
-			m_cart = new MBC1Cart(image, rom_size, ram_size);
-			break;
-		case 0x05: //MBC2
-		case 0x06: //MBC2+BAT
-			break;
-		case 0x0B: //MMM01
-		case 0x0C: //MMM01+RAM
-		case 0x0D: //MMM01+RAM+BAT
-			break;
-		case 0x0F: //MBC3+TIMER+BAT
-		case 0x10: //MBC3+RAM+BAT
-		case 0x11: //MBC3
-		case 0x12: //MBC3+RAM
-		case 0x13: //MBC3+RAM+BAT
-			m_cart = new MBC3Cart(image, rom_size, ram_size);
-			break;
-		case 0x15:
-		case 0x16:
-		case 0x17:
-		case 0x19:
-		case 0x1A:
-		case 0x1B:
-		case 0x1C:
-		case 0x1D:
-		case 0x1E:
-		case 0xFC:
-		case 0xFD:
-		case 0xFE:
-		case 0xFF:
-		default:
-			m_cart = new Cart(image, rom_size, ram_size);
-			Logger::RaiseError("MEMORY", "Unknown Cart Type");
-			break;
-		}
+		SetCartFromBytes(image, size);
 		delete [] image;
 	}
 	else

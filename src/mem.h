@@ -220,6 +220,7 @@ public:
 	unsigned char Read(unsigned short addr);
 	void Write(unsigned short addr, unsigned char byte);
 	void LoadCartFromFile(std::string rom_file);
+	void SetCartFromBytes(unsigned char *rom, unsigned int size);
 	void LoadState(std::string filename);
 	void SaveState(std::string filename);
 	void SetInterruptTarget(Interruptable* target) { m_interrupt_target = target; }

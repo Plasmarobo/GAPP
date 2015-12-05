@@ -2241,7 +2241,22 @@ Memory *GBCPU::GetMem()
 	return m_mem;
 }
 
-void GBCPU::RunGBFile(std::string filename)
+RegFile *GBCPU::GetRegs()
+{
+	return &m_regs;
+}
+
+void GBCPU::LoadGBFile(std::string filename)
 {
 	m_mem->LoadCartFromFile(filename);
+}
+
+void GBCPU::SetRom(unsigned char *rom, unsigned int size)
+{
+	m_mem->SetCartFromBytes(rom, size);
+}
+
+unsigned long GBCPU::GetCycles()
+{
+	return m_cycles;
 }

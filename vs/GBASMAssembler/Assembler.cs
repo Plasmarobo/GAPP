@@ -352,66 +352,75 @@ namespace GBASMAssembler
 
         }
 
+        public static Locations ParseLocation(String src)
+        {
+            Locations l = Locations.NONE;
+            switch (src)
+            {
+                case "A":
+                    l = Locations.A;
+                    break;
+                case "B":
+                    l = Locations.B;
+                    break;
+                case "C":
+                    l = Locations.C;
+                    break;
+                case "D":
+                    l = Locations.D;
+                    break;
+                case "E":
+                    l = Locations.E;
+                    break;
+                case "F":
+                    l = Locations.F;
+                    break;
+                case "H":
+                    l = Locations.H;
+                    break;
+                case "L":
+                    l = Locations.L;
+                    break;
+                case "AF":
+                    l = Locations.AF;
+                    break;
+                case "BC":
+                    l = Locations.BC;
+                    break;
+                case "DE":
+                    l = Locations.DE;
+                    break;
+                case "HL+":
+                case "HLI":
+                case "HL-":
+                case "HLD":
+                case "HL":
+                    l = Locations.HL;
+                    break;
+                case "SP":
+                    l = Locations.SP;
+                    break;
+                default:
+                    break;
+            }
+            return l;
+        }
+
         public void EnterRegister(GBASMParser.RegisterContext context)
         {
             PrintLine("Register");
             LocationInfo l = GetCurrentArg();
             l.isReg = true;
-            switch (context.GetText())
+            String target = context.GetText();
+            SetArgLoc(ParseLocation(target));
+            if(target == "HL+" || target == "HLI")
             {
-                case "A":
-                    SetArgLoc(Locations.A);
-                    break;
-                case "B":
-                    SetArgLoc(Locations.B);
-                    break;
-                case "C":
-                    SetArgLoc(Locations.C);
-                    break;
-                case "D":
-                    SetArgLoc(Locations.D);
-                    break;
-                case "E":
-                    SetArgLoc(Locations.E);
-                    break;
-                case "F":
-                    SetArgLoc(Locations.F);
-                    break;
-                case "H":
-                    SetArgLoc(Locations.H);
-                    break;
-                case "L":
-                    SetArgLoc(Locations.L);
-                    break;
-                case "AF":
-                    SetArgLoc(Locations.AF);
-                    break;
-                case "BC":
-                    SetArgLoc(Locations.BC);
-                    break;
-                case "DE":
-                    SetArgLoc(Locations.DE);
-                    break;
-                case "HL":
-                    SetArgLoc(Locations.HL);
-                    break;
-                case "SP":
-                    SetArgLoc(Locations.SP);
-                    break;
-                case "HL+":
-                case "HLI":
-                    currentInst.op = Instructions.LDI;
-                    SetArgLoc(Locations.HL);
-                    break;
-                case "HL-":
-                case "HLD":
-                    currentInst.op = Instructions.LDD;
-                    SetArgLoc(Locations.HL);
-                    break;
-                default:
-                    break;
+                currentInst.op = Instructions.LDI;
             }
-
+            if (target == "HL-" || target == "HLD")
+            {
+                currentInst.op = Instructions.LDD;
+            }
         }
 
         public void ExitRegister(GBASMParser.RegisterContext context)

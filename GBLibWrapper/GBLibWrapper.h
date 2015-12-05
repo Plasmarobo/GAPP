@@ -23,7 +23,6 @@ namespace GBLibWrapper {
 
 	};
 	
-
 	public delegate void OnDisplayUpdate(array<unsigned char>^ image, unsigned int width, unsigned int height);
 	public delegate void OnBreakpoint(unsigned long lineNo, unsigned int instruction);
 
@@ -47,12 +46,13 @@ namespace GBLibWrapper {
 		void Keyup(unsigned int key);
 		void ClockStep();
 		void DebugStep();
-		
+		Int64 GetCycles();
 		List<Byte>^ DumpMemory();
+		Int32 Inspect(int location, Int16 addr);
 		List<Byte>^ Assemble(List<String^> ^text);
 		List<String^>^ Decompile(Queue<Byte> ^rom);
 		void LoadRom(String ^ filename);
-
+		void SetRom(List<Byte> ^ rom);
 		virtual ~GBLib();
 	};
 }

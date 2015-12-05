@@ -2,6 +2,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using GBASMAssembler;
+using System.IO;
+using System.Text.RegularExpressions;
+using GBLibWrapper;
 
 namespace AssemblerTest
 {
@@ -625,15 +628,181 @@ namespace AssemblerTest
         //GBLib
         public class GBTestInfo
         {
-            public String asm;
-            List<Byte> rom;
+            public enum GBLocations //MUST MATCH ENUM DEFINED IN cpu.h
+	        {
+		        NONE = 0,
+		        B,
+		        C,
+		        D,
+		        E,
+		        H,
+		        L,
+		        A,
+		        F,
+		        AF,
+		        BC,
+		        DE,
+		        HL,
+		        SP,
+		        PC,
+		        MEM, //Memory address 16b
+		        IMM, //8b
+		        WIDE_IMM, //16b
+		        OFFSET, //Memory address given by FF00 + n (8b)
+		        WIDE_OFFSET, //Memory address given by FF00+n (16b)
+		        PORT,
+		        STACK,
+		        NUM_LOCATIONS
+	        };
 
+            protected String asm;          //Input to assembler
+            protected Dictionary<int, Byte> ram;  //Expected RAM after EXEC
+            protected Dictionary<int, Int16> regs; //Expected REG states after EXEC
+            protected int cycles;//Expected Timing, cycles to run
 
+            public GBTestInfo()
+            {
+                asm = "";
+                ram = new Dictionary<int, byte>();
+                regs = new Dictionary<int, Int16>();
+                cycles = 0;
+            }
+
+            public GBTestInfo(String a, Dictionary<int, Byte> mem,  Dictionary<int, Int16> reg, int c)
+            {
+                asm = a; ram = mem; regs = reg; cycles = c;
+            }
+
+            public void Run()
+            {
+                Assembler assembler = new Assembler();
+                List<Byte> rom = assembler.AssembleString(asm);
+                GBLib sys = new GBLib();
+                sys.SetRom(rom);
+                int cycles_left = cycles;
+                while(cycles_left > 0)
+                {
+                    sys.ClockStep();
+                    cycles_left--;
+                }
+
+                foreach(int loc in ram.Keys)
+                {
+                    Assert.AreEqual(sys.Inspect((int)GBLocations.MEM,(Int16)loc), ram[loc]);
+                }
+                foreach(int reg in regs.Keys)
+                {
+                    Assert.AreEqual(sys.Inspect(reg, 0), regs[reg]);
+                }
+                Assert.AreEqual(sys.GetCycles(), cycles);
+
+            }
+
+            public void LoadTestASM(String filename)
+            {
+                System.IO.StreamReader file = new System.IO.StreamReader(filename);
+                String line;
+                asm = "";
+                while((line = file.ReadLine()) != null)
+                {
+                   PreprocessLine(line);
+                    asm += line + '\n';
+                }
+            }
+
+            public void PreprocessLine(String line)
+            {
+                String [] line_parts = line.Split(';');
+                if(line_parts.Length == 2)
+                {
+                    String asm = line_parts[0];
+                    String [] expected = line_parts[1].Split(' ');
+                    for(int index = 0; index < expected.Length; ++index)
+                    {
+                        String [] expected_parts = expected[index].Split('=');
+                        if(expected_parts.Length == 2)
+                        {
+                            Int16 value = Int16.Parse(expected_parts[1]);
+                            Regex r = new Regex(@"MEM\[0x([0-9a-fA-F]+)\]");
+                            Match m = r.Match(expected_parts[0]);
+                            if(m.Length > 0)
+                            {
+                                Int16 addr = Int16.Parse(m.Value);
+                                ram.Add(addr, (Byte)value);
+                            }
+                            else
+                            {
+                                GBLocations l = GBLocations.NONE;
+                                switch(expected_parts[0])
+                                {
+                                    
+                                    case "A":
+                                        l = GBLocations.A;
+                                        break;
+                                    case "B":
+                                        l = GBLocations.B;
+                                        break;
+                                    case "C":
+                                        l = GBLocations.C;
+                                        break;
+                                    case "D":
+                                        l = GBLocations.D;
+                                        break;
+                                    case "E":
+                                        l = GBLocations.E;
+                                        break;
+                                    case "F":
+                                        l = GBLocations.F;
+                                        break;
+                                    case "H":
+                                        l = GBLocations.H;
+                                        break;
+                                    case "L":
+                                        l = GBLocations.L;
+                                        break;
+                                    case "AF":
+                                        l = GBLocations.AF;
+                                        break;
+                                    case "BC":
+                                        l = GBLocations.BC;
+                                        break;
+                                    case "DE":
+                                        l = GBLocations.DE;
+                                        break;
+                                    case "HL":
+                                        l = GBLocations.HL;
+                                        break;
+                                    case "SP":
+                                        l = GBLocations.SP;
+                                        break;
+                                    case "PC":
+                                        l = GBLocations.PC;
+                                    break;
+                                    case "CYCLES":
+                                        cycles = value;
+                                        break;
+                                    default:
+
+                                        break;
+                                   
+                                }
+                                if(l != GBLocations.NONE)
+                                {
+                                    regs.Add((int)l, value);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
+
         [TestMethod]
         public void GBAllOps()
         {
-
+            GBTestInfo test = new GBTestInfo();
+            test.LoadTestASM(@"..\..\test\test_configs\allops.asm");
+            test.Run();
         }
     }
 }

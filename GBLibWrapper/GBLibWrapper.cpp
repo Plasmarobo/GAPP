@@ -107,6 +107,74 @@ List<Byte>^ GBLib::DumpMemory()
 	return b;
 }
 
+Int32 GBLib::Inspect(int location, Int16 addr)
+{
+	Int32 value = -1; //ERROR, can't be represented by an int 16
+	Memory* m = gbcpu->GetMem();
+	switch (location)
+	{
+	case NONE:
+		break;
+	case B:
+		value = gbcpu->GetRegs()->B();
+		break;
+	case C:
+		value = gbcpu->GetRegs()->C();
+		break;
+	case D:
+		value = gbcpu->GetRegs()->D();
+		break;
+	case E:
+		value = gbcpu->GetRegs()->E();
+		break;
+	case H:
+		value = gbcpu->GetRegs()->H();
+		break;
+	case L:
+		value = gbcpu->GetRegs()->L();
+		break;
+	case A:
+		value = gbcpu->GetRegs()->A();
+		break;
+	case F:
+		value = gbcpu->GetRegs()->F();
+		break;
+	case AF:
+		value = gbcpu->GetRegs()->AF();
+		break;
+	case BC:
+		value = gbcpu->GetRegs()->BC();
+		break;
+	case DE:
+		value = gbcpu->GetRegs()->DE();
+		break;
+	case HL:
+		value = gbcpu->GetRegs()->HL();
+		break;
+	case SP:
+		value = gbcpu->GetRegs()->SP();
+		break;
+	case PC:
+		value = gbcpu->GetRegs()->PC();
+		break;
+	case STACK:
+		value = m->Read(gbcpu->GetRegs()->SP());
+		break;
+	case MEM:
+		value = gbcpu->GetMem()->Read(addr);
+		break;
+	case IMM:
+	case WIDE_IMM:
+	case OFFSET:
+	case WIDE_OFFSET:
+	case PORT:
+		break;
+	default:
+		break;
+	}
+	return value & 0xFFFF;
+}
+
 List<Byte>^ GBLib::Assemble(List<String^> ^text)
 {
 	List<Byte>^ rom = gcnew List<Byte>();
@@ -134,5 +202,22 @@ void GBLib::LoadRom(String ^ filename)
 		(const char*) (Marshal::StringToHGlobalAnsi(filename)).ToPointer();
 	std::string str = chars;
 	Marshal::FreeHGlobal(IntPtr((void*) chars));
-	gbcpu->RunGBFile(str);
+	gbcpu->LoadGBFile(str);
+}
+
+void GBLib::SetRom(List<Byte> ^ rom)
+{
+	using namespace Runtime::InteropServices;
+	unsigned char *bytes = new unsigned char[rom->Count];
+	for (int i = 0; i < rom->Count; ++i)
+	{
+		bytes[i] = (unsigned char) rom[i];
+	}
+	gbcpu->SetRom(bytes, rom->Count);
+	delete [] bytes;
+}
+
+Int64 GBLib::GetCycles()
+{
+	return gbcpu->GetCycles();
 }

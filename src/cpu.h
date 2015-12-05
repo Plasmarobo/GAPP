@@ -229,10 +229,13 @@ public:
 	void Start();
 	unsigned long Step();
 	virtual void Int(Interrupt int_code);
-	void RunGBFile(std::string rom_file);
+	void LoadGBFile(std::string rom_file);
+	void SetRom(unsigned char *rom, unsigned int size);
 	void SaveState(std::string filename);
 	void LoadState(std::string filename);
 	Memory *GetMem();
+	RegFile *GetRegs();
+	unsigned long GetCycles();
 };
 
 
