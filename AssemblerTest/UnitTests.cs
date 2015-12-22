@@ -658,14 +658,14 @@ namespace AssemblerTest
             protected String asm;          //Input to assembler
             protected Dictionary<int, Byte> ram;  //Expected RAM after EXEC
             protected Dictionary<int, Int16> regs; //Expected REG states after EXEC
-            protected int cycles;//Expected Timing, cycles to run
+            protected Dictionary<int, int> cycles;//Expected Timing, cycles to run
 
             public GBTestInfo()
             {
                 asm = "";
                 ram = new Dictionary<int, byte>();
                 regs = new Dictionary<int, Int16>();
-                cycles = 0;
+                cycles = new Dictionary<int, int>();
             }
 
             public GBTestInfo(String a, Dictionary<int, Byte> mem,  Dictionary<int, Int16> reg, int c)
@@ -678,8 +678,10 @@ namespace AssemblerTest
                 Assembler assembler = new Assembler();
                 List<Byte> rom = assembler.AssembleString(asm);
                 GBLib sys = new GBLib();
-                sys.SetRom(rom);
-                int cycles_left = cycles;
+                //sys.SetRom(rom);
+
+                //Run a JIT compiler
+               
                 while(cycles_left > 0)
                 {
                     sys.ClockStep();
