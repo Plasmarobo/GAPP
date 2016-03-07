@@ -2,7 +2,7 @@
 #define BASE_H
 
 
-typedef enum Interrupt
+enum Interrupt
 {
 	
 	VBLANK_INT = 0,

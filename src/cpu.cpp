@@ -2184,7 +2184,6 @@ unsigned long GBCPU::Step()
 	ExecuteInstruction(packet);
 	m_mem->Step();
 	return m_cycles - start_cycles;
-	//StepTimer();
 }
 
 

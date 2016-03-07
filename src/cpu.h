@@ -5,7 +5,7 @@
 #include "utils.h"
 
 
-typedef enum Location
+enum Location
 {
 	NONE = 0,
 	B,
@@ -83,7 +83,7 @@ public:
 	unsigned char WriteUpper(unsigned char value) { m_upper = value; return m_upper; }
 	unsigned char WriteLower(unsigned char value) { m_lower = value; return m_lower; }
 	unsigned short Read() { return ((unsigned short)m_upper << 8) + m_lower; }
-	unsigned char Write(unsigned short value) { m_lower = value & 0xFF; m_upper = ((value >> 8) & 0xFF); return Read(); }
+	unsigned short Write(unsigned short value) { m_lower = value & 0xFF; m_upper = ((value >> 8) & 0xFF); return Read(); }
 };
 
 typedef union

@@ -75,7 +75,7 @@ void GBLib::Keyup(unsigned int key)
 	input->KeyUp(key);
 }
 
-void GBLib::ClockStep()
+void GBLib::Step()
 {
 	input->Step();
 	gbcpu->Step();

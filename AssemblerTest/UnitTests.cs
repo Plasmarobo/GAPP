@@ -625,119 +625,80 @@ namespace AssemblerTest
             }
         }
 
-        //GBLib
-        public class GBTestInfo
+        //  Annotated Assembly Test Format (*.aat)
+        public enum GBLocations //MUST MATCH ENUM DEFINED IN cpu.h
         {
-            public enum GBLocations //MUST MATCH ENUM DEFINED IN cpu.h
-	        {
-		        NONE = 0,
-		        B,
-		        C,
-		        D,
-		        E,
-		        H,
-		        L,
-		        A,
-		        F,
-		        AF,
-		        BC,
-		        DE,
-		        HL,
-		        SP,
-		        PC,
-		        MEM, //Memory address 16b
-		        IMM, //8b
-		        WIDE_IMM, //16b
-		        OFFSET, //Memory address given by FF00 + n (8b)
-		        WIDE_OFFSET, //Memory address given by FF00+n (16b)
-		        PORT,
-		        STACK,
-		        NUM_LOCATIONS
-	        };
+            NONE = 0,
+            B,
+            C,
+            D,
+            E,
+            H,
+            L,
+            A,
+            F,
+            AF,
+            BC,
+            DE,
+            HL,
+            SP,
+            PC,
+            MEM, //Memory address 16b
+            IMM, //8b
+            WIDE_IMM, //16b
+            OFFSET, //Memory address given by FF00 + n (8b)
+            WIDE_OFFSET, //Memory address given by FF00+n (16b)
+            PORT,
+            STACK,
+            NUM_LOCATIONS
+        };
 
-            protected String asm;          //Input to assembler
-            protected Dictionary<int, Byte> ram;  //Expected RAM after EXEC
-            protected Dictionary<int, Int16> regs; //Expected REG states after EXEC
-            protected Dictionary<int, int> cycles;//Expected Timing, cycles to run
+        protected class GBTestExpections
+        {
+            protected Dictionary<short, Byte> ram;  //Expected RAM after EXEC
+            protected Dictionary<GBLocations, Int16> regs; //Expected REG states after EXEC
+            protected long cycles;//Expected Timing, cycles to run
 
-            public GBTestInfo()
+            public GBTestExpections()
             {
-                asm = "";
-                ram = new Dictionary<int, byte>();
-                regs = new Dictionary<int, Int16>();
-                cycles = new Dictionary<int, int>();
+                ram = new Dictionary<short, byte>();
+                regs = new Dictionary<GBLocations, short>();
+                cycles = 0;
             }
 
-            public GBTestInfo(String a, Dictionary<int, Byte> mem,  Dictionary<int, Int16> reg, int c)
+            public GBTestExpections(String line)
             {
-                asm = a; ram = mem; regs = reg; cycles = c;
-            }
-
-            public void Run()
-            {
-                Assembler assembler = new Assembler();
-                List<Byte> rom = assembler.AssembleString(asm);
-                GBLib sys = new GBLib();
-                //sys.SetRom(rom);
-
-                //Run a JIT compiler
-               
-                while(cycles_left > 0)
-                {
-                    sys.ClockStep();
-                    cycles_left--;
-                }
-
-                foreach(int loc in ram.Keys)
-                {
-                    Assert.AreEqual(sys.Inspect((int)GBLocations.MEM,(Int16)loc), ram[loc]);
-                }
-                foreach(int reg in regs.Keys)
-                {
-                    Assert.AreEqual(sys.Inspect(reg, 0), regs[reg]);
-                }
-                Assert.AreEqual(sys.GetCycles(), cycles);
-
-            }
-
-            public void LoadTestASM(String filename)
-            {
-                System.IO.StreamReader file = new System.IO.StreamReader(filename);
-                String line;
-                asm = "";
-                while((line = file.ReadLine()) != null)
-                {
-                   PreprocessLine(line);
-                    asm += line + '\n';
-                }
+                ram = new Dictionary<short, byte>();
+                regs = new Dictionary<GBLocations, short>();
+                cycles = 0;
+                PreprocessLine(line);
             }
 
             public void PreprocessLine(String line)
             {
-                String [] line_parts = line.Split(';');
-                if(line_parts.Length == 2)
+                String[] line_parts = line.Split(';');
+                if (line_parts.Length == 2)
                 {
                     String asm = line_parts[0];
-                    String [] expected = line_parts[1].Split(' ');
-                    for(int index = 0; index < expected.Length; ++index)
+                    String[] expected = line_parts[1].Split(' ');
+                    for (int index = 0; index < expected.Length; ++index)
                     {
-                        String [] expected_parts = expected[index].Split('=');
-                        if(expected_parts.Length == 2)
+                        String[] expected_parts = expected[index].Split('=');
+                        if (expected_parts.Length == 2)
                         {
-                            Int16 value = Int16.Parse(expected_parts[1]);
+                            Int32 value = Int32.Parse(expected_parts[1]);
                             Regex r = new Regex(@"MEM\[0x([0-9a-fA-F]+)\]");
                             Match m = r.Match(expected_parts[0]);
-                            if(m.Length > 0)
+                            if (m.Length > 0)
                             {
-                                Int16 addr = Int16.Parse(m.Value);
-                                ram.Add(addr, (Byte)value);
+                                AddRamExpection(Int16.Parse(m.Value), (Byte)value);
                             }
                             else
                             {
                                 GBLocations l = GBLocations.NONE;
-                                switch(expected_parts[0])
+                                switch (expected_parts[0])
                                 {
-                                    
+
                                     case "A":
                                         l = GBLocations.A;
                                         break;
@@ -779,32 +740,104 @@ namespace AssemblerTest
                                         break;
                                     case "PC":
                                         l = GBLocations.PC;
-                                    break;
+                                        break;
                                     case "CYCLES":
+                                        l = GBLocations.NONE;
                                         cycles = value;
                                         break;
                                     default:
 
                                         break;
-                                   
+
                                 }
-                                if(l != GBLocations.NONE)
+                                if (l != GBLocations.NONE)
                                 {
-                                    regs.Add((int)l, value);
+                                    AddRegExpection(l, (Int16)value);
                                 }
                             }
                         }
                     }
                 }
             }
+
+            public void SetExpectedCycles(long c)
+            {
+                cycles = c;
+            }
+
+            public void AddRamExpection(short addr, Byte expected_value)
+            {
+                ram.Add(addr, expected_value);
+            }
+
+            public void AddRegExpection(GBLocations reg, short expected_value)
+            {
+                regs[reg] = expected_value;
+            }
+
+            public void CheckCycles(long c)
+            {
+                Assert.AreEqual(cycles, c);
+            }
+
+            public void CheckRam(GBLib sys)
+            {
+                foreach (short loc in ram.Keys)
+                {
+                    Assert.AreEqual(sys.Inspect((int)GBLocations.MEM, loc), ram[loc]);
+                }
+            }
+
+            public void CheckRegs(GBLib sys)
+            {
+                foreach (GBLocations reg in regs.Keys)
+                {
+                    Assert.AreEqual(sys.Inspect((int)reg, 0), regs[reg]);
+                }
+            }
+
+        }
+        //GBLib
+        public class GBAnnotatedAssemblyTest
+        {
+            
+          
+            
+
+            static public void Run(String filename)
+            {
+                Assembler assembler = new Assembler();
+                System.IO.StreamReader file = new System.IO.StreamReader(filename);
+                List<Byte> rom = assembler.AssembleString(file.ReadToEnd());
+                
+                GBLib sys = new GBLib();
+                sys.SetRom(rom);
+
+                int pc = sys.Inspect((int)GBLocations.PC, 0);
+                long starting_cycles = 0;
+                while(pc < rom.Count)
+                {
+                    String s = assembler.GetAsmLine(pc);
+                    GBTestExpections expectation = new GBTestExpections(s);
+                    starting_cycles = sys.GetCycles();
+                    sys.Step();
+                    expectation.CheckCycles(sys.GetCycles()-starting_cycles);
+                    
+                    
+                    pc = sys.Inspect((int)GBLocations.PC, 0);
+                }
+
+            }
+
+         
+
+            
         }
 
         [TestMethod]
         public void GBAllOps()
         {
-            GBTestInfo test = new GBTestInfo();
-            test.LoadTestASM(@"..\..\test\test_configs\allops.asm");
-            test.Run();
+            GBAnnotatedAssemblyTest.Run(@"..\..\test\test_configs\allops.aat");
         }
     }
 }

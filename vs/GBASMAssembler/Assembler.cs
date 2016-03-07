@@ -54,8 +54,9 @@ namespace GBASMAssembler
         public event OnAssemblerError AssemblerError;
 
         private List<Byte> rom;
-        private List<String> lineToBytes;
         private List<String> lines;
+        private List<String> lineToBytes;
+        private Dictionary<int, String> byteToLine;
         private AntlrInputStream inputStream;
         private GBASMLexer lexer;
         private CommonTokenStream tokenStream;
@@ -179,6 +180,12 @@ namespace GBASMAssembler
             return str;
         }
 
+        private void RomPush(Byte value)
+        {
+            rom.Add(value);
+            byteToLine.Add(rom.Count, lines.Last<string>());
+        }
+
         public Assembler()
         {
           
@@ -198,6 +205,7 @@ namespace GBASMAssembler
             rom = new List<byte>();
             lines = new List<String>();
             lineToBytes = new List<String>();
+            byteToLine = new Dictionary<int, string>();
             lexer = new GBASMLexer(inputStream);
             tokenStream = new CommonTokenStream(lexer);
             parser = new GBASMParser(tokenStream);
@@ -232,7 +240,6 @@ namespace GBASMAssembler
 
             return Assemble();
         }
-
 
         public void EnterEval(GBASMParser.EvalContext context)
         {
@@ -503,7 +510,7 @@ namespace GBASMAssembler
                 {
                     if (db_stack > 0)
                     {
-                        rom.Add((Byte)value);
+                        RomPush((Byte)value);
                     }
                     else
                     {
@@ -522,7 +529,7 @@ namespace GBASMAssembler
                 {
                     for (int i = rom.Count; i < value; ++i)
                     {
-                        rom.Add(0x00);
+                        RomPush(0x00);
                     }
                 }
             }
@@ -536,12 +543,11 @@ namespace GBASMAssembler
         public void EnterNegvalue(GBASMParser.NegvalueContext context)
         {
             PrintLine("Signed Value");
-            
 
             Int16 value = (Int16)(-ParseNum(context.GetText().Substring(1)));
             if (db_stack > 0)
             {
-                rom.Add((Byte)value);
+                RomPush((Byte)value);
             }
             else
             {
@@ -603,6 +609,10 @@ namespace GBASMAssembler
             return lineToBytes[i];
         }
 
+        public String GetAsmLine(int i)
+        {
+            return byteToLine[i];
+        }
 
         public void EnterSys(GBASMParser.SysContext context)
         {
@@ -756,7 +766,7 @@ namespace GBASMAssembler
                 //Remove quotations
                 for (int i = 1; i < s.Length-1; ++i)
                 {
-                    rom.Add((Byte)s[i]);
+                    RomPush((Byte)s[i]);
                 }
             }
         }
@@ -846,7 +856,8 @@ namespace GBASMAssembler
                 }
                 for (int index = r.romStart; index < romEnd; ++index)
                 {
-                    rom.Add(rom[index]);
+                    //Each Chunk of rom Code will be tagged to the LAST line pushed
+                    RomPush(rom[index]);
                     
                 }
                 

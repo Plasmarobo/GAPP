@@ -229,20 +229,20 @@ public:
 	//P1 - INPUT softregs
 	unsigned char P1() { return m_internal_memory.io_ports[0]; }
 	void P1(unsigned char val) { m_internal_memory.io_ports[0] = val; }
-	bool P10() { return m_internal_memory.io_ports[0] & 0x1; }
-	bool P11() { return m_internal_memory.io_ports[0] & 0x2; }
-	bool P12() { return m_internal_memory.io_ports[0] & 0x4; }
-	bool P13() { return m_internal_memory.io_ports[0] & 0x8; }
-	bool P14() { return m_internal_memory.io_ports[0] & 0x10; }
-	bool P15() { return m_internal_memory.io_ports[0] & 0x20; }
-	bool Right() { return m_internal_memory.io_ports[0] & 0x11; }
-	bool Left() { return m_internal_memory.io_ports[0] & 0x12; }
-	bool Up() { return m_internal_memory.io_ports[0] & 0x14; }
-	bool Down() { return m_internal_memory.io_ports[0] & 0x18; }
-	bool A() { return m_internal_memory.io_ports[0] & 0x21; }
-	bool B() { return m_internal_memory.io_ports[0] & 0x22; }
-	bool Sel() { return m_internal_memory.io_ports[0] & 0x24; }
-	bool Start() { return m_internal_memory.io_ports[0] & 0x28; }
+	bool P10() { return (m_internal_memory.io_ports[0] & 0x1) != 0; }
+	bool P11() { return (m_internal_memory.io_ports[0] & 0x2) != 0; }
+	bool P12() { return (m_internal_memory.io_ports[0] & 0x4) != 0; }
+	bool P13() { return (m_internal_memory.io_ports[0] & 0x8) != 0; }
+	bool P14() { return (m_internal_memory.io_ports[0] & 0x10) != 0; }
+	bool P15() { return (m_internal_memory.io_ports[0] & 0x20) != 0; }
+	bool Right() { return (m_internal_memory.io_ports[0] & 0x11) != 0; }
+	bool Left() { return (m_internal_memory.io_ports[0] & 0x12) != 0; }
+	bool Up() { return (m_internal_memory.io_ports[0] & 0x14) != 0; }
+	bool Down() { return (m_internal_memory.io_ports[0] & 0x18) != 0; }
+	bool A() { return (m_internal_memory.io_ports[0] & 0x21) != 0; }
+	bool B() { return (m_internal_memory.io_ports[0] & 0x22) != 0; }
+	bool Sel() { return (m_internal_memory.io_ports[0] & 0x24) != 0; }
+	bool Start() { return (m_internal_memory.io_ports[0] & 0x28) != 0; }
 	//RLUDABSelSta
 	void SetKeyStates(unsigned char bits);
 	//SERIAL

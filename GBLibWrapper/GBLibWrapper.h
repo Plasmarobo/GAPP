@@ -44,7 +44,7 @@ namespace GBLibWrapper {
 
 		void Keydown(unsigned int key);
 		void Keyup(unsigned int key);
-		void ClockStep();
+		void Step();
 		void DebugStep();
 		Int64 GetCycles();
 		List<Byte>^ DumpMemory();

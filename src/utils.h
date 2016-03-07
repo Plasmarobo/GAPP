@@ -2,6 +2,9 @@
 #define UTILS_H
 
 #include <string>
+#include <iostream>
+#include <fstream>
+
 
 
 class Logger

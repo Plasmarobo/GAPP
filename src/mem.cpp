@@ -472,7 +472,7 @@ void Memory::SetCartFromBytes(unsigned char *image, unsigned int size)
 void Memory::LoadCartFromFile(std::string rom_file)
 {
 	unsigned char *image;
-	unsigned long size;
+	std::streamoff size;
 	std::ifstream file;
 	file.open(rom_file, std::ios::in | std::ios::binary | std::ios::ate);
 	if (file.is_open())

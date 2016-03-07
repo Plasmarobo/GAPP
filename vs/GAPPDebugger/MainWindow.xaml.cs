@@ -63,7 +63,7 @@ namespace GAPPDebugger
             //17477 ticks
             for(int tick = 0; tick < 17477; ++tick)
             {
-                emu.ClockStep();
+                emu.Step();
             }
 
         }

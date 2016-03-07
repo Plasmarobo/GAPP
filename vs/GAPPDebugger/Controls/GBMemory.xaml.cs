@@ -26,8 +26,9 @@ namespace GAPPDebugger.Controls
         public GBMemory()
         {
             InitializeComponent();
-            /*memory = new List<MemoryRow>(0x10000);
-            for(int i = 0; i < 0x10000; ++i)
+            memory = null;
+            memory = new List<MemoryRow>(0x10000);
+            /*for(int i = 0; i < 0x10000; ++i)
             {
                 MemoryRow r = new MemoryRow();
                 r.Location = (ushort)i;

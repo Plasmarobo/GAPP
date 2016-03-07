@@ -24,7 +24,6 @@ using Antlr4.Runtime.Misc;
 using DFA = Antlr4.Runtime.Dfa.DFA;
 
 [System.CodeDom.Compiler.GeneratedCode("ANTLR", "4.5.1")]
-[System.CLSCompliant(false)]
 public partial class GBASMLexer : Lexer {
 	public const int
 		T__0=1, T__1=2, T__2=3, Z=4, A=5, B=6, C=7, D=8, E=9, F=10, H=11, L=12, 
