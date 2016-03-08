@@ -746,9 +746,7 @@ namespace AssemblerTest
                                         cycles = value;
                                         break;
                                     default:
-
                                         break;
-
                                 }
                                 if (l != GBLocations.NONE)
                                 {
@@ -795,15 +793,10 @@ namespace AssemblerTest
                     Assert.AreEqual(sys.Inspect((int)reg, 0), regs[reg]);
                 }
             }
-
         }
         //GBLib
         public class GBAnnotatedAssemblyTest
         {
-            
-          
-            
-
             static public void Run(String filename)
             {
                 Assembler assembler = new Assembler();
@@ -815,23 +808,16 @@ namespace AssemblerTest
 
                 int pc = sys.Inspect((int)GBLocations.PC, 0);
                 long starting_cycles = 0;
-                while(pc < rom.Count)
+                while (pc < rom.Count)
                 {
                     String s = assembler.GetAsmLine(pc);
                     GBTestExpections expectation = new GBTestExpections(s);
                     starting_cycles = sys.GetCycles();
                     sys.Step();
-                    expectation.CheckCycles(sys.GetCycles()-starting_cycles);
-                    
-                    
+                    expectation.CheckCycles(sys.GetCycles() - starting_cycles);
                     pc = sys.Inspect((int)GBLocations.PC, 0);
                 }
-
             }
-
-         
-
-            
         }
 
         [TestMethod]
