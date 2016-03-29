@@ -47,6 +47,7 @@ namespace GBLibWrapper {
 		void Step();
 		void DebugStep();
 		Int64 GetCycles();
+		bool InterruptFlag();
 		List<Byte>^ DumpMemory();
 		Int32 Inspect(int location, Int16 addr);
 		List<Byte>^ Assemble(List<String^> ^text);

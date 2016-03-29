@@ -2259,3 +2259,8 @@ unsigned long GBCPU::GetCycles()
 {
 	return m_cycles;
 }
+
+bool GBCPU::GetInterruptFlag()
+{
+	return m_interrupt_enable;
+}

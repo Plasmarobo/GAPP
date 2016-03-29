@@ -657,13 +657,15 @@ namespace AssemblerTest
         {
             protected Dictionary<short, Byte> ram;  //Expected RAM after EXEC
             protected Dictionary<GBLocations, Int16> regs; //Expected REG states after EXEC
-            protected long cycles;//Expected Timing, cycles to run
+            protected long cycles; //Expected Timing, cycles to run
+            protected bool interrupts; //Interrupt flag on
 
             public GBTestExpections()
             {
                 ram = new Dictionary<short, byte>();
                 regs = new Dictionary<GBLocations, short>();
                 cycles = 0;
+                interrupts = true;
             }
 
             public GBTestExpections(String line)
@@ -671,6 +673,7 @@ namespace AssemblerTest
                 ram = new Dictionary<short, byte>();
                 regs = new Dictionary<GBLocations, short>();
                 cycles = 0;
+                interrupts = true;
                 PreprocessLine(line);
             }
 
@@ -745,6 +748,10 @@ namespace AssemblerTest
                                         l = GBLocations.NONE;
                                         cycles = value;
                                         break;
+                                    case "INTERRUPTS":
+                                        l = GBLocations.NONE;
+                                        interrupts = (value == 1);
+                                        break;
                                     default:
                                         break;
                                 }
@@ -776,6 +783,11 @@ namespace AssemblerTest
             public void CheckCycles(long c)
             {
                 Assert.AreEqual(cycles, c);
+            }
+
+            public void CheckFlags(bool interrupt_flag)
+            {
+                Assert.AreEqual(interrupts, interrupt_flag);
             }
 
             public void CheckRam(GBLib sys)
@@ -815,6 +827,7 @@ namespace AssemblerTest
                     starting_cycles = sys.GetCycles();
                     sys.Step();
                     expectation.CheckCycles(sys.GetCycles() - starting_cycles);
+                    expectation.CheckFlags(sys.InterruptFlag());
                     pc = sys.Inspect((int)GBLocations.PC, 0);
                 }
             }

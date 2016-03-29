@@ -236,6 +236,7 @@ public:
 	Memory *GetMem();
 	RegFile *GetRegs();
 	unsigned long GetCycles();
+	bool GetInterruptFlag();
 };
 
 

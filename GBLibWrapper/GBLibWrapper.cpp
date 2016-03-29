@@ -221,3 +221,8 @@ Int64 GBLib::GetCycles()
 {
 	return gbcpu->GetCycles();
 }
+
+bool GBLib::InterruptFlag()
+{
+	return gbcpu->GetInterruptFlag();
+}
