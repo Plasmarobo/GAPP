@@ -3,8 +3,8 @@ grammar GBASM;
 eval : exp EOF;
 exp : exp op | exp sys | op | sys;
 
-op : monad | biad arg | triad arg SEPARATOR arg;
-sys : include | section | data | label | repblock;
+op : monad | data | biad arg | triad arg SEPARATOR arg;
+sys : include | section | label | repblock;
 
 triad : JR|JP|CALL|LD|LDD|LDI|LDH|ADD|ADC|SBC|BIT|RES|SET;
 

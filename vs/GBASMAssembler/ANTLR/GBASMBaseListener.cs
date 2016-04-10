@@ -30,6 +30,7 @@ using ParserRuleContext = Antlr4.Runtime.ParserRuleContext;
 /// of the available methods.
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCode("ANTLR", "4.5.1")]
+[System.CLSCompliant(false)]
 public partial class GBASMBaseListener : IGBASMListener {
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="GBASMParser.eval"/>.

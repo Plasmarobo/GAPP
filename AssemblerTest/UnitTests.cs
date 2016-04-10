@@ -605,10 +605,12 @@ namespace AssemblerTest
             Assembler assembler = new Assembler();
             assembler.MessagePrinted += PrintTrace;
             //REPT blocks
-            assembler.AssembleString("rept 0x02\n DB 0x01\nendr\nNOP");
-            Assert.AreEqual("0x01", assembler.GetByteString(0));
-            Assert.AreEqual("0x01", assembler.GetByteString(1));
-            Assert.AreEqual("0x00", assembler.GetByteString(2));
+            assembler.AssembleString("rept 0x05\nDB 0x01\nendr\nNOP");
+            for (int n = 0; n < 5; ++n)
+            {
+                Assert.AreEqual("0x01", assembler.GetByteString(n));
+            }
+            Assert.AreEqual("0x00", assembler.GetByteString(6));
         }
 
         [TestMethod]

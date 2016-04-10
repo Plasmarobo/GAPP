@@ -843,7 +843,7 @@ namespace GBASMAssembler
         public void ExitRepblock(GBASMParser.RepblockContext context)
         {
             RepInfo r = rep_stack.Pop();
-            
+            r.reps--;
             int romEnd = rom.Count;
             int lineEnd = lines.Count;
 

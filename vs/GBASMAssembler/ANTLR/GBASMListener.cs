@@ -26,6 +26,7 @@ using IToken = Antlr4.Runtime.IToken;
 /// <see cref="GBASMParser"/>.
 /// </summary>
 [System.CodeDom.Compiler.GeneratedCode("ANTLR", "4.5.1")]
+[System.CLSCompliant(false)]
 public interface IGBASMListener : IParseTreeListener {
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="GBASMParser.eval"/>.
