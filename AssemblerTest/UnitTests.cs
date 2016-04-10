@@ -610,7 +610,7 @@ namespace AssemblerTest
             {
                 Assert.AreEqual("0x01", assembler.GetByteString(n));
             }
-            Assert.AreEqual("0x00", assembler.GetByteString(6));
+            Assert.AreEqual("0x00", assembler.GetByteString(5));
         }
 
         [TestMethod]

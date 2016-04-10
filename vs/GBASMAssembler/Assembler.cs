@@ -55,13 +55,14 @@ namespace GBASMAssembler
 
         private List<Byte> rom;
         private List<String> lines;
-        private List<String> lineToBytes;
-        private Dictionary<int, String> byteToLine;
+        private List<String> byteLines;
+        private Dictionary<int, List<int>> lineToByteIndex;
+        private Dictionary<int, List<int>> byteToLineIndex;
         private AntlrInputStream inputStream;
         private GBASMLexer lexer;
         private CommonTokenStream tokenStream;
         private GBASMParser parser;
-        private bool isSection;
+        private bool isSectionArg;
         private bool isReptArg;
         private int db_stack;
         private Dictionary<String, int> jumpAddressIndex;
@@ -75,6 +76,7 @@ namespace GBASMAssembler
             public int romStart;
             public int linesStart;
             public int reps;
+
             public RepInfo(int start, int lines)
             {
                 romStart = start;
@@ -83,6 +85,20 @@ namespace GBASMAssembler
             }
         }
         private Stack<RepInfo> rep_stack;
+        public class SectionInfo
+        {
+            public int romStart;
+            public int lineStart;
+            public int size;
+
+            public SectionInfo(int start, int lines)
+            {
+                romStart = start;
+                size = 1;
+                lineStart = lines;
+            }
+        }
+        private Stack<SectionInfo> sec_stack;
 
         protected Instruction currentInst;
         protected enum ArgFSM
@@ -180,10 +196,29 @@ namespace GBASMAssembler
             return str;
         }
 
+        private void MapByteToLine(int b, int l)
+        {
+            if(!byteToLineIndex.ContainsKey(b))
+            {
+                byteToLineIndex[b] = new List<int>();
+            }
+            byteToLineIndex[b].Add(l);
+        }
+
+        private void MapLineToByte(int l, int b)
+        {
+            if(!lineToByteIndex.ContainsKey(l))
+            {
+                lineToByteIndex[l] = new List<int>();
+            }
+            lineToByteIndex[l].Add(b);
+        }
+
         private void RomPush(Byte value)
         {
             rom.Add(value);
-            byteToLine.Add(rom.Count, lines.Last<string>());
+            MapByteToLine(value, lines.Count-1);
+            MapLineToByte(lines.Count-1, value);
         }
 
         public Assembler()
@@ -204,21 +239,24 @@ namespace GBASMAssembler
             
             rom = new List<byte>();
             lines = new List<String>();
-            lineToBytes = new List<String>();
-            byteToLine = new Dictionary<int, string>();
+            byteLines = new List<String>();
+            lineToByteIndex = new Dictionary<int, List<int>>();
+            byteToLineIndex = new Dictionary<int, List<int>>();
             lexer = new GBASMLexer(inputStream);
             tokenStream = new CommonTokenStream(lexer);
             parser = new GBASMParser(tokenStream);
             argFSM = ArgFSM.COMPLETE;
             db_stack = 0;
-            isSection = false;
+            isSectionArg = false;
             isReptArg = false;
             rep_stack = new Stack<RepInfo>();
+            sec_stack = new Stack<SectionInfo>();
             jumpAddressIndex = new Dictionary<string,int>();
             unProcessedJumpLabels = new Dictionary<string, List<LabelInfo>>(); ;
             parser.BuildParseTree = true;
             Antlr4.Runtime.Tree.IParseTree tree = parser.eval();
             Antlr4.Runtime.Tree.ParseTreeWalker.Default.Walk(this, tree);
+
             if (AssemblyComplete != null)
             {
                 AssemblyComplete(rom);
@@ -280,7 +318,7 @@ namespace GBASMAssembler
         {
             PrintLine("End Op");
             currentInst.AppendTo(rom);
-            lineToBytes.Add(BuildByteString());
+            byteLines.Add(BuildByteString());
         }
 
         public void EnterMonad(GBASMParser.MonadContext context)
@@ -344,6 +382,7 @@ namespace GBASMAssembler
 
         public void ExitMemory(GBASMParser.MemoryContext context)
         {
+
         }
 
         public void EnterOffset(GBASMParser.OffsetContext context)
@@ -504,33 +543,28 @@ namespace GBASMAssembler
                 isReptArg = false;
                 rep_stack.Peek().reps = value-1; //Offset for the fact the original code will be copied
             }
+            else if (isSectionArg)
+            {
+                isSectionArg = false;
+                sec_stack.Peek().size = value;
+            }
             else
             {
-                if (!isSection)
+                if (db_stack > 0)
                 {
-                    if (db_stack > 0)
-                    {
-                        RomPush((Byte)value);
-                    }
-                    else
-                    {
-                        if (Math.Abs(value) > 255)
-                        {
-                            SetArgLoc(Locations.WIDE_IMM);
-                        }
-                        else
-                        {
-                            SetArgLoc(Locations.IMM);
-                        }
-                        SetArgVal(value);
-                    }
+                    RomPush((Byte)value);
                 }
                 else
                 {
-                    for (int i = rom.Count; i < value; ++i)
+                    if (Math.Abs(value) > 255)
                     {
-                        RomPush(0x00);
+                        SetArgLoc(Locations.WIDE_IMM);
                     }
+                    else
+                    {
+                        SetArgLoc(Locations.IMM);
+                    }
+                    SetArgVal(value);
                 }
             }
         }
@@ -606,35 +640,24 @@ namespace GBASMAssembler
 
         public String GetByteString(int i)
         {
-            return lineToBytes[i];
+            return byteLines[i];
         }
 
         public String GetAsmLine(int i)
         {
-            return byteToLine[i];
+            return lines[i];
         }
 
         public void EnterSys(GBASMParser.SysContext context)
         {
             PrintLine("Starting Sys");
             rom_ptr = rom.Count;
-            label_buf += inputStream.GetText(new Interval((int)context.Start.StartIndex, (int)context.Stop.StopIndex));
-            
+           
         }
 
         public void ExitSys(GBASMParser.SysContext context)
         {
-            PrintLine("Ending Sys");
-            if (skip_line_inc || label_buf == "")
-            {
-                skip_line_inc = false;
-            }
-            else
-            {
-                lines.Add(label_buf);
-                label_buf = "";
-                lineToBytes.Add(BuildByteString());
-            }
+            PrintLine("Ending Sys"); 
         }
 
         public void EnterInclude(GBASMParser.IncludeContext context)
@@ -652,12 +675,29 @@ namespace GBASMAssembler
         public void EnterSection(GBASMParser.SectionContext context)
         {
             PrintLine("Starting Section");
-            isSection = true;
+            if (context.Stop != null)
+            {
+                lines.Add(inputStream.GetText(new Interval((int)context.Start.StartIndex, (int)context.Stop.StopIndex)));
+            }
+            else
+            {
+                lines.Add(inputStream.GetText(new Interval((int)context.Start.StartIndex, (int)context.Start.StopIndex)));
+            }
+
+            isSectionArg = true;
+            sec_stack.Push(new SectionInfo(rom.Count, lines.Count));
+
         }
 
         public void ExitSection(GBASMParser.SectionContext context)
         {
-            isSection = false;
+            //Use Label Buf
+            SectionInfo info = sec_stack.Pop();
+            for(int i = 0; i < info.size; ++i)
+            {
+                RomPush(0x00);
+            }
+            byteLines.Add(BuildByteString());
         }
 
         public void EnterJump(GBASMParser.JumpContext context)
@@ -673,9 +713,7 @@ namespace GBASMAssembler
             o = currentInst.GetCurrentOffset();
             l.labelOffset = l.startByte + o.total; //This will be 0 if no src is encoded
             l.endByte = l.labelOffset + ((l.isRelative) ? 1 : 2);
-            l.byteStringIndex = lineToBytes.Count;
-
-            
+            l.byteStringIndex = byteLines.Count;
 
             if (jumpAddressIndex.ContainsKey(label))
             {
@@ -729,7 +767,7 @@ namespace GBASMAssembler
 
         public void ExitLabel(GBASMParser.LabelContext context)
         {
-            //throw new NotImplementedException();
+            
         }
 
         public void EnterData(GBASMParser.DataContext context)
@@ -737,6 +775,7 @@ namespace GBASMAssembler
             PrintLine("DB");
             db_stack += 1;
             PrintLine("DB at " + db_stack.ToString());
+            currentInst.op = Instructions.DATA_INSTRUCTION;
         }
 
         public void ExitData(GBASMParser.DataContext context)
@@ -749,7 +788,7 @@ namespace GBASMAssembler
 
         public void EnterDb(GBASMParser.DbContext context)
         {
-            //throw new NotImplementedException();
+           
         }
 
         public void ExitDb(GBASMParser.DbContext context)
@@ -819,7 +858,7 @@ namespace GBASMAssembler
                     bs += " ";
                 }
             }
-            lineToBytes[info.byteStringIndex] = bs;
+            byteLines[info.byteStringIndex] = bs;
         }
 
         protected void ErrorMsg(String msg)
@@ -838,27 +877,37 @@ namespace GBASMAssembler
             //Absolute labels MIGHT work
             isReptArg = true;
             rep_stack.Push(new RepInfo(rom.Count, lines.Count));
+            //Need to pad byteLines
+            //byteLines.Add("");
         }
 
         public void ExitRepblock(GBASMParser.RepblockContext context)
         {
             RepInfo r = rep_stack.Pop();
-            r.reps--;
+
             int romEnd = rom.Count;
             int lineEnd = lines.Count;
 
-            while(r.reps > 0)
+            if (context.Stop != null)
+            {
+                lines[lines.Count-1] += "; " + (inputStream.GetText(new Interval((int)context.Start.StartIndex, (int)context.Stop.StopIndex)));
+            }
+            else
+            {
+                lines[lines.Count-1] += "; " + (inputStream.GetText(new Interval((int)context.Start.StartIndex, (int)context.Start.StopIndex)));
+            }
+
+            while (r.reps > 0)
             {
                 for (int index = r.linesStart; index < lineEnd; ++index )
                 {
-                    lines.Add(lines[index] + "; REPT" + rep_stack.Count.ToString());
-                    lineToBytes.Add(lineToBytes[index]);
+                    lines.Add(lines[index] + "; REPT" + index);
+                    byteLines.Add(byteLines[index]);
                 }
                 for (int index = r.romStart; index < romEnd; ++index)
                 {
-                    //Each Chunk of rom Code will be tagged to the LAST line pushed
+                    //This is cheating: Will tag all with the last line of block
                     RomPush(rom[index]);
-                    
                 }
                 
                 r.reps--;

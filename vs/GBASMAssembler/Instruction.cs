@@ -60,6 +60,8 @@ namespace GBASMAssembler
             HALT,
             RETI,
             NUM_INSTRUCTIONS,
+            //Special Instruction Flags
+            DATA_INSTRUCTION,
             ERR_INSTRUCTION
         };
 
@@ -182,6 +184,8 @@ namespace GBASMAssembler
                     return Instructions.RETI;
                 case "RLCA":
                     return Instructions.RLCA;
+                case "DB":
+                    return Instructions.DATA_INSTRUCTION;
                 default:
                     return Instructions.ERR_INSTRUCTION;
             }
@@ -190,7 +194,7 @@ namespace GBASMAssembler
 
         public Instruction()
         {
-            op = Instructions.NOP;
+            op = Instructions.ERR_INSTRUCTION;
             src = new LocationInfo();
             dst = new LocationInfo();
         }
@@ -1002,18 +1006,21 @@ namespace GBASMAssembler
         public void AppendTo(List<Byte> rom)
         {
             //Compile instruction to opcode
-            OpEncodeOptions opt = new OpEncodeOptions();
-            opt.encode_dst = (dst.loc == Locations.WIDE_IMM) || (dst.loc == Locations.IMM) || (dst.loc == Locations.OFFSET);
-            opt.encode_src = (src.loc == Locations.WIDE_IMM) || (src.loc == Locations.IMM) || (src.loc == Locations.OFFSET);
-            EncodeOp(rom, opt);
-            if (opt.encode_src)
+            if (this.op <= Instructions.NUM_INSTRUCTIONS)
             {
-                InsertLocationInfo(rom, src);
-            }
+                OpEncodeOptions opt = new OpEncodeOptions();
+                opt.encode_dst = (dst.loc == Locations.WIDE_IMM) || (dst.loc == Locations.IMM) || (dst.loc == Locations.OFFSET);
+                opt.encode_src = (src.loc == Locations.WIDE_IMM) || (src.loc == Locations.IMM) || (src.loc == Locations.OFFSET);
+                EncodeOp(rom, opt);
+                if (opt.encode_src)
+                {
+                    InsertLocationInfo(rom, src);
+                }
 
-            if (opt.encode_dst)
-            {
-                InsertLocationInfo(rom, dst);
+                if (opt.encode_dst)
+                {
+                    InsertLocationInfo(rom, dst);
+                }
             }
         }
 
