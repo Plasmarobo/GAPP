@@ -809,14 +809,23 @@ namespace AssemblerTest
         //GBLib
         public class GBAnnotatedAssemblyTest
         {
+            private static Assembler assembler;
+            private static GBLib sys;
+            private static List<Byte> rom;
+
+            static public void LoadAAT(String filename)
+            {
+                assembler = new Assembler();
+                System.IO.StreamReader file = new System.IO.StreamReader(filename);
+                rom = assembler.AssembleString(file.ReadToEnd());
+
+                sys = new GBLib();
+                sys.SetRom(rom);
+            }
+
             static public void Run(String filename)
             {
-                Assembler assembler = new Assembler();
-                System.IO.StreamReader file = new System.IO.StreamReader(filename);
-                List<Byte> rom = assembler.AssembleString(file.ReadToEnd());
-                
-                GBLib sys = new GBLib();
-                sys.SetRom(rom);
+                LoadAAT(filename);
 
                 int pc = sys.Inspect((int)GBLocations.PC, 0);
                 long starting_cycles = 0;
@@ -831,12 +840,46 @@ namespace AssemblerTest
                     pc = sys.Inspect((int)GBLocations.PC, 0);
                 }
             }
+
+            static public void RunWithDelayInterrupt(String filename, long cycle_delay)
+            {
+                LoadAAT(filename);
+
+                int pc = sys.Inspect((int)GBLocations.PC, 0);
+                long starting_cycles = 0;
+                while (pc < rom.Count)
+                {
+                    String s = assembler.GetAsmLine(pc);
+                    GBTestExpections expectation = new GBTestExpections(s);
+                    starting_cycles = sys.GetCycles();
+                    if(starting_cycles == cycle_delay)
+                    {
+                        sys.ForceInterrupt(4); //INPUT INTERRUPT
+                    }
+                    sys.Step();
+                    expectation.CheckCycles(sys.GetCycles() - starting_cycles);
+                    expectation.CheckFlags(sys.InterruptFlag());
+                    pc = sys.Inspect((int)GBLocations.PC, 0);
+                }
+            }
         }
 
         [TestMethod]
         public void GBAllOps()
         {
             GBAnnotatedAssemblyTest.Run(@"..\..\test\test_configs\allops.aat");
+        }
+
+        [TestMethod]
+        public void StopTest()
+        {
+            GBAnnotatedAssemblyTest.RunWithDelayInterrupt(@"..\..\test\test_configs\stop.aat",4);
+        }
+
+        [TestMethod]
+        public void HaltTest()
+        {
+            GBAnnotatedAssemblyTest.RunWithDelayInterrupt(@"..\..\test\test_configs\halt.aat",4);
         }
     }
 }

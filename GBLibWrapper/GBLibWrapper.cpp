@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 
+#include "..\src\base.h"
 #include "GBLibWrapper.h"
 
 using namespace GBLibWrapper;
@@ -225,4 +226,9 @@ Int64 GBLib::GetCycles()
 bool GBLib::InterruptFlag()
 {
 	return gbcpu->GetInterruptFlag();
+}
+
+void GBLib::ForceInterrupt(int code)
+{
+	gbcpu->Int((Interrupt)code);
 }

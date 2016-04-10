@@ -1,0 +1,111 @@
+	SECTION	"RST00",HOME[$00]
+RST_00:	
+	LD L,0x00
+	jp	BRSTA
+
+	SECTION	"RST08",HOME[$08]
+RST_08:	
+	LD L,0x08
+	jp	BRSTB
+
+	SECTION	"RST10",HOME[$10]
+RST_10:
+	LD L,0x10
+	jp	BRSTC
+
+	SECTION	"RST18",HOME[$18]
+RST_18:
+	LD L,0x18
+	jp	BRSTD
+
+	SECTION	"RST20",HOME[$20]
+RST_20:
+	LD L,0x20
+	jp	BRSTE
+
+	SECTION	"RST28",HOME[$28]
+RST_28:
+	LD L,0x28
+	jp	BRSTF
+
+	SECTION	"RST30",HOME[$30]
+RST_30:
+	LD L,0x30
+	jp	BRSTG
+
+	SECTION	"RST38",HOME[$38]
+RST_38:
+	LD L,0x38
+	jp	BRSTH
+
+	SECTION	"VBlankIRQ",HOME[$40]
+VBL_VECT:
+	LD L,0x40
+	reti
+	
+	SECTION	"LCDIRQ",HOME[$48]
+LCD_VECT:
+	LD L,0x48
+	reti
+
+	SECTION	"TimerIRQ",HOME[$50]
+TIMER_VECT:
+	LD L,0x50
+	reti
+
+	SECTION	"SerialIRQ",HOME[$58]
+SERIAL_VECT:
+	LD L,0x58
+	reti
+
+	SECTION	"JoypadIRQ",HOME[$60]
+JOYPAD_VECT:
+	LD L,0x60
+	reti
+
+SECTION "START",HOME[0x100]
+NOP
+JP 0x200 
+	;; $0104-$0133 (Nintendo logo - do _not_ modify the logo data here or the GB will not run the program)
+	DB	$CE,$ED,$66,$66,$CC,$0D,$00,$0B,$03,$73,$00,$83,$00,$0C,$00,$0D
+	DB	$00,$08,$11,$1F,$88,$89,$00,$0E,$DC,$CC,$6E,$E6,$DD,$DD,$D9,$99
+	DB	$BB,$BB,$67,$63,$6E,$0E,$EC,$CC,$DD,$DC,$99,$9F,$BB,$B9,$33,$3E
+
+	;; $0134-$013E (Game title - up to 11 upper case ASCII characters; pad with $00)
+	DB	"TEST GBCPU"
+	;; $013F-$0142 (Product code - 4 ASCII characters, assigned by Nintendo, just leave blank)
+	DB	"    "
+	;; $0143 (Color GameBoy compatibility code)
+	DB	$00	;; $00 - DMG 
+			;; $80 - DMG/GBC
+			;; $C0 - GBC Only cartridge
+	;; $0144 (High-nibble of license code - normally $00 if $014B != $33)
+	DB	$00
+	;; $0145 (Low-nibble of license code - normally $00 if $014B != $33)
+	DB	$00
+	;; $0146 (GameBoy/Super GameBoy indicator)
+	DB	$00	;; $00 - GameBoy
+	;; $0147 (Cartridge type - all Color GameBoy cartridges are at least $19)
+	DB	$00	;; $00 - ROM Only
+	;; $0148 (ROM size)
+	DB	$00	;; $00 - 256Kbit = 32Kbyte = 2 banks
+	;; $0149 (RAM size)
+	DB	$00	;; $00 - None
+	;; $014A (Destination code)
+	DB	$00	;; $01 - All others
+			;; $00 - Japan
+	;; $014B (Licensee code - this _must_ be $33)
+	DB	$33	;; $33 - Check $0144/$0145 for Licensee code.
+	;; $014C (Mask ROM version - handled by RGBFIX)
+	DB	$00
+	;; $014D (Complement check)
+	DB	$00
+	;; $014E-$014F (Cartridge checksum)
+	DB	$00,$00
+
+SECTION "TEST",HOME[0x200]
+LD B,0x00
+STOP 0
+NOP
+LD B,0x01
+NOP ; B=0x01
