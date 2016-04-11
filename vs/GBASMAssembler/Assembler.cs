@@ -68,8 +68,6 @@ namespace GBASMAssembler
         private Dictionary<String, int> jumpAddressIndex;
         private Dictionary<String, List<LabelInfo>> unProcessedJumpLabels;
         private int rom_ptr;
-        private bool skip_line_inc = false;
-        private String label_buf;
 
         public class RepInfo
         {
@@ -303,13 +301,13 @@ namespace GBASMAssembler
         {
             PrintLine("Start op");
             rom_ptr = rom.Count;
-            if (context.Stop != null)
+            if ((context.Stop != null) && (context.Start.StartIndex < context.Stop.StopIndex))
             {
-                lines.Add(inputStream.GetText(new Interval((int)context.Start.StartIndex, (int)context.Stop.StopIndex)));
+                lines.Add(inputStream.GetText(new Interval(context.Start.StartIndex, context.Stop.StopIndex)));
             }
             else
             {
-                lines.Add(inputStream.GetText(new Interval((int)context.Start.StartIndex, (int)context.Start.StopIndex)));
+                lines.Add(inputStream.GetText(new Interval(context.Start.StartIndex, context.Start.StopIndex)));
             }
             currentInst = new Instruction();
         }
@@ -693,7 +691,8 @@ namespace GBASMAssembler
         {
             //Use Label Buf
             SectionInfo info = sec_stack.Pop();
-            for(int i = 0; i < info.size; ++i)
+            int distance_req = info.size - rom.Count;
+            for(int i = 0; i < distance_req; ++i)
             {
                 RomPush(0x00);
             }
@@ -752,7 +751,6 @@ namespace GBASMAssembler
         public void EnterLabel(GBASMParser.LabelContext context)
         {
             PrintLine("Label Defined");
-            skip_line_inc = true;
             String label = context.GetText();
             label = label.Substring(0, label.Length - 1); //Chop the colon
             jumpAddressIndex.Add(label, rom.Count);

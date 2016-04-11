@@ -399,7 +399,7 @@ void Memory::SetCartFromBytes(unsigned char *image, unsigned int size)
 		break;
 	default:
 		Logger::RaiseError("MEMORY", "Invalid ROM size");
-		rom_size = 0;
+		rom_size = 32000;
 		break;
 	}
 

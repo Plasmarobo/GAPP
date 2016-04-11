@@ -625,6 +625,19 @@ namespace AssemblerTest
             {
                 Assert.AreEqual(0, rom[i]);
             }
+            Assert.AreEqual(1, rom[0x100]);
+        }
+
+        [TestMethod]
+        public void AssemblerSectionsSequence()
+        {
+            Assembler assembler = new Assembler();
+            assembler.MessagePrinted += PrintTrace;
+            List<Byte> rom = assembler.AssembleString("SECTION \"ENTRY\",HOME[$100]\nDB 0x01\nSECTION \"SECOND\",HOME[$200]\nDB 0x02");
+            Assert.AreEqual("0x01", assembler.GetByteString(1));
+            Assert.AreEqual("0x02", assembler.GetByteString(3));
+            Assert.AreEqual(1, rom[0x100]);
+            Assert.AreEqual(2, rom[0x200]);
         }
 
         //  Annotated Assembly Test Format (*.aat)
@@ -813,12 +826,19 @@ namespace AssemblerTest
         {
             private static Assembler assembler;
             private static GBLib sys;
+            private static List<String> raw_asm;
             private static List<Byte> rom;
 
             static public void LoadAAT(String filename)
             {
                 assembler = new Assembler();
+                raw_asm = new List<String>();
                 System.IO.StreamReader file = new System.IO.StreamReader(filename);
+                while (!file.EndOfStream)
+                {
+                    raw_asm.Add(file.ReadLine());
+                }
+                file = new System.IO.StreamReader(filename);
                 rom = assembler.AssembleString(file.ReadToEnd());
 
                 sys = new GBLib();
@@ -869,19 +889,19 @@ namespace AssemblerTest
         [TestMethod]
         public void GBAllOps()
         {
-            GBAnnotatedAssemblyTest.Run(@"..\..\test\test_configs\allops.aat");
+            GBAnnotatedAssemblyTest.Run(@"..\..\..\test\test_configs\allops.aat");
         }
 
         [TestMethod]
         public void StopTest()
         {
-            GBAnnotatedAssemblyTest.RunWithDelayInterrupt(@"..\..\test\test_configs\stop.aat",4);
+            GBAnnotatedAssemblyTest.RunWithDelayInterrupt(@"..\..\..\test\test_configs\stop.aat",4);
         }
 
         [TestMethod]
         public void HaltTest()
         {
-            GBAnnotatedAssemblyTest.RunWithDelayInterrupt(@"..\..\test\test_configs\halt.aat",4);
+            GBAnnotatedAssemblyTest.RunWithDelayInterrupt(@"..\..\..\test\test_configs\halt.aat",4);
         }
     }
 }
