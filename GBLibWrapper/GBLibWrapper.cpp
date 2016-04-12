@@ -232,3 +232,8 @@ void GBLib::ForceInterrupt(int code)
 {
 	gbcpu->Int((Interrupt)code);
 }
+
+void GBLib::Start()
+{
+	gbcpu->Start();
+}

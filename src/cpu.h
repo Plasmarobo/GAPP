@@ -190,6 +190,30 @@ struct InstructionPacket
 		flag_mask.value = 0;
 	}
 
+	InstructionPacket(const InstructionPacket &rhs)
+	{
+		source = rhs.source;
+		dest = rhs.dest;
+		address = rhs.address;
+		offset = rhs.offset;
+		cycles = rhs.cycles;
+		instruction = rhs.instruction;
+		flag_mask.value = rhs.flag_mask.value;
+	}
+
+	InstructionPacket operator=(const InstructionPacket &rhs)
+	{
+		source = rhs.source;
+		dest = rhs.dest;
+		address = rhs.address;
+		offset = rhs.offset;
+		cycles = rhs.cycles;
+		instruction = rhs.instruction;
+		flag_mask.value = rhs.flag_mask.value;
+
+		return (*this);
+	}
+
 	void Print(std::ostream &stream);
 };
 
@@ -206,8 +230,8 @@ protected:
 
 	void HandleInterrupts();
 	InstructionPacket DecodeInstruction();
-	void DecodeCB(InstructionPacket &packet);
-	void ExecuteInstruction(InstructionPacket &packet);
+	void DecodeCB(InstructionPacket packet);
+	void ExecuteInstruction(InstructionPacket packet);
 	unsigned char FetchPC();
 	unsigned short FetchPC16();
 	unsigned char ReadMem(unsigned short addr); //Consumes 4 cycles
@@ -217,10 +241,10 @@ protected:
 	void PushPC();
 	void PopPC();
 
-	int ReadLocation(Location l, InstructionPacket &packet);
-	void WriteLocation(Location l, InstructionPacket &packet, int value);
+	int ReadLocation(Location l, InstructionPacket packet);
+	void WriteLocation(Location l, InstructionPacket packet, int value);
 
-	Location RegisterTable(unsigned char index, InstructionPacket &packet);
+	Location RegisterTable(unsigned char index, InstructionPacket packet);
 	Location MapLocation(unsigned char offset);
 	//void StepTimer();
 public:

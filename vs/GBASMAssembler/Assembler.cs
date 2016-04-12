@@ -57,7 +57,7 @@ namespace GBASMAssembler
         private List<String> lines;
         private List<String> byteLines;
         private Dictionary<int, List<int>> lineToByteIndex;
-        private Dictionary<int, List<int>> byteToLineIndex;
+        private Dictionary<int, int> byteToLineIndex;
         private AntlrInputStream inputStream;
         private GBASMLexer lexer;
         private CommonTokenStream tokenStream;
@@ -194,29 +194,38 @@ namespace GBASMAssembler
             return str;
         }
 
-        private void MapByteToLine(int b, int l)
+        private void MapByteToLine(ParserRuleContext context, int index)
         {
-            if(!byteToLineIndex.ContainsKey(b))
+            int line = context.Start.Line - 1; //Zero-based is the only sane number system
+            byteToLineIndex[index] = line;
+            if (!lineToByteIndex.ContainsKey(line))
             {
-                byteToLineIndex[b] = new List<int>();
+                lineToByteIndex[line] = new List<int>();
             }
-            byteToLineIndex[b].Add(l);
+            lineToByteIndex[line].Add(index);
         }
 
-        private void MapLineToByte(int l, int b)
+        private void MapByteToLine(ParserRuleContext context)
         {
-            if(!lineToByteIndex.ContainsKey(l))
-            {
-                lineToByteIndex[l] = new List<int>();
-            }
-            lineToByteIndex[l].Add(b);
+            MapByteToLine(context, rom.Count);
         }
 
-        private void RomPush(Byte value)
+        public int GetLineNoFromPC(int b)
+        {
+            if (byteToLineIndex.ContainsKey(b))
+            {
+                return byteToLineIndex[b];
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
+        private void RomPush(ParserRuleContext context, Byte value)
         {
             rom.Add(value);
-            MapByteToLine(value, lines.Count-1);
-            MapLineToByte(lines.Count-1, value);
+            MapByteToLine(context);
         }
 
         public Assembler()
@@ -239,7 +248,7 @@ namespace GBASMAssembler
             lines = new List<String>();
             byteLines = new List<String>();
             lineToByteIndex = new Dictionary<int, List<int>>();
-            byteToLineIndex = new Dictionary<int, List<int>>();
+            byteToLineIndex = new Dictionary<int, int>();
             lexer = new GBASMLexer(inputStream);
             tokenStream = new CommonTokenStream(lexer);
             parser = new GBASMParser(tokenStream);
@@ -315,7 +324,12 @@ namespace GBASMAssembler
         public void ExitOp(GBASMParser.OpContext context)
         {
             PrintLine("End Op");
+            int starting_len = rom.Count;
             currentInst.AppendTo(rom);
+            for(int i = starting_len; i < rom.Count; ++i)
+            {
+                MapByteToLine(context, i);
+            }
             byteLines.Add(BuildByteString());
         }
 
@@ -550,7 +564,7 @@ namespace GBASMAssembler
             {
                 if (db_stack > 0)
                 {
-                    RomPush((Byte)value);
+                    RomPush(context, (Byte)value);
                 }
                 else
                 {
@@ -579,7 +593,7 @@ namespace GBASMAssembler
             Int16 value = (Int16)(-ParseNum(context.GetText().Substring(1)));
             if (db_stack > 0)
             {
-                RomPush((Byte)value);
+                RomPush(context, (Byte)value);
             }
             else
             {
@@ -655,7 +669,8 @@ namespace GBASMAssembler
 
         public void ExitSys(GBASMParser.SysContext context)
         {
-            PrintLine("Ending Sys"); 
+            PrintLine("Ending Sys");
+            //MapByteToLine(rom.Count, context.Start.Line);
         }
 
         public void EnterInclude(GBASMParser.IncludeContext context)
@@ -694,7 +709,7 @@ namespace GBASMAssembler
             int distance_req = info.size - rom.Count;
             for(int i = 0; i < distance_req; ++i)
             {
-                RomPush(0x00);
+                RomPush(context, 0x00);
             }
             byteLines.Add(BuildByteString());
         }
@@ -803,7 +818,7 @@ namespace GBASMAssembler
                 //Remove quotations
                 for (int i = 1; i < s.Length-1; ++i)
                 {
-                    RomPush((Byte)s[i]);
+                    RomPush(context, (Byte)s[i]);
                 }
             }
         }
@@ -904,8 +919,7 @@ namespace GBASMAssembler
                 }
                 for (int index = r.romStart; index < romEnd; ++index)
                 {
-                    //This is cheating: Will tag all with the last line of block
-                    RomPush(rom[index]);
+                    RomPush(context, rom[index]);
                 }
                 
                 r.reps--;

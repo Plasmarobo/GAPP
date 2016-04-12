@@ -56,5 +56,6 @@ namespace GBLibWrapper {
 		void SetRom(List<Byte> ^ rom);
 		virtual ~GBLib();
 		void ForceInterrupt(int code);
+		void Start();
 	};
 }

@@ -351,7 +351,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x31: //WIDE-IMM
 			SetIfNone(packet.dest, Location::SP);
 			packet.source = Location::WIDE_IMM;
-			packet.cycles += 4;
+			//packet.cycles += 4;
 			packet.instruction = Instruction::LOAD;
 			break;
 			//LOAD SP
@@ -629,7 +629,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x33: //SP
 			SetIfNone(packet.dest, Location::SP);
 			packet.offset = 1;
-			packet.dest = packet.source;
+			packet.source = packet.dest;
 			packet.instruction = Instruction::LOAD;
 			packet.cycles += 8;
 			break;
@@ -682,17 +682,16 @@ InstructionPacket GBCPU::DecodeInstruction()
 			//NOP
 		case 0x00: //NOP
 			packet.instruction = Instruction::NOP;
-			packet.cycles += 4;
 			break;
 			//HALT
 		case 0x76: //Power down GBCPU until interrupt
 			packet.instruction = Instruction::HALT;
-			packet.cycles += 4;
+			//packet.cycles += 4;
 			break;
 			//STOP
 		case 0x10:
 			packet.instruction = Instruction::STOP;
-			packet.cycles += 4;
+			//packet.cycles += 4;
 			FetchPC();
 			break;
 			//DI
@@ -995,7 +994,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 	return packet;
 }
 
-void GBCPU::DecodeCB(InstructionPacket &packet)
+void GBCPU::DecodeCB(InstructionPacket packet)
 {
 	HandleInterrupts();
 	if (!m_halted)
@@ -1499,7 +1498,7 @@ unsigned char GBCPU::FetchPC()
 unsigned short GBCPU::FetchPC16()
 {
 	unsigned short bytes = FetchPC();
-	bytes = (FetchPC() << 8) + bytes;
+	bytes = (bytes << 8) + FetchPC();
 #ifdef _DEBUG
 	std::cout << "FetchPC16 returned 0x" << std::hex << (int)bytes << std::endl;
 #endif
@@ -1518,7 +1517,7 @@ void GBCPU::WriteMem(unsigned short addr, unsigned char value)
 	m_mem->Write(addr, value);
 }
 
-Location GBCPU::RegisterTable(unsigned char index, InstructionPacket &packet)
+Location GBCPU::RegisterTable(unsigned char index, InstructionPacket packet)
 {
 	switch (index)
 	{
@@ -1554,7 +1553,7 @@ Location GBCPU::RegisterTable(unsigned char index, InstructionPacket &packet)
 	return Location::NONE;
 }
 
-int GBCPU::ReadLocation(Location l, InstructionPacket &packet)
+int GBCPU::ReadLocation(Location l, InstructionPacket packet)
 {
 	unsigned int value;
 	switch (packet.source)
@@ -1622,7 +1621,7 @@ int GBCPU::ReadLocation(Location l, InstructionPacket &packet)
 	return value;
 }
 
-void GBCPU::WriteLocation(Location l, InstructionPacket &packet, int value)
+void GBCPU::WriteLocation(Location l, InstructionPacket packet, int value)
 {
 #ifdef _DEBUG
 	std::cout << "Writing location " << location_names[packet.dest] << " with " << std::hex << value << std::endl;
@@ -1685,7 +1684,7 @@ void GBCPU::WriteLocation(Location l, InstructionPacket &packet, int value)
 }
 
 
-void GBCPU::ExecuteInstruction(InstructionPacket &packet)
+void GBCPU::ExecuteInstruction(InstructionPacket packet)
 {
 	
 	switch (packet.instruction)

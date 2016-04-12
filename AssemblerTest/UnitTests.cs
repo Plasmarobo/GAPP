@@ -694,91 +694,92 @@ namespace AssemblerTest
 
             public void PreprocessLine(String line)
             {
-                String[] line_parts = line.Split(';');
-                if (line_parts.Length == 2)
-                {
-                    String asm = line_parts[0];
-                    String[] expected = line_parts[1].Split(' ');
-                    for (int index = 0; index < expected.Length; ++index)
-                    {
-                        String[] expected_parts = expected[index].Split('=');
-                        if (expected_parts.Length == 2)
-                        {
-                            Int32 value = Int32.Parse(expected_parts[1]);
-                            Regex r = new Regex(@"MEM\[0x([0-9a-fA-F]+)\]");
-                            Match m = r.Match(expected_parts[0]);
-                            if (m.Length > 0)
-                            {
-                                AddRamExpection(Int16.Parse(m.Value), (Byte)value);
-                            }
-                            else
-                            {
-                                GBLocations l = GBLocations.NONE;
-                                switch (expected_parts[0])
-                                {
 
-                                    case "A":
-                                        l = GBLocations.A;
-                                        break;
-                                    case "B":
-                                        l = GBLocations.B;
-                                        break;
-                                    case "C":
-                                        l = GBLocations.C;
-                                        break;
-                                    case "D":
-                                        l = GBLocations.D;
-                                        break;
-                                    case "E":
-                                        l = GBLocations.E;
-                                        break;
-                                    case "F":
-                                        l = GBLocations.F;
-                                        break;
-                                    case "H":
-                                        l = GBLocations.H;
-                                        break;
-                                    case "L":
-                                        l = GBLocations.L;
-                                        break;
-                                    case "AF":
-                                        l = GBLocations.AF;
-                                        break;
-                                    case "BC":
-                                        l = GBLocations.BC;
-                                        break;
-                                    case "DE":
-                                        l = GBLocations.DE;
-                                        break;
-                                    case "HL":
-                                        l = GBLocations.HL;
-                                        break;
-                                    case "SP":
-                                        l = GBLocations.SP;
-                                        break;
-                                    case "PC":
-                                        l = GBLocations.PC;
-                                        break;
-                                    case "CYCLES":
-                                        l = GBLocations.NONE;
-                                        cycles = value;
-                                        break;
-                                    case "INTERRUPTS":
-                                        l = GBLocations.NONE;
-                                        interrupts = (value == 1);
-                                        break;
-                                    default:
-                                        break;
-                                }
-                                if (l != GBLocations.NONE)
-                                {
-                                    AddRegExpection(l, (Int16)value);
-                                }
+                String[] expected = line.Split(' ');
+                for (int index = 0; index < expected.Length; ++index)
+                {
+                    String[] expected_parts = expected[index].Split('=');
+                    if (expected_parts.Length == 2)
+                    {
+                        int radix = (expected_parts[1].StartsWith("0x")) ? 16 : 10;
+                        Int32 value = Convert.ToInt32(expected_parts[1], radix);
+                        
+                        Regex r = new Regex(@"MEM\[0x([0-9a-fA-F]+)\]");
+                        Match m = r.Match(expected_parts[0]);
+                        if (m.Length > 0)
+                        {
+                            AddRamExpection(Convert.ToInt16(m.Groups[1].Value, 16), (Byte)value);
+                        }
+                        else
+                        {
+                            GBLocations l = GBLocations.NONE;
+                            switch (expected_parts[0])
+                            {
+
+                                case "A":
+                                    l = GBLocations.A;
+                                    break;
+                                case "B":
+                                    l = GBLocations.B;
+                                    break;
+                                case "C":
+                                    l = GBLocations.C;
+                                    break;
+                                case "D":
+                                    l = GBLocations.D;
+                                    break;
+                                case "E":
+                                    l = GBLocations.E;
+                                    break;
+                                case "F":
+                                    l = GBLocations.F;
+                                    break;
+                                case "H":
+                                    l = GBLocations.H;
+                                    break;
+                                case "L":
+                                    l = GBLocations.L;
+                                    break;
+                                case "AF":
+                                    l = GBLocations.AF;
+                                    break;
+                                case "BC":
+                                    l = GBLocations.BC;
+                                    break;
+                                case "DE":
+                                    l = GBLocations.DE;
+                                    break;
+                                case "HL":
+                                    l = GBLocations.HL;
+                                    break;
+                                case "SP":
+                                    l = GBLocations.SP;
+                                    break;
+                                case "PC":
+                                    l = GBLocations.PC;
+                                    break;
+                                case "CYCLES":
+                                    l = GBLocations.NONE;
+                                    cycles = value;
+                                    break;
+                                case "INTERRUPTS":
+                                    l = GBLocations.NONE;
+                                    interrupts = (value == 1);
+                                    break;
+                                default:
+                                    break;
                             }
+                            if (l != GBLocations.NONE)
+                            {
+                                AddRegExpection(l, (Int16)value);
+                            }
+
+
                         }
                     }
                 }
             }
+            
 
             public void SetExpectedCycles(long c)
             {
@@ -826,23 +827,32 @@ namespace AssemblerTest
         {
             private static Assembler assembler;
             private static GBLib sys;
-            private static List<String> raw_asm;
+            private static Dictionary<int, GBTestExpections> lineExpectations;
             private static List<Byte> rom;
 
             static public void LoadAAT(String filename)
             {
                 assembler = new Assembler();
-                raw_asm = new List<String>();
+                lineExpectations = new Dictionary<int, GBTestExpections>();
                 System.IO.StreamReader file = new System.IO.StreamReader(filename);
+                int lno = 0;
                 while (!file.EndOfStream)
                 {
-                    raw_asm.Add(file.ReadLine());
+                    String line = file.ReadLine();
+                    String [] parts = line.Split(';');
+
+                    if ((parts.Length == 2) && parts[1].StartsWith("EXPECT:"))
+                    {
+                        lineExpectations[lno] = new GBTestExpections(parts[1].Substring(8));
+                    }
+                    ++lno;
                 }
                 file = new System.IO.StreamReader(filename);
                 rom = assembler.AssembleString(file.ReadToEnd());
 
                 sys = new GBLib();
                 sys.SetRom(rom);
+                sys.Start();
             }
 
             static public void Run(String filename)
@@ -851,14 +861,21 @@ namespace AssemblerTest
 
                 int pc = sys.Inspect((int)GBLocations.PC, 0);
                 long starting_cycles = 0;
+                int line_no;
                 while (pc < rom.Count)
                 {
-                    String s = assembler.GetAsmLine(pc);
-                    GBTestExpections expectation = new GBTestExpections(s);
-                    starting_cycles = sys.GetCycles();
-                    sys.Step();
-                    expectation.CheckCycles(sys.GetCycles() - starting_cycles);
-                    expectation.CheckFlags(sys.InterruptFlag());
+                    line_no = assembler.GetLineNoFromPC(pc);
+                    if (lineExpectations.ContainsKey(line_no))
+                    {
+                        GBTestExpections expectation = lineExpectations[line_no];
+                        starting_cycles = sys.GetCycles();
+                        sys.Step();
+                        expectation.CheckCycles(sys.GetCycles() - starting_cycles);
+                        expectation.CheckFlags(sys.InterruptFlag());
+                        expectation.CheckRegs(sys);
+                        expectation.CheckRam(sys);
+                    }
+                    else sys.Step();
                     pc = sys.Inspect((int)GBLocations.PC, 0);
                 }
             }
