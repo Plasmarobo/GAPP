@@ -1,5 +1,6 @@
 #include "cpu.h"
 #include "mem.h"
+
 #ifdef _DEBUG
 #include <iostream>
 #endif
@@ -158,7 +159,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			SetIfNone(packet.dest, Location::L);
 			packet.source = Location::IMM;
 			packet.instruction = Instruction::LOAD;
-			packet.cycles += 4;
+			//packet.cycles += 4;
 			break;
 			//LOAD REG -> REG
 			//LOAD IN TO A
@@ -175,7 +176,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			SetIfNone(packet.source, Location::IMM);
 			packet.instruction = Instruction::LOAD;
 			packet.dest = Location::A;
-			packet.cycles += 4;
 			break;
 			//WIDE
 		case 0x0A: //MEM(BC)
@@ -334,7 +334,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.dest = Location::MEM;
 			packet.source = Location::A;
 			packet.instruction = Instruction::LOAD;
-			packet.cycles += 4;
 			break;
 
 			//WIDE LOAD
@@ -367,14 +366,16 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.dest = Location::HL;
 			packet.offset = FetchPC();
 			packet.flag_mask.value = 0x0C;
-			packet.cycles += 8;
+			packet.cycles += 4;
 			break;
 			//LOAD SP
 		case 0x08: //WIDE-IMM
 			packet.instruction = Instruction::LOAD;
-			packet.dest = Location::SP;
-			packet.source = Location::WIDE_IMM;
-			packet.cycles += 12;
+			packet.dest = Location::WIDE_MEM;
+			packet.source = Location::SP;
+			packet.addr_offset = 1;
+			packet.address = FetchPC16();
+			//packet.cycles += 8;
 			break;
 			//PUSH -> SP - 2
 		case 0xF5: //AF
@@ -564,10 +565,9 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x3C: //A
 			SetIfNone(packet.source, Location::A);
 			packet.offset = 1;
-			packet.dest = packet.source;
+			packet.source = packet.dest;
 			packet.instruction = Instruction::LOAD;
 			packet.flag_mask.value = 0x05;
-			packet.cycles += 4;
 			break;
 			//DEC
 		case 0x05: //B
@@ -591,10 +591,9 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x3D: //A
 			SetIfNone(packet.source, Location::A);
 			packet.offset = -1;
-			packet.dest = packet.source;
+			packet.source = packet.dest;
 			packet.instruction = Instruction::LOAD;
 			packet.flag_mask.value = 0x07;
-			packet.cycles += 4;
 			break;
 			//ADD 16
 			//ADD TO HL
@@ -609,7 +608,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.dest = Location::HL;
 			packet.instruction = Instruction::ADD;
 			packet.flag_mask.value = 0x0C;
-			packet.cycles += 8;
+			packet.cycles += 4;
 			break;
 			//ADD SP
 		case 0xE8: //IMM
@@ -617,7 +616,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.source = Location::IMM;
 			packet.instruction = Instruction::ADD;
 			packet.flag_mask.value = 0x0C;
-			packet.cycles += 12;
+			packet.cycles += 4;
 			break;
 			//INC16
 		case 0x03: //BC
@@ -631,7 +630,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.offset = 1;
 			packet.source = packet.dest;
 			packet.instruction = Instruction::LOAD;
-			packet.cycles += 8;
+			packet.cycles += 4;
 			break;
 			//DEC16
 		case 0x0B: //BC
@@ -709,26 +708,26 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.instruction = Instruction::RLC;
 			packet.source = Location::A;
 			packet.dest = Location::A;
-			packet.cycles += 4;
+			//packet.cycles += 4;
 			break;
 		case 0x07: //Rotate A left, bit 0 to carry
 			packet.instruction = Instruction::RL;
 			packet.source = Location::A;
 			packet.dest = Location::A;
-			packet.cycles += 4;
+			//packet.cycles += 4;
 			break;
 			//ROT RIGHT
 		case 0x0F: //Rotate A right, bit 7 to carry
 			packet.instruction = Instruction::RR;
 			packet.source = Location::A;
 			packet.dest = Location::A;
-			packet.cycles += 4;
+			//packet.cycles += 4;
 			break;
 		case 0x1F: //Rotate A right through carry flag
 			packet.instruction = Instruction::RRC;
 			packet.source = Location::A;
 			packet.dest = Location::A;
-			packet.cycles += 4;
+			//packet.cycles += 4;
 			break;
 			//JUMP
 		case 0xC3: //WIDE-IMM
@@ -1513,7 +1512,7 @@ unsigned char GBCPU::ReadMem(unsigned short addr)
 
 void GBCPU::WriteMem(unsigned short addr, unsigned char value)
 {
-	m_cycles += 8;
+	m_cycles += 4;
 	m_mem->Write(addr, value);
 }
 
@@ -1670,8 +1669,10 @@ void GBCPU::WriteLocation(Location l, InstructionPacket packet, int value)
 	case Location::PC:
 		m_regs.PC(value);
 		break;
+	case Location::WIDE_MEM:
+		WriteMem(packet.address + packet.addr_offset, (value >> 8) & 0xFF);
 	case Location::MEM:
-		WriteMem(packet.address, value);
+		WriteMem(packet.address, value & 0xFF);
 		break;
 	case Location::IMM:
 	case Location::WIDE_IMM:

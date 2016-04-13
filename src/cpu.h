@@ -23,6 +23,7 @@ enum Location
 	SP,
 	PC,
 	MEM, //Memory address 16b
+	WIDE_MEM, //Write 2 sequential bytes to memory
 	IMM, //8b
 	WIDE_IMM, //16b
 	OFFSET, //Memory address given by FF00 + n (8b)
@@ -174,6 +175,7 @@ struct InstructionPacket
 	Location source;
 	Location dest;
 	int address;
+	int addr_offset;
 	short offset;
 	unsigned short cycles;
 	Instruction instruction;
@@ -184,6 +186,7 @@ struct InstructionPacket
 		source = Location::NONE;
 		dest = Location::NONE;
 		address = -1;
+		addr_offset = 0;
 		offset = 0;
 		cycles = 0;
 		instruction = Instruction::NON;
@@ -195,6 +198,7 @@ struct InstructionPacket
 		source = rhs.source;
 		dest = rhs.dest;
 		address = rhs.address;
+		addr_offset = rhs.addr_offset;
 		offset = rhs.offset;
 		cycles = rhs.cycles;
 		instruction = rhs.instruction;
@@ -206,6 +210,7 @@ struct InstructionPacket
 		source = rhs.source;
 		dest = rhs.dest;
 		address = rhs.address;
+		addr_offset = rhs.addr_offset;
 		offset = rhs.offset;
 		cycles = rhs.cycles;
 		instruction = rhs.instruction;
