@@ -818,7 +818,7 @@ namespace AssemblerTest
             {
                 foreach (GBLocations reg in regs.Keys)
                 {
-                    Assert.AreEqual((ushort)sys.Inspect((int)reg, 0), (ushort)regs[reg]);
+                    Assert.AreEqual((ushort)regs[reg], (ushort)sys.Inspect((int)reg, 0));
                 }
             }
         }

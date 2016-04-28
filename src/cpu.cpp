@@ -6,10 +6,11 @@
 #endif
 
 #define SetIfNone(x,y) if(x==Location::NONE) x=y
-#define HalfCarry(dst,src) ((dst&0xf)+(src&0xf))&0x10
-#define HalfBorrow(dst,src) ((dst&0xf)-(src&0xf))<0
-#define Carry8b(dst,src) ((dst&0xff)+(src&0xff))&0x100
-#define Borrow8b(dst,src) ((dst&0xff)-(src&0xff))<0
+//Use the carry and borrow only with 32 bit signed types
+#define HalfCarry(dst,src) (((dst & 0xF) + (src & 0xF)) >= 0x10)
+#define HalfBorrow(dst,src) ((src & 0xF) > (dst & 0xF))
+#define Carry8b(dst,src) ((dst + src) > 0x100)
+#define Borrow8b(dst,src) ((src & 0xFF) > (dst & 0xFF))
 
 const std::string location_names[NUM_LOCATIONS] = {
 	"NONE",
@@ -203,7 +204,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.source = Location::MEM;
 			if (packet.address == -1) packet.address = FetchPC16();
 			packet.dest = Location::A;
-			packet.cycles += 4;
 			break;
 			//LOAD INTO B
 		case 0x40: //B
@@ -307,7 +307,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.source = Location::IMM;
 			packet.dest = Location::MEM;
 			packet.address = m_regs.HL();
-			packet.cycles += 4;
 			break;
 			//MEM(BC)
 		case 0x02: //A
@@ -361,7 +360,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.cycles += 4;
 			break;
 		case 0xF8: //SP + n: reset zero, reset nonzero may set h, may set c
-			packet.instruction = Instruction::ADD;
+			packet.instruction = Instruction::LOAD;
 			packet.source = Location::SP;
 			packet.dest = Location::HL;
 			packet.offset = FetchPC();
@@ -563,7 +562,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 				packet.address = m_regs.HL();
 			}
 		case 0x3C: //A
-			SetIfNone(packet.source, Location::A);
+			SetIfNone(packet.dest, Location::A);
 			packet.offset = 1;
 			packet.source = packet.dest;
 			packet.instruction = Instruction::LOAD;
@@ -642,9 +641,9 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x3B: //SP
 			SetIfNone(packet.dest, Location::SP);
 			packet.offset = -1;
-			packet.dest = packet.source;
+			packet.source = packet.dest;
 			packet.instruction = Instruction::LOAD;
-			packet.cycles += 8;
+			packet.cycles += 4;
 			break;
 			//CB EXT
 		case 0xCB:
@@ -685,12 +684,10 @@ InstructionPacket GBCPU::DecodeInstruction()
 			//HALT
 		case 0x76: //Power down GBCPU until interrupt
 			packet.instruction = Instruction::HALT;
-			//packet.cycles += 4;
 			break;
 			//STOP
 		case 0x10:
 			packet.instruction = Instruction::STOP;
-			//packet.cycles += 4;
 			FetchPC();
 			break;
 			//DI
@@ -708,26 +705,22 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.instruction = Instruction::RLC;
 			packet.source = Location::A;
 			packet.dest = Location::A;
-			//packet.cycles += 4;
 			break;
-		case 0x07: //Rotate A left, bit 0 to carry
+		case 0x07: //Rotate A left, bit 7 to carry
 			packet.instruction = Instruction::RL;
 			packet.source = Location::A;
 			packet.dest = Location::A;
-			//packet.cycles += 4;
 			break;
 			//ROT RIGHT
-		case 0x0F: //Rotate A right, bit 7 to carry
-			packet.instruction = Instruction::RR;
-			packet.source = Location::A;
-			packet.dest = Location::A;
-			//packet.cycles += 4;
-			break;
 		case 0x1F: //Rotate A right through carry flag
 			packet.instruction = Instruction::RRC;
 			packet.source = Location::A;
 			packet.dest = Location::A;
-			//packet.cycles += 4;
+			break;
+		case 0x0F: //Rotate A right, copy bit 0 to carry
+			packet.instruction = Instruction::RR;
+			packet.source = Location::A;
+			packet.dest = Location::A;
 			break;
 			//JUMP
 		case 0xC3: //WIDE-IMM
@@ -1555,7 +1548,7 @@ Location GBCPU::RegisterTable(unsigned char index, InstructionPacket packet)
 int GBCPU::ReadLocation(Location l, InstructionPacket packet)
 {
 	unsigned int value;
-	switch (packet.source)
+	switch (l)
 	{
 	case Location::NONE:
 		value = 0;
@@ -1744,7 +1737,7 @@ void GBCPU::ExecuteInstruction(InstructionPacket packet)
 			//Reset N
 			//Set H if carry from 3
 			//Set C if carry from 7
-			m_regs.SetFlags(res == 0, false, HalfCarry(a, b), Carry8b(a, b));
+			m_regs.SetFlags((packet.dest != Location::HL) ? m_regs.Zero() : (res == 0), false, HalfCarry(a, b), Carry8b(a, b));
 			WriteLocation(packet.dest, packet, res);
 
 		}
@@ -1856,94 +1849,44 @@ void GBCPU::ExecuteInstruction(InstructionPacket packet)
 		break;
 	case Instruction::RLC:
 		{
+			//Rotate Left, including carry flag
 			unsigned char r = ReadLocation(packet.dest, packet);
-			//New carry bit is the 7th bit
-			bool nc = (r >> 7) == 1;
-			//Shift left
+			bool carry = m_regs.Carry();
+			m_regs.SetFlags(false, false, false, r & 0x80);
 			r = r << 1;
-			//Wrap carry bit into lsb
-			if (m_regs.Carry())
-			{
-				//SET lsb
-				r |= 0x1;
-			}
-			else
-			{
-				r &= 0xFE;
-			}
-			//Set new carry value
+			if (carry) r += 1;
 			WriteLocation(packet.dest, packet, r);
-			m_regs.SetFlags(r == 0, false, false, nc);
 		}
 		break;
 	case Instruction::RL:
 		{
+			//Rotate Left, set, but don't rotate carry flag
 			unsigned char r = ReadLocation(packet.dest, packet);
-			//Copy out msb
-			bool rmsb = r >> 7 == 1;
-			//Shift left
+			m_regs.SetFlags(false, false, false, r & 0x80);
 			r = r << 1;
-			//Place msb into lsb
-			if (rmsb)
-			{
-				//SET lsb
-				r |= 0x1;
-			}
-			else
-			{
-				//RESET lsb
-				r &= 0xFE;
-			}
-			//Set flags
-			WriteLocation(packet.dest, packet,r);
-			m_regs.SetFlags(r == 0, false, false, rmsb);
+			if (m_regs.Carry()) r += 1;
+			WriteLocation(packet.dest, packet, r);
 		}
 		break;
 	case Instruction::RRC:
 		{
+			//Rotate Right, including carry flag
 			unsigned char r = ReadLocation(packet.dest, packet);
-			//New carry bit is the 0th bit
-			bool nc = (r &0x1 ) == 1;
-			//Shift right
+			bool carry = m_regs.Carry();
+			m_regs.SetFlags(false, false, false, r & 0x01);
 			r = r >> 1;
-			//Wrap carry bit into msb
-			if (m_regs.Carry())
-			{
-				//SET msb
-				r |= 0x80;
-			}
-			else
-			{
-				//RESET msb
-				r &= 0x7F;
-			}
-			r &= (m_regs.Carry() ? 0xFF : 0x7F);
-			//Set new carry value
+			if (carry) r += 0x80;
 			WriteLocation(packet.dest, packet, r);
-			m_regs.SetFlags(r == 0, false, false, nc);
 		}
 		break;
 	case Instruction::RR:
 		{
+			//Rotate right, set, but don't rotate carry flag
 			unsigned char r = ReadLocation(packet.dest, packet);
-			//Copy out lsb
-			bool rlsb = (r & 0x1) == 1;
-			//Shift right
+			m_regs.SetFlags(false, false, false, r & 0x01);
 			r = r >> 1;
-			//Place lsb into msb
-			if (rlsb)
-			{
-				//SET lsb
-				r |= 1;
-			}
-			else
-			{
-				//Reset lsb
-				r &= 0xFE;
-			}
-			//Set flags
+			if (m_regs.Carry()) r += 0x80;
 			WriteLocation(packet.dest, packet, r);
-			m_regs.SetFlags(r == 0, false, false, rlsb);
 		}
 		break;
 	case Instruction::SRS: //Shift right signed
