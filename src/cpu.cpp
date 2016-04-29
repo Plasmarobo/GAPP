@@ -7,8 +7,9 @@
 
 #define SetIfNone(x,y) if(x==Location::NONE) x=y
 //Use the carry and borrow only with 32 bit signed types
-#define HalfCarry(dst,src) (((dst & 0xF) + (src & 0xF)) >= 0x10)
-#define HalfBorrow(dst,src) ((src & 0xF) > (dst & 0xF))
+//Use shift for sign extension
+#define HalfCarry(dst,src) (((dst & 0x0F) + (src & 0x0F)) >= 0x10)
+#define HalfBorrow(dst,src) (((dst & 0x0F) - (src & 0x0F)) < 0)
 #define Carry8b(dst,src) ((dst + src) > 0x100)
 #define Borrow8b(dst,src) ((src & 0xFF) > (dst & 0xFF))
 
@@ -388,7 +389,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.address = m_regs.SP();
 			packet.dest = Location::MEM;
 			packet.instruction = Instruction::PUSH;
-			packet.cycles += 0;
+			packet.cycles += 4;
 			break;
 			//POP
 		case 0xF1: //AF
@@ -588,7 +589,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 				packet.address = m_regs.HL();
 			}
 		case 0x3D: //A
-			SetIfNone(packet.source, Location::A);
+			SetIfNone(packet.dest, Location::A);
 			packet.offset = -1;
 			packet.source = packet.dest;
 			packet.instruction = Instruction::LOAD;
@@ -615,7 +616,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.source = Location::IMM;
 			packet.instruction = Instruction::ADD;
 			packet.flag_mask.value = 0x0C;
-			packet.cycles += 4;
+			packet.cycles += 8;
 			break;
 			//INC16
 		case 0x03: //BC
@@ -654,21 +655,18 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.instruction = Instruction::DAA;
 			packet.source = Location::A;
 			packet.dest = Location::A;
-			packet.cycles += 4;
 			break;
 			//CPL
 		case 0x2F: //A
 			packet.instruction = Instruction::CPL;
 			packet.source = Location::A;
 			packet.dest = Location::A;
-			packet.cycles += 4;
 			break;
 			//CCF 
 		case 0x3F: //Complement carry flag
 			packet.instruction = Instruction::CCF;
 			packet.source = Location::F;
 			packet.dest = Location::F;
-			packet.cycles += 4;
 			break;
 			//SCF
 		case 0x37: //Set carry flag
@@ -1704,7 +1702,7 @@ void GBCPU::ExecuteInstruction(InstructionPacket packet)
 						//Set H if carry from 3
 						//Do not change C
 						
-						m_regs.SetFlags(res == 0, false, HalfCarry(val, packet.offset), m_regs.Carry());
+						m_regs.SetFlags((res & 0xFF) == 0, false, HalfCarry(val, 1), m_regs.Carry());
 					}
 				}
 				else if (packet.offset == -1)
@@ -1715,7 +1713,7 @@ void GBCPU::ExecuteInstruction(InstructionPacket packet)
 						//Set N 
 						//Set H if carry from 3
 						//Do not change C
-						m_regs.SetFlags(res == 0, false, HalfCarry(val, packet.offset), m_regs.Carry());
+						m_regs.SetFlags((res & 0xFF) == 0, true, !HalfBorrow(val, 1), m_regs.Carry());
 					}
 				}
 				WriteLocation(packet.dest, packet, res);
@@ -1994,16 +1992,16 @@ void GBCPU::ExecuteInstruction(InstructionPacket packet)
 	case Instruction::POP:
 		{
 			unsigned short val;
-			val = StackPop(); //MSB
-			val = StackPop() + (val << 8); //LSB
+			val = StackPop(); //LSB
+			val = val + (StackPop() << 8); //MSB
 			WriteLocation(packet.dest, packet, val);
 		}
 		break;
 	case Instruction::PUSH:
 		{
 			unsigned short val = ReadLocation(packet.source, packet);
-			StackPush(val); //LSB
 			StackPush(val >> 8); //MSB
+			StackPush(val & 0xFF); //LSB	
 		}
 		break;
 	case Instruction::DI:
