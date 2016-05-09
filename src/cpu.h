@@ -218,7 +218,7 @@ struct InstructionPacket
 
 		return (*this);
 	}
-
+	bool IsDestWide();
 	void Print(std::ostream &stream);
 };
 

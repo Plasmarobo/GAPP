@@ -94,6 +94,23 @@ Location GBCPU::MapLocation(unsigned char offset)
 	}
 }
 
+bool InstructionPacket::IsDestWide()
+{
+	switch(dest)
+	{
+	case Location::AF:
+	case Location::BC:
+	case Location::DE:
+	case Location::HL:
+	case Location::PC:
+	case Location::SP:
+	case Location::WIDE_MEM:
+		return true;
+	default:
+		return false;
+	}
+}
+
 void InstructionPacket::Print(std::ostream &stream)
 {
 	stream << "+++++++++++++++++++++++Instruction Packet+++++++++++++++++++++++" << std::endl;
@@ -403,7 +420,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.address = m_regs.SP();
 			packet.source = Location::MEM;
 			packet.instruction = Instruction::POP;
-			packet.cycles += 4;
 			break;
 			//ADD to A, set zero if zero, reset nonzero, set h if carry bit 3, set c if carry from 7
 		case 0x80: //B
@@ -1696,6 +1712,7 @@ void GBCPU::ExecuteInstruction(InstructionPacket packet)
 				if (packet.offset == 1)
 				{
 					//INC
+					if (!packet.IsDestWide())
 					{
 						//SET Z if zero
 						//Reset N 
@@ -1708,6 +1725,7 @@ void GBCPU::ExecuteInstruction(InstructionPacket packet)
 				else if (packet.offset == -1)
 				{
 					//DEC
+					if(!packet.IsDestWide())
 					{
 						//SET Z if zero
 						//Set N 

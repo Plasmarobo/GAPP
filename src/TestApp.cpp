@@ -21,8 +21,6 @@ double RealElapsedTime(void) { // granularity about 50 microsecs on my machine
 	}
 	return (double) (count.QuadPart - start.QuadPart) / freq.QuadPart;
 }
-
-
 #else
 #include <time.h>
 
@@ -34,7 +32,6 @@ double RealElapsedTime(void) {
 #endif
 
 #endif
-
 
 int main()
 {

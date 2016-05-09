@@ -810,7 +810,7 @@ namespace AssemblerTest
             {
                 foreach (short loc in ram.Keys)
                 {
-                    Assert.AreEqual((byte)sys.Inspect((int)GBLocations.MEM, loc), (byte) ram[loc]);
+                    Assert.AreEqual((byte)ram[loc], (byte)sys.Inspect((int)GBLocations.MEM, loc));
                 }
             }
 
