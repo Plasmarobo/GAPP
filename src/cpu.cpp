@@ -471,7 +471,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			SetIfNone(packet.source, Location::IMM);
 			packet.dest = Location::A;
 			packet.flag_mask.value = 0x0F;
-			packet.cycles += 4;
 			break;
 			//SBC -> Sub X plus carry from A
 		case 0x98: //B
@@ -1777,12 +1776,12 @@ void GBCPU::ExecuteInstruction(InstructionPacket packet)
 		{
 			int a = ReadLocation(packet.source, packet);
 			int b = ReadLocation(packet.dest, packet);
-			int res = a - b;
+			int res = b - a;
 			//SET Z if zero
 			//Set N
 			//Set H if no borrow from 4
 			//Set C if no borrow
-			m_regs.SetFlags(res == 0, true, HalfBorrow(a, b), Carry8b(a, b));
+			m_regs.SetFlags(res == 0, true, HalfBorrow(b, a), Carry8b(b, a));
 			WriteLocation(packet.dest, packet, res);
 		}
 		break;
