@@ -388,8 +388,11 @@ namespace GBASMAssembler
             PrintLine("Memory");
             //SetArgLoc(Locations.MEM);
             LocationInfo l = GetCurrentArg();
-            l.isMem = true;
-            l.isWide = true;
+            if (currentInst.op != Instructions.LDH)
+            {
+                l.isMem = true;
+                l.isWide = true;
+            }
         }
 
         public void ExitMemory(GBASMParser.MemoryContext context)

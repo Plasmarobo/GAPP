@@ -178,7 +178,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			SetIfNone(packet.dest, Location::L);
 			packet.source = Location::IMM;
 			packet.instruction = Instruction::LOAD;
-			//packet.cycles += 4;
 			break;
 			//LOAD REG -> REG
 			//LOAD IN TO A
@@ -200,27 +199,27 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x0A: //MEM(BC)
 			packet.address = m_regs.BC();
 		case 0x1A: //MEM(DE)
-			if (packet.address == -1) packet.address = m_regs.DE();
+			SetIfNone(packet.address, m_regs.DE());
 		case 0x3A: //MEM(HL--)
-			if (packet.address == -1)
+			if (packet.address == Location::NONE)
 			{
 				packet.address = m_regs.HL();
 				m_regs.HL(m_regs.HL() - 1);
 			}
 		case 0x2A: //MEM(HL++)
-			if (packet.address == -1)
+			if (packet.address == Location::NONE)
 			{
 				packet.address = m_regs.HL();
 				m_regs.HL(m_regs.HL() + 1);
 			}
 		case 0xF0: //MEM(0xFF+IMM)
-			if (packet.address == -1) packet.address = 0xFF00 + FetchPC();
+			SetIfNone(packet.address,0xFF00 + FetchPC());
 		case 0xF2: //MEM(0xFF00 + C)
-			if (packet.address == -1) packet.address = 0xFF00 + m_regs.C();
+			SetIfNone(packet.address, 0xFF00 + m_regs.C());
 		case 0xFA: //MEM(WIDE IMM LS -> MS)
 			packet.instruction = Instruction::LOAD;
 			packet.source = Location::MEM;
-			if (packet.address == -1) packet.address = FetchPC16();
+			SetIfNone(packet.address, FetchPC16());
 			packet.dest = Location::A;
 			break;
 			//LOAD INTO B
@@ -235,7 +234,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.source = RegisterTable(op - 0x40, packet);
 			packet.instruction = Instruction::LOAD;
 			packet.dest = Location::B;
-			packet.cycles += 4;
 			break;
 			//LOAD INTO C
 		case 0x48: //B
@@ -249,7 +247,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.source = RegisterTable(op - 0x48, packet);
 			packet.instruction = Instruction::LOAD;
 			packet.dest = Location::C;
-			packet.cycles += 4;
 			break;
 			//LOAD INTO D
 		case 0x50: //B
@@ -263,7 +260,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.source = RegisterTable(op - 0x50, packet);
 			packet.instruction = Instruction::LOAD;
 			packet.dest = Location::D;
-			packet.cycles += 4;
 			break;
 			//LOAD INTO E
 		case 0x58: //B
@@ -277,7 +273,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.source = RegisterTable(op - 0x58, packet);
 			packet.instruction = Instruction::LOAD;
 			packet.dest = Location::E;
-			packet.cycles += 4;
 			break;
 			//LOAD INTO H
 		case 0x60: //B
@@ -291,7 +286,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.source = RegisterTable(op - 0x60, packet);
 			packet.instruction = Instruction::LOAD;
 			packet.dest = Location::H;
-			packet.cycles += 4;
 			break;
 			//LOAD INTO L
 		case 0x68: //B
@@ -305,7 +299,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.source = RegisterTable(op - 0x68, packet);
 			packet.instruction = Instruction::LOAD;
 			packet.dest = Location::L;
-			packet.cycles += 4;
 			break;
 			//LOAD INTO MEM(HL)
 		case 0x70: //B
@@ -318,7 +311,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.instruction = Instruction::LOAD;
 			packet.dest = Location::MEM;
 			packet.address = m_regs.HL();
-			packet.cycles += 4;
 			break;
 		case 0x36: //IMM
 			packet.instruction = Instruction::LOAD;
@@ -328,31 +320,30 @@ InstructionPacket GBCPU::DecodeInstruction()
 			break;
 			//MEM(BC)
 		case 0x02: //A
-			if (packet.address == -1) packet.address = m_regs.BC();
+			packet.address = m_regs.BC();
 			//MEM(DE)
 		case 0x12: //A
-			if (packet.address == -1) packet.address = m_regs.DE();
+			SetIfNone(packet.address, m_regs.DE());
 			//MEM(HL)
 		case 0x22:
 		case 0x32:
 		case 0x77: //A
-			if (packet.address == -1) packet.address = m_regs.HL();
+			SetIfNone(packet.address, m_regs.HL());
 			if (op == 0x32) m_regs.HL(m_regs.HL() - 1);
 			if (op == 0x22) m_regs.HL(m_regs.HL() + 1);
 			//LOAD MEM(0xFF00+IMM)
 		case 0xE0: //A
-			if (packet.address == -1) packet.address = 0xFF00 + FetchPC();
+			SetIfNone(packet.address, 0xFF00 + FetchPC());
 			//LOAD INTO MEM(0xFF+C)
 		case 0xE2: //A
-			if (packet.address == -1) packet.address = 0xFF00 + m_regs.C();
+			SetIfNone(packet.address, 0xFF00 + m_regs.C());
 			//MEM(WIDE IMM LS->MS)
 		case 0xEA: //A
-			if (packet.address == -1) packet.address = FetchPC16();
+			SetIfNone(packet.address, FetchPC16());
 			packet.dest = Location::MEM;
 			packet.source = Location::A;
 			packet.instruction = Instruction::LOAD;
 			break;
-
 			//WIDE LOAD
 			//BC
 		case 0x01: //WIDE-IMM
@@ -367,7 +358,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x31: //WIDE-IMM
 			SetIfNone(packet.dest, Location::SP);
 			packet.source = Location::WIDE_IMM;
-			//packet.cycles += 4;
 			packet.instruction = Instruction::LOAD;
 			break;
 			//LOAD SP
@@ -392,7 +382,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.source = Location::SP;
 			packet.addr_offset = 1;
 			packet.address = FetchPC16();
-			//packet.cycles += 8;
 			break;
 			//PUSH -> SP - 2
 		case 0xF5: //AF
@@ -436,7 +425,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.instruction = Instruction::ADD;
 			packet.dest = Location::A;
 			packet.flag_mask.value = 0x0D;
-			packet.cycles += 4;
 			break;
 			//ADC -> Add X plus carry to A
 		case 0x88: //B
@@ -454,7 +442,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.dest = Location::A;
 			packet.offset = m_regs.Carry() ? 1 : 0;
 			packet.flag_mask.value = 0x0D;
-			packet.cycles += 4;
 			break;
 			//SUB from A
 		case 0x90: //B
@@ -473,6 +460,8 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.flag_mask.value = 0x0F;
 			break;
 			//SBC -> Sub X plus carry from A
+		case 0xDE: // IMM
+			SetIfNone(packet.source, Location::IMM);
 		case 0x98: //B
 		case 0x99: //C
 		case 0x9A: //D
@@ -481,14 +470,11 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x9D: //L
 		case 0x9E: //MEM(HL)
 		case 0x9F: //A
-			//case 0x?? //IMM
 			packet.instruction = Instruction::SBC;
-			packet.source = RegisterTable(op - 0x98, packet);
-			//SetIfNone(packet.source, Location::IMM);
+			SetIfNone(packet.source, RegisterTable(op - 0x98, packet));
 			packet.offset = m_regs.Carry() ? 1 : 0;
 			packet.dest = Location::A;
 			packet.flag_mask.value = 0x0F;
-			packet.cycles += 4;
 			break;
 			//AND with A
 		case 0xA0: //B
@@ -505,7 +491,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.instruction = Instruction::AND;
 			packet.dest = Location::A;
 			packet.flag_mask.value = 0x05;
-			packet.cycles += 4;
 			break;
 			//OR with A
 		case 0xB0: //B
@@ -522,7 +507,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.instruction = Instruction::OR;
 			packet.dest = Location::A;
 			packet.flag_mask.value = 0x01;
-			packet.cycles += 4;
 			break;
 			//XOR with A
 		case 0xA8: //B
@@ -539,7 +523,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.instruction = Instruction::XOR;
 			packet.dest = Location::A;
 			packet.flag_mask.value = 0x01;
-			packet.cycles += 4;
 			break;
 			//COMPARE
 		case 0xB8: //B
@@ -556,7 +539,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.instruction = Instruction::CP;
 			packet.dest = Location::A;
 			packet.flag_mask.value = 0x0F;
-			packet.cycles += 4;
 			break;
 			//INC
 		case 0x04: //B
@@ -645,7 +627,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.offset = 1;
 			packet.source = packet.dest;
 			packet.instruction = Instruction::LOAD;
-			packet.cycles += 4;
 			break;
 			//DEC16
 		case 0x0B: //BC
@@ -659,7 +640,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.offset = -1;
 			packet.source = packet.dest;
 			packet.instruction = Instruction::LOAD;
-			packet.cycles += 4;
 			break;
 			//CB EXT
 		case 0xCB:
@@ -688,7 +668,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.instruction = Instruction::SCF;
 			packet.source = Location::F;
 			packet.dest = Location::F;
-			packet.cycles += 4;
 			break;
 			//NOP
 		case 0x00: //NOP
@@ -706,12 +685,10 @@ InstructionPacket GBCPU::DecodeInstruction()
 			//DI
 		case 0xF3: //Disable interrupt after exec
 			packet.instruction = Instruction::DI;
-			packet.cycles += 4;
 			break;
 			//EI
 		case 0xFB: //Enable interrupt after exec
 			packet.instruction = Instruction::EI;
-			packet.cycles += 4;
 			break;
 			//ROT LEFT
 		case 0x17: //Rotate A left through carry flag
@@ -740,13 +717,11 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.instruction = Instruction::LOAD;
 			packet.source = Location::WIDE_IMM;
 			packet.dest = Location::PC;
-			packet.cycles += 4;
 			break;
 		case 0xE9: //MEM(HL)
 			packet.instruction = Instruction::LOAD;
 			packet.source = Location::HL;
 			packet.dest = Location::PC;
-			packet.cycles += 4;
 			break;
 			//JUMP IF
 		case 0xC2: //Z reset
@@ -760,7 +735,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			{
 				packet.instruction = Instruction::NOP;
 			}
-			packet.cycles += 4;
 			break;
 		case 0xCA: //Z set
 			packet.source = Location::WIDE_IMM;
@@ -773,7 +747,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			{
 				packet.instruction = Instruction::NOP;
 			}
-			packet.cycles += 4;
 			break;
 		case 0xD2: //C reset (no carry)
 			packet.source = Location::WIDE_IMM;
@@ -786,7 +759,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			{
 				packet.instruction = Instruction::NOP;
 			}
-			packet.cycles += 4;
 			break;
 		case 0xDA: //C set (carry)
 			packet.source = Location::WIDE_IMM;
@@ -799,7 +771,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			{
 				packet.instruction = Instruction::NOP;
 			}
-			packet.cycles += 4;
 			break;
 			//JUMP REL
 		case 0x18: //signed IMM
@@ -821,7 +792,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			{
 				packet.instruction = Instruction::NOP;
 			}
-			packet.cycles += 4;
 			break;
 		case 0x28: //Z set. IMM signed
 			packet.source = Location::PC;
@@ -835,7 +805,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			{
 				packet.instruction = Instruction::NOP;
 			}
-			packet.cycles += 4;
 			break;
 		case 0x30: //C reset, IMM signed
 			packet.source = Location::PC;
@@ -849,7 +818,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			{
 				packet.instruction = Instruction::NOP;
 			}
-			packet.cycles += 4;
 			break;
 		case 0x38: //C set, IMM signed
 			packet.source = Location::PC;
@@ -863,7 +831,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			{
 				packet.instruction = Instruction::NOP;
 			}
-			packet.cycles += 4;
 			break;
 			//CALL
 		case 0xCD: //WIDE-IMM
@@ -886,7 +853,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			{
 				packet.instruction = Instruction::NOP;
 			}
-			packet.cycles += 4;
 		case 0xCC: //Z set
 			PushPC();
 			packet.source = Location::PC;
@@ -900,7 +866,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			{
 				packet.instruction = Instruction::NOP;
 			}
-			packet.cycles += 4;
 		case 0xD4: //C reset
 			PushPC();
 			packet.source = Location::PC;
@@ -914,7 +879,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			{
 				packet.instruction = Instruction::NOP;
 			}
-			packet.cycles += 4;
 		case 0xDC: //C set
 			PushPC();
 			packet.source = Location::PC;
@@ -928,7 +892,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			{
 				packet.instruction = Instruction::NOP;
 			}
-			packet.cycles += 4;
 			break;
 			//RST (push PC onto stack and jump to 0 + n
 		case 0xC7: //00H
@@ -944,13 +907,11 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.offset = op - 0xC7;
 			packet.dest = Location::PC;
 			packet.instruction = Instruction::LOAD;
-			packet.cycles += 32;
 			break;
 			//RET
 		case 0xC9: //pop two bytes and jump to that address
 			PopPC();
 			packet.instruction = Instruction::NOP;
-			packet.cycles = 0;
 			break;
 			//RET IF
 		case 0xC0: //Z set
@@ -959,7 +920,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 				PopPC();
 			}
 			packet.instruction = Instruction::NOP;
-			packet.cycles = 0;
 			break;
 		case 0xC8: //Z reset
 			if (!m_regs.Zero())
@@ -967,7 +927,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 				PopPC();
 			}
 			packet.instruction = Instruction::NOP;
-			packet.cycles = 0;
 			break;
 		case 0xD0: //C set
 			if (m_regs.Carry())
@@ -975,7 +934,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 				PopPC();
 			}
 			packet.instruction = Instruction::NOP;
-			packet.cycles = 0;
 			break;
 		case 0xD8: //C reset
 			if (!m_regs.Carry())
@@ -983,13 +941,11 @@ InstructionPacket GBCPU::DecodeInstruction()
 				PopPC();
 			}
 			packet.instruction = Instruction::NOP;
-			packet.cycles = 0;
 			break;
 			//RETI
 		case 0xD9: //pop two bytes and dump to that address, then enable interrupts
 			PopPC();
 			packet.instruction = Instruction::EI;
-			packet.cycles = 0;
 			break;
 		default:
 			Logger::RaiseError("CPU", "Unknown Opcode");
@@ -1522,7 +1478,7 @@ void GBCPU::WriteMem(unsigned short addr, unsigned char value)
 	m_mem->Write(addr, value);
 }
 
-Location GBCPU::RegisterTable(unsigned char index, InstructionPacket packet)
+Location GBCPU::RegisterTable(unsigned char index, InstructionPacket &packet)
 {
 	switch (index)
 	{
@@ -1558,7 +1514,7 @@ Location GBCPU::RegisterTable(unsigned char index, InstructionPacket packet)
 	return Location::NONE;
 }
 
-int GBCPU::ReadLocation(Location l, InstructionPacket packet)
+int GBCPU::ReadLocation(Location l, InstructionPacket &packet)
 {
 	unsigned int value;
 	switch (l)
@@ -1626,7 +1582,7 @@ int GBCPU::ReadLocation(Location l, InstructionPacket packet)
 	return value;
 }
 
-void GBCPU::WriteLocation(Location l, InstructionPacket packet, int value)
+void GBCPU::WriteLocation(Location l, InstructionPacket &packet, int value)
 {
 #ifdef _DEBUG
 	std::cout << "Writing location " << location_names[packet.dest] << " with " << std::hex << value << std::endl;
@@ -1717,8 +1673,9 @@ void GBCPU::ExecuteInstruction(InstructionPacket packet)
 						//Reset N 
 						//Set H if carry from 3
 						//Do not change C
-						
 						m_regs.SetFlags((res & 0xFF) == 0, false, HalfCarry(val, 1), m_regs.Carry());
+					} else {
+						packet.cycles += 4;
 					}
 				}
 				else if (packet.offset == -1)
@@ -1731,6 +1688,8 @@ void GBCPU::ExecuteInstruction(InstructionPacket packet)
 						//Set H if carry from 3
 						//Do not change C
 						m_regs.SetFlags((res & 0xFF) == 0, true, !HalfBorrow(val, 1), m_regs.Carry());
+					} else {
+						packet.cycles += 4;
 					}
 				}
 				WriteLocation(packet.dest, packet, res);
@@ -1781,7 +1740,7 @@ void GBCPU::ExecuteInstruction(InstructionPacket packet)
 			//Set N
 			//Set H if no borrow from 4
 			//Set C if no borrow
-			m_regs.SetFlags(res == 0, true, HalfBorrow(b, a), Carry8b(b, a));
+			m_regs.SetFlags(res == 0, true, !HalfBorrow(b, a), !Borrow8b(b, a));
 			WriteLocation(packet.dest, packet, res);
 		}
 		break;
@@ -1789,14 +1748,14 @@ void GBCPU::ExecuteInstruction(InstructionPacket packet)
 		{
 			int a = ReadLocation(packet.source, packet);
 			int b = ReadLocation(packet.dest, packet);
-			if (m_regs.Carry()) ++b;
-			int res = a - b;
+			if (m_regs.Carry()) ++a;
+			int res = b - a;
 
 			//SET Z if zero
 			//Set N
 			//Set H if no borrow from 4
 			//Set C if no borrow
-			m_regs.SetFlags(res == 0, true, HalfBorrow(a, b), Carry8b(a, b));
+			m_regs.SetFlags(res == 0, true, !HalfBorrow(b, a), !Borrow8b(b, a));
 			WriteLocation(packet.dest, packet, res);
 		}
 		break;

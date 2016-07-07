@@ -551,7 +551,7 @@ unsigned char Memory::Read(unsigned short addr)
 	{
 		val = m_internal_memory.ram_internal_1[addr - MemoryMap::INTERNAL_RAM_1];
 	}
-	else if (addr == 0xFFFF)
+	else if (addr == MemoryMap::INTERRUPT_ENABLE_REG)
 	{
 		val = m_internal_memory.interrupt_enable;
 	}

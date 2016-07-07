@@ -5,6 +5,7 @@ using GBASMAssembler;
 using System.IO;
 using System.Text.RegularExpressions;
 using GBLibWrapper;
+using System.Diagnostics;
 
 namespace AssemblerTest
 {
@@ -233,7 +234,7 @@ namespace AssemblerTest
 			{"CALL C,0x1010",		"0xDC 0x10 0x10"},
 			{"SBC A,1",				"0xDE 0x01"},
 			{"RST 18H",				"0xDF"},
-			{"LDH (1000),A",		"0xE0 0x03 0xE8"},
+			{"LDH (0xEE),A",		"0xE0 0xEE"},
 			{"POP HL",				"0xE1"},
 			{"LD (C),A",			"0xE2"},
 			{"RST 20H",				"0xE7"},
@@ -244,7 +245,7 @@ namespace AssemblerTest
 			{"LD (100),A",			"0xEA 0x00 0x64"},
 			{"XOR 1",				"0xEE 0x01"},
 			{"RST 28H",				"0xEF"},
-			{"LDH A,(1000)",		"0xF0 0x03 0xE8"},
+			{"LDH A,(128)",		    "0xF0 0x80"},
 			{"POP AF",				"0xF1"},
 			{"LD A,(C)",			"0xF2"},
 			{"DI",					"0xF3"},
@@ -680,7 +681,7 @@ namespace AssemblerTest
                 ram = new Dictionary<short, byte>();
                 regs = new Dictionary<GBLocations, short>();
                 cycles = 0;
-                interrupts = true;
+                interrupts = false;
             }
 
             public GBTestExpections(String line)
@@ -688,7 +689,7 @@ namespace AssemblerTest
                 ram = new Dictionary<short, byte>();
                 regs = new Dictionary<GBLocations, short>();
                 cycles = 0;
-                interrupts = true;
+                interrupts = false;
                 PreprocessLine(line);
             }
 
@@ -865,6 +866,7 @@ namespace AssemblerTest
                 while (pc < rom.Count)
                 {
                     line_no = assembler.GetLineNoFromPC(pc);
+                    Debug.WriteLine("At Line: " + (line_no + 1));
                     if (lineExpectations.ContainsKey(line_no))
                     {
                         GBTestExpections expectation = lineExpectations[line_no];

@@ -7,8 +7,8 @@
 
 enum Location
 {
-	NONE = 0,
-	B,
+	NONE = -1,
+	B = 1,
 	C,
 	D,
 	E,
@@ -185,7 +185,7 @@ struct InstructionPacket
 	{
 		source = Location::NONE;
 		dest = Location::NONE;
-		address = -1;
+		address = Location::NONE;
 		addr_offset = 0;
 		offset = 0;
 		cycles = 0;
@@ -246,10 +246,10 @@ protected:
 	void PushPC();
 	void PopPC();
 
-	int ReadLocation(Location l, InstructionPacket packet);
-	void WriteLocation(Location l, InstructionPacket packet, int value);
+	int ReadLocation(Location l, InstructionPacket &packet);
+	void WriteLocation(Location l, InstructionPacket &packet, int value);
 
-	Location RegisterTable(unsigned char index, InstructionPacket packet);
+	Location RegisterTable(unsigned char index, InstructionPacket &packet);
 	Location MapLocation(unsigned char offset);
 	//void StepTimer();
 public:

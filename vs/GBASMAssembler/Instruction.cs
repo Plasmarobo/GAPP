@@ -317,23 +317,19 @@ namespace GBASMAssembler
                             case Locations.C:
                                 rom.Add(0xE2);
                                 break;
-                            case Locations.IMM:
                             case Locations.WIDE_IMM:
                                 src.isWide = true;
                                 if (dst.loc == Locations.SP)
                                 {
                                     rom.Add(0x08);
                                 }
-                                else
-                                {
-                                    rom.Add(0xEA);
-                                }
+                                break;
+                            case Locations.IMM:
+                                rom.Add(0xEA);
                                 break;
                             default:
                                 break;
-
                         }
-
                     }
                     else
                     {
