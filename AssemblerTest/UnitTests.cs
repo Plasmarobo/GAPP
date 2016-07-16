@@ -811,7 +811,9 @@ namespace AssemblerTest
             {
                 foreach (short loc in ram.Keys)
                 {
-                    Assert.AreEqual((byte)ram[loc], (byte)sys.Inspect((int)GBLocations.MEM, loc));
+                    byte inspected_value = (byte)sys.Inspect((int)GBLocations.MEM, loc);
+                    byte expectation = (byte)ram[loc];
+                    Assert.AreEqual(expectation, inspected_value);
                 }
             }
 
@@ -819,7 +821,9 @@ namespace AssemblerTest
             {
                 foreach (GBLocations reg in regs.Keys)
                 {
-                    Assert.AreEqual((ushort)regs[reg], (ushort)sys.Inspect((int)reg, 0));
+                    ushort inspected_value = (ushort)sys.Inspect((int)reg, 0);
+                    ushort expectation = (ushort)regs[reg];
+                    Assert.AreEqual(expectation, inspected_value);
                 }
             }
         }

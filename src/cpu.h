@@ -40,9 +40,7 @@ typedef enum Instruction
 	NOP,
 	LOAD,
 	ADD,
-	ADC,
 	SUB,
-	SBC,
 	STOP,
 	HALT,
 	AND,
@@ -235,8 +233,8 @@ protected:
 
 	void HandleInterrupts();
 	InstructionPacket DecodeInstruction();
-	void DecodeCB(InstructionPacket packet);
-	void ExecuteInstruction(InstructionPacket packet);
+	void DecodeCB(InstructionPacket &packet);
+	void ExecuteInstruction(InstructionPacket &packet);
 	unsigned char FetchPC();
 	unsigned short FetchPC16();
 	unsigned char ReadMem(unsigned short addr); //Consumes 4 cycles

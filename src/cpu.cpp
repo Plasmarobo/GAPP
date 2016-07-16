@@ -9,7 +9,7 @@
 //Use the carry and borrow only with 32 bit signed types
 //Use shift for sign extension
 #define HalfCarry(dst,src) (((dst & 0x0F) + (src & 0x0F)) >= 0x10)
-#define HalfBorrow(dst,src) (((dst & 0x0F) - (src & 0x0F)) < 0)
+#define HalfBorrow(dst,src) ((src & 0x0F) > (dst & 0x0F))
 #define Carry8b(dst,src) ((dst + src) > 0x100)
 #define Borrow8b(dst,src) ((src & 0xFF) > (dst & 0xFF))
 
@@ -45,9 +45,7 @@ std::string instruction_names[NUM_INSTRUCTIONS] =
 	"NOP",
 	"LOAD",
 	"ADD",
-	"ADC",
 	"SUB",
-	"SBC",
 	"STOP",
 	"HALT",
 	"AND",
@@ -435,9 +433,9 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x8D: //L
 		case 0x8E: //MEM(HL)
 		case 0x8F: //A
-			packet.source = RegisterTable(op - 0x8F, packet);
+			packet.source = RegisterTable(op - 0x88, packet);
 		case 0xCE: //IMM
-			packet.instruction = Instruction::ADC;
+			packet.instruction = Instruction::ADD;
 			SetIfNone(packet.source, Location::IMM);
 			packet.dest = Location::A;
 			packet.offset = m_regs.Carry() ? 1 : 0;
@@ -470,7 +468,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x9D: //L
 		case 0x9E: //MEM(HL)
 		case 0x9F: //A
-			packet.instruction = Instruction::SBC;
+			packet.instruction = Instruction::SUB;
 			SetIfNone(packet.source, RegisterTable(op - 0x98, packet));
 			packet.offset = m_regs.Carry() ? 1 : 0;
 			packet.dest = Location::A;
@@ -955,7 +953,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 	return packet;
 }
 
-void GBCPU::DecodeCB(InstructionPacket packet)
+void GBCPU::DecodeCB(InstructionPacket &packet)
 {
 	HandleInterrupts();
 	if (!m_halted)
@@ -1647,7 +1645,7 @@ void GBCPU::WriteLocation(Location l, InstructionPacket &packet, int value)
 }
 
 
-void GBCPU::ExecuteInstruction(InstructionPacket packet)
+void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 {
 	
 	switch (packet.instruction)
@@ -1705,7 +1703,7 @@ void GBCPU::ExecuteInstruction(InstructionPacket packet)
 		{
 			int a = ReadLocation(packet.source, packet);
 			int b = ReadLocation(packet.dest, packet);
-			int res = a + b;
+			int res = a + b + packet.offset;
 
 			//SET Z if zero
 			//Reset N
@@ -1716,41 +1714,11 @@ void GBCPU::ExecuteInstruction(InstructionPacket packet)
 
 		}
 		break;
-	case Instruction::ADC:
-		{
-			int a = ReadLocation(packet.source, packet);
-			int b = ReadLocation(packet.dest, packet);
-			if (m_regs.Carry()) ++b;
-			int res = a + b; 
-
-			//SET Z if zero
-			//Reset N
-			//Set H if carry from 3
-			//Set C if carry from 7
-			m_regs.SetFlags(res == 0, false, HalfCarry(a, b), Carry8b(a, b));
-			WriteLocation(packet.dest, packet, res);
-		}
-		break;
 	case Instruction::SUB:
 		{
 			int a = ReadLocation(packet.source, packet);
 			int b = ReadLocation(packet.dest, packet);
-			int res = b - a;
-			//SET Z if zero
-			//Set N
-			//Set H if no borrow from 4
-			//Set C if no borrow
-			m_regs.SetFlags(res == 0, true, !HalfBorrow(b, a), !Borrow8b(b, a));
-			WriteLocation(packet.dest, packet, res);
-		}
-		break;
-	case Instruction::SBC:
-		{
-			int a = ReadLocation(packet.source, packet);
-			int b = ReadLocation(packet.dest, packet);
-			if (m_regs.Carry()) ++a;
-			int res = b - a;
-
+			int res = b - (a + packet.offset);
 			//SET Z if zero
 			//Set N
 			//Set H if no borrow from 4
@@ -1817,7 +1785,7 @@ void GBCPU::ExecuteInstruction(InstructionPacket packet)
 			//Set N
 			//Set H if no borrow from but 4
 			//Set for no borrow (A < n)
-			m_regs.SetFlags(res == 0, true, HalfBorrow(a, b), Borrow8b(a, b));
+			m_regs.SetFlags(res == 0, true, !HalfBorrow(a, b), !Borrow8b(a, b));
 			//No writeback
 		}
 		break;
