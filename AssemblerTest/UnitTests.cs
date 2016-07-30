@@ -680,7 +680,7 @@ namespace AssemblerTest
             {
                 ram = new Dictionary<short, byte>();
                 regs = new Dictionary<GBLocations, short>();
-                cycles = 0;
+                cycles = -1;
                 interrupts = false;
             }
 
@@ -688,7 +688,7 @@ namespace AssemblerTest
             {
                 ram = new Dictionary<short, byte>();
                 regs = new Dictionary<GBLocations, short>();
-                cycles = 0;
+                cycles = -1;
                 interrupts = false;
                 PreprocessLine(line);
             }
@@ -799,7 +799,10 @@ namespace AssemblerTest
 
             public void CheckCycles(long c)
             {
-                Assert.AreEqual(cycles, c);
+                if (cycles != -1)
+                {
+                    Assert.AreEqual(cycles, c);
+                }
             }
 
             public void CheckFlags(bool interrupt_flag)

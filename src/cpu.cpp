@@ -10,7 +10,7 @@
 //Use shift for sign extension
 #define HalfCarry(dst,src) (((dst & 0x0F) + (src & 0x0F)) >= 0x10)
 #define HalfBorrow(dst,src) ((src & 0x0F) > (dst & 0x0F))
-#define Carry8b(dst,src) ((dst + src) > 0x100)
+#define Carry8b(dst,src) ((dst + src) >= 0x100)
 #define Borrow8b(dst,src) ((src & 0xFF) > (dst & 0xFF))
 
 const std::string location_names[NUM_LOCATIONS] = {
@@ -905,6 +905,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.offset = op - 0xC7;
 			packet.dest = Location::PC;
 			packet.instruction = Instruction::LOAD;
+			packet.cycles += 4;
 			break;
 			//RET
 		case 0xC9: //pop two bytes and jump to that address
@@ -1709,7 +1710,7 @@ void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 			//Reset N
 			//Set H if carry from 3
 			//Set C if carry from 7
-			m_regs.SetFlags((packet.dest != Location::HL) ? m_regs.Zero() : (res == 0), false, HalfCarry(a, b), Carry8b(a, b));
+			m_regs.SetFlags((res & 0xFF) == 0, false, HalfCarry(a, b), Carry8b(a, b));
 			WriteLocation(packet.dest, packet, res);
 
 		}
@@ -1723,7 +1724,7 @@ void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 			//Set N
 			//Set H if no borrow from 4
 			//Set C if no borrow
-			m_regs.SetFlags(res == 0, true, !HalfBorrow(b, a), !Borrow8b(b, a));
+			m_regs.SetFlags((res & 0xFF) == 0, true, !HalfBorrow(b, a), !Borrow8b(b, a));
 			WriteLocation(packet.dest, packet, res);
 		}
 		break;
@@ -1785,7 +1786,7 @@ void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 			//Set N
 			//Set H if no borrow from but 4
 			//Set for no borrow (A < n)
-			m_regs.SetFlags(res == 0, true, !HalfBorrow(a, b), !Borrow8b(a, b));
+			m_regs.SetFlags((res & 0xFF) == 0, true, !HalfBorrow(b, a), !Borrow8b(b, a));
 			//No writeback
 		}
 		break;
@@ -1881,8 +1882,7 @@ void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 		}
 		break;
 	case Instruction::DAA:
-		{
-			
+		{	
 			unsigned char n = 0;
 			unsigned char h = 0;
 			unsigned char c = 0;
