@@ -727,6 +727,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.dest = Location::PC;
 			if (!m_regs.Zero())
 			{
+				m_cycles += 4;
 				packet.instruction = Instruction::LOAD;
 			}
 			else
@@ -739,6 +740,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.dest = Location::PC;
 			if (m_regs.Zero())
 			{
+				m_cycles += 4;
 				packet.instruction = Instruction::LOAD;
 			}
 			else
@@ -751,6 +753,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.dest = Location::PC;
 			if (!m_regs.Carry())
 			{
+				m_cycles += 4;
 				packet.instruction = Instruction::LOAD;
 			}
 			else
@@ -763,6 +766,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.dest = Location::PC;
 			if (m_regs.Carry())
 			{
+				m_cycles += 4;
 				packet.instruction = Instruction::LOAD;
 			}
 			else
@@ -772,19 +776,19 @@ InstructionPacket GBCPU::DecodeInstruction()
 			break;
 			//JUMP REL
 		case 0x18: //signed IMM
-			packet.source = Location::PC;
+			packet.source = Location::IMM;
 			packet.dest = Location::PC;
-			packet.offset = (short) FetchPC();
-			packet.instruction = Instruction::LOAD;
+			packet.instruction = Instruction::ADD;
+			m_cycles += 4;
 			break;
 			//JUMP REL IF
-		case 0x20: //Z reset, IMM signed
-			packet.source = Location::PC;
+		case 0x20: //NZ: Z reset, IMM signed
+			packet.source = Location::IMM;
 			packet.dest = Location::PC;
-			packet.offset = (short) FetchPC();
+			m_cycles += 4;
 			if (!m_regs.Zero())
 			{
-				packet.instruction = Instruction::LOAD;
+				packet.instruction = Instruction::ADD;
 			}
 			else
 			{
@@ -792,12 +796,12 @@ InstructionPacket GBCPU::DecodeInstruction()
 			}
 			break;
 		case 0x28: //Z set. IMM signed
-			packet.source = Location::PC;
+			packet.source = Location::IMM;
 			packet.dest = Location::PC;
-			packet.offset = (short) FetchPC();
+			m_cycles += 4;
 			if (m_regs.Zero())
 			{
-				packet.instruction = Instruction::LOAD;
+				packet.instruction = Instruction::ADD;
 			}
 			else
 			{
@@ -805,12 +809,12 @@ InstructionPacket GBCPU::DecodeInstruction()
 			}
 			break;
 		case 0x30: //C reset, IMM signed
-			packet.source = Location::PC;
+			packet.source = Location::IMM;
 			packet.dest = Location::PC;
-			packet.offset = (short) FetchPC();
+			m_cycles += 4;
 			if (!m_regs.Carry())
 			{
-				packet.instruction = Instruction::LOAD;
+				packet.instruction = Instruction::ADD;
 			}
 			else
 			{
@@ -818,12 +822,12 @@ InstructionPacket GBCPU::DecodeInstruction()
 			}
 			break;
 		case 0x38: //C set, IMM signed
-			packet.source = Location::PC;
+			packet.source = Location::IMM;
 			packet.dest = Location::PC;
-			packet.offset = (short) FetchPC();
+			m_cycles += 4;
 			if (m_regs.Carry())
 			{
-				packet.instruction = Instruction::LOAD;
+				packet.instruction = Instruction::ADD;
 			}
 			else
 			{
@@ -836,15 +840,16 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.instruction = Instruction::LOAD;
 			packet.dest = Location::PC;
 			packet.source = Location::WIDE_IMM;
+			m_cycles += 4;
 			break;
 			//CALL IF
 		case 0xC4: //Z reset
 			PushPC();
-			packet.source = Location::PC;
+			packet.source = Location::WIDE_IMM;
 			packet.dest = Location::PC;
-			packet.offset = (short) FetchPC();
 			if (!m_regs.Zero())
 			{
+				m_cycles += 4;
 				packet.instruction = Instruction::LOAD;
 			}
 			else
@@ -853,11 +858,11 @@ InstructionPacket GBCPU::DecodeInstruction()
 			}
 		case 0xCC: //Z set
 			PushPC();
-			packet.source = Location::PC;
+			packet.source = Location::WIDE_IMM;
 			packet.dest = Location::PC;
-			packet.offset = (short) FetchPC();
 			if (m_regs.Zero())
 			{
+				m_cycles += 4;
 				packet.instruction = Instruction::LOAD;
 			}
 			else
@@ -866,11 +871,11 @@ InstructionPacket GBCPU::DecodeInstruction()
 			}
 		case 0xD4: //C reset
 			PushPC();
-			packet.source = Location::PC;
+			packet.source = Location::WIDE_IMM;
 			packet.dest = Location::PC;
-			packet.offset = (short) FetchPC();
 			if (!m_regs.Carry())
 			{
+				m_cycles += 4;
 				packet.instruction = Instruction::LOAD;
 			}
 			else
@@ -879,11 +884,11 @@ InstructionPacket GBCPU::DecodeInstruction()
 			}
 		case 0xDC: //C set
 			PushPC();
-			packet.source = Location::PC;
+			packet.source = Location::WIDE_IMM;
 			packet.dest = Location::PC;
-			packet.offset = (short) FetchPC();
 			if (m_regs.Carry())
 			{
+				m_cycles += 4;
 				packet.instruction = Instruction::LOAD;
 			}
 			else
@@ -1712,7 +1717,6 @@ void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 			//Set C if carry from 7
 			m_regs.SetFlags((res & 0xFF) == 0, false, HalfCarry(a, b), Carry8b(a, b));
 			WriteLocation(packet.dest, packet, res);
-
 		}
 		break;
 	case Instruction::SUB:
