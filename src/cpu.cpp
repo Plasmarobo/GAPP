@@ -695,7 +695,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.dest = Location::A;
 			break;
 		case 0x07: //Rotate A left, bit 7 to carry
-			packet.instruction = Instruction::RL;
+			packet.instruction = Instruction::RLC;
 			packet.source = Location::A;
 			packet.dest = Location::A;
 			break;
@@ -705,8 +705,8 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.source = Location::A;
 			packet.dest = Location::A;
 			break;
-		case 0x0F: //Rotate A right, copy bit 0 to carry
-			packet.instruction = Instruction::RR;
+		case 0x0F:
+			packet.instruction = Instruction::RRC;
 			packet.source = Location::A;
 			packet.dest = Location::A;
 			break;
@@ -993,7 +993,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 void GBCPU::DecodeCB(InstructionPacket &packet)
 {
 	HandleInterrupts();
-	if (!m_halted)
+	if (!m_halted && ! m_stopped)
 	{
 		unsigned char op = FetchPC();
 
@@ -1024,7 +1024,7 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x07: //A
 			packet.source = RegisterTable(op - 0x00, packet);
 			packet.dest = packet.source;
-			packet.instruction = Instruction::RL;
+			packet.instruction = Instruction::RLC;
 			packet.flag_mask.value = 0x03;
 			break;
 			//ROT LEFT through carry flag
@@ -1038,7 +1038,7 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x17: //A
 			packet.source = RegisterTable(op - 0x10, packet);
 			packet.dest = packet.source;
-			packet.instruction = Instruction::RLC;
+			packet.instruction = Instruction::RL;
 			packet.flag_mask.value = 0x03;
 			break;
 			//ROT RIGHT, 0 bit to carry
@@ -1052,7 +1052,7 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x0F: //A
 			packet.source = RegisterTable(op - 0x08, packet);
 			packet.dest = packet.source;
-			packet.instruction = Instruction::RR;
+			packet.instruction = Instruction::RRC;
 			packet.flag_mask.value = 0x03;
 			break;
 			//ROT RIGHT, through carry
@@ -1064,9 +1064,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x1D: //L
 		case 0x1E: //MEM(HL)
 		case 0x1F: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0x18, packet);
 			packet.dest = packet.source;
-			packet.instruction = Instruction::RRC;
+			packet.instruction = Instruction::RR;
 			packet.flag_mask.value = 0x03;
 			break;
 			//SLA - Shift left into carry
@@ -1833,7 +1833,9 @@ void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 			unsigned char r = ReadLocation(packet.dest, packet);
 			bool carry = r & 0x80;
 			r = r << 1;
-			if (carry) r += 1;
+			if (carry) {
+				r += 1;
+			}
 			m_regs.SetFlags(r == 0, false, false, carry);
 			WriteLocation(packet.dest, packet, r);
 		}
@@ -1844,7 +1846,9 @@ void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 			unsigned char r = ReadLocation(packet.dest, packet);
 			bool carry = r & 0x80;
 			r = r << 1;
-			if (m_regs.Carry()) r += 1;
+			if (m_regs.Carry()) {
+				r += 1;
+			}
 			m_regs.SetFlags(r == 0, false, false, carry);
 			WriteLocation(packet.dest, packet, r);
 		}
@@ -1855,7 +1859,9 @@ void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 			unsigned char r = ReadLocation(packet.dest, packet);
 			bool carry = r & 0x01;
 			r = r >> 1;
-			if (carry) r += 0x80;
+			if (carry) {
+				r += 0x80;
+			}
 			m_regs.SetFlags(r == 0, false, false, carry);
 			WriteLocation(packet.dest, packet, r);
 		}
@@ -1868,7 +1874,7 @@ void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 			r = r >> 1;
 			if (m_regs.Carry()) r += 0x80;
 			m_regs.SetFlags(r == 0, false, false, carry);
-			WriteLocation(packet.dest, packet, carry);
+			WriteLocation(packet.dest, packet, r);
 		}
 		break;
 	case Instruction::SRS: //Shift right signed
