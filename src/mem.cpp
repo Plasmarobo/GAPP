@@ -23,14 +23,16 @@ Cart::Cart()
 
 Cart::Cart(unsigned char *rom, unsigned int rom_size, unsigned int ram_size)
 {
-	m_rom = new unsigned char[rom_size];
+	m_rom = rom;
 	m_rom_size = rom_size;
-	memcpy(m_rom, rom, rom_size);
 	if (ram_size > 0)
 	{
 		m_ram = new unsigned char[ram_size];
+		m_ram_size = ram_size;
+	} else {
+		m_ram = NULL;
+		m_ram_size = 0;
 	}
-	m_ram_size = ram_size;
 }
 
 Cart::~Cart()
@@ -403,6 +405,17 @@ void Memory::SetCartFromBytes(unsigned char *image, unsigned int size)
 		break;
 	}
 
+	unsigned char *cart_rom = new unsigned char[rom_size];
+	for (unsigned int i = 0; i < rom_size; ++i)
+	{
+		if (i < size) {
+			cart_rom[i] = image[i];
+		}
+		else {
+			cart_rom[i] = 0x00;
+		}
+	}
+
 	switch (ram_size)
 	{
 	case 0x00:
@@ -428,12 +441,12 @@ void Memory::SetCartFromBytes(unsigned char *image, unsigned int size)
 	case 0x00: //ROM
 	case 0x08: //ROM+RAM
 	case 0x09: //ROM+RAM+BAT
-		m_cart = new Cart(image, rom_size, ram_size);
+		m_cart = new Cart(cart_rom, rom_size, ram_size);
 		break;
 	case 0x01: //MBC1
 	case 0x02: //MBC1 + RAM
 	case 0x03: //MBC1+RAM+BAT
-		m_cart = new MBC1Cart(image, rom_size, ram_size);
+		m_cart = new MBC1Cart(cart_rom, rom_size, ram_size);
 		break;
 	case 0x05: //MBC2
 	case 0x06: //MBC2+BAT
@@ -447,7 +460,7 @@ void Memory::SetCartFromBytes(unsigned char *image, unsigned int size)
 	case 0x11: //MBC3
 	case 0x12: //MBC3+RAM
 	case 0x13: //MBC3+RAM+BAT
-		m_cart = new MBC3Cart(image, rom_size, ram_size);
+		m_cart = new MBC3Cart(cart_rom, rom_size, ram_size);
 		break;
 	case 0x15:
 	case 0x16:
@@ -463,7 +476,7 @@ void Memory::SetCartFromBytes(unsigned char *image, unsigned int size)
 	case 0xFE:
 	case 0xFF:
 	default:
-		m_cart = new Cart(image, rom_size, ram_size);
+		m_cart = new Cart(cart_rom, rom_size, ram_size);
 		Logger::RaiseError("MEMORY", "Unknown Cart Type");
 		break;
 	}
@@ -517,7 +530,7 @@ unsigned char Memory::Read(unsigned short addr)
 	}
 	else if (AddrIn(addr,MemoryMap::VRAM,MemoryMap::RAM_BANK_X))
 	{
-		val = m_internal_memory.ram_video[addr - MemoryMap::VRAM];
+		val = m_internal_memory.sections.ram_video[addr - MemoryMap::VRAM];
 	}
 	else if (AddrIn(addr, MemoryMap::INTERNAL_RAM_0, MemoryMap::SPRITE_ATTRIB))
 	{
@@ -529,31 +542,31 @@ unsigned char Memory::Read(unsigned short addr)
 		{
 			addr = addr - MemoryMap::INTERNAL_RAM_0;
 		}
-		val = m_internal_memory.ram_internal[addr];
+		val = m_internal_memory.sections.ram_internal[addr];
 	}
 	else if (AddrIn(addr, MemoryMap::SPRITE_ATTRIB, MemoryMap::UNUSED_0))
 	{
-		val = m_internal_memory.sprite_attrib_mem[addr - MemoryMap::SPRITE_ATTRIB];
+		val = m_internal_memory.sections.sprite_attrib_mem[addr - MemoryMap::SPRITE_ATTRIB];
 	}
 	else if (AddrIn(addr, MemoryMap::UNUSED_0, MemoryMap::IO))
 	{
-		val = m_internal_memory.io_empty[addr - MemoryMap::UNUSED_0];
+		val = m_internal_memory.sections.io_empty[addr - MemoryMap::UNUSED_0];
 	}
 	else if (AddrIn(addr, MemoryMap::IO, MemoryMap::UNUSED_1))
 	{
-		val = m_internal_memory.io_ports[addr - MemoryMap::IO];
+		val = m_internal_memory.sections.io_ports[addr - MemoryMap::IO];
 	}
 	else if (AddrIn(addr, MemoryMap::UNUSED_1, MemoryMap::INTERNAL_RAM_1))
 	{
-		val = m_internal_memory.io_empty_1[addr - MemoryMap::UNUSED_1];
+		val = m_internal_memory.sections.io_empty_1[addr - MemoryMap::UNUSED_1];
 	}
 	else if (AddrIn(addr, MemoryMap::INTERNAL_RAM_1, MemoryMap::INTERRUPT_ENABLE_REG))
 	{
-		val = m_internal_memory.ram_internal_1[addr - MemoryMap::INTERNAL_RAM_1];
+		val = m_internal_memory.sections.ram_internal_1[addr - MemoryMap::INTERNAL_RAM_1];
 	}
 	else if (addr == MemoryMap::INTERRUPT_ENABLE_REG)
 	{
-		val = m_internal_memory.interrupt_enable;
+		val = m_internal_memory.sections.interrupt_enable;
 	}
 	return val;
 }
@@ -574,7 +587,7 @@ void Memory::Write(unsigned short addr, unsigned char byte)
 	}
 	else if (AddrIn(addr, MemoryMap::VRAM, MemoryMap::RAM_BANK_X))
 	{
-		m_internal_memory.ram_video[addr - MemoryMap::VRAM] = byte;
+		m_internal_memory.sections.ram_video[addr - MemoryMap::VRAM] = byte;
 	}
 	else if (AddrIn(addr, MemoryMap::INTERNAL_RAM_0, MemoryMap::SPRITE_ATTRIB))
 	{
@@ -586,22 +599,22 @@ void Memory::Write(unsigned short addr, unsigned char byte)
 		{
 			addr = addr - MemoryMap::INTERNAL_RAM_0;
 		}
-		m_internal_memory.ram_internal[addr] = byte;
+		m_internal_memory.sections.ram_internal[addr] = byte;
 	}
 	else if (AddrIn(addr, MemoryMap::SPRITE_ATTRIB, MemoryMap::UNUSED_0))
 	{
-		m_internal_memory.sprite_attrib_mem[addr - MemoryMap::SPRITE_ATTRIB] = byte;
+		m_internal_memory.sections.sprite_attrib_mem[addr - MemoryMap::SPRITE_ATTRIB] = byte;
 	}
 	else if (AddrIn(addr, MemoryMap::UNUSED_0, MemoryMap::IO))
 	{
-		m_internal_memory.io_empty[addr - MemoryMap::UNUSED_0] = byte;
+		m_internal_memory.sections.io_empty[addr - MemoryMap::UNUSED_0] = byte;
 	}
 	else if (AddrIn(addr, MemoryMap::IO, MemoryMap::UNUSED_1))
 	{
 		switch (addr)
 		{
 		case SR_DIV:
-			m_internal_memory.io_ports[0x00] = 0;
+			m_internal_memory.sections.io_ports[0x00] = 0;
 			break;
 		//case SR_TIMA: //Not required, writes normally
 		//case SR_TMA: // Not required, writes normally
@@ -647,21 +660,21 @@ void Memory::Write(unsigned short addr, unsigned char byte)
 		case SR_WY:
 		case SR_WX:*/
 		default:
-			m_internal_memory.io_ports[addr - MemoryMap::IO] = byte;
+			m_internal_memory.sections.io_ports[addr - MemoryMap::IO] = byte;
 			break;
 		}
 	}
 	else if (AddrIn(addr, MemoryMap::UNUSED_1, MemoryMap::INTERNAL_RAM_1))
 	{
-		m_internal_memory.io_empty_1[addr - MemoryMap::UNUSED_1] = byte;
+		m_internal_memory.sections.io_empty_1[addr - MemoryMap::UNUSED_1] = byte;
 	}
 	else if (AddrIn(addr, MemoryMap::INTERNAL_RAM_1, MemoryMap::INTERRUPT_ENABLE_REG))
 	{
-		m_internal_memory.ram_internal_1[addr - MemoryMap::INTERNAL_RAM_1] = byte;
+		m_internal_memory.sections.ram_internal_1[addr - MemoryMap::INTERNAL_RAM_1] = byte;
 	}
 	else if (addr == 0xFFFF)
 	{
-		m_internal_memory.interrupt_enable = byte;
+		m_internal_memory.sections.interrupt_enable = byte;
 	}
 }
 

@@ -91,7 +91,7 @@ typedef union
 		unsigned char unused : 4;
 		unsigned char carry : 1;
 		unsigned char half_carry : 1;
-		unsigned char nonzero : 1;
+		unsigned char subtract : 1;
 		unsigned char zero : 1;
 	} bits;
 	unsigned char value;
@@ -157,13 +157,13 @@ public:
 	bool Carry() { return m_flags.bits.carry == 1; }
 	bool Half() { return m_flags.bits.half_carry == 1; }
 	bool Zero() { return m_flags.bits.zero == 1; }
-	bool Nonzero() { return m_flags.bits.nonzero == 1; }
-	void SetFlags(bool z, bool nz, bool h, bool c)
+	bool Subtract() { return m_flags.bits.subtract == 1; }
+	void SetFlags(bool z, bool subtract, bool h, bool c)
 	{
 		m_flags.bits.carry = c ? 1 : 0;
 		m_flags.bits.half_carry = h ? 1 : 0;
 		m_flags.bits.zero = z ? 1 : 0;
-		m_flags.bits.nonzero = nz ? 1 : 0;
+		m_flags.bits.subtract = subtract ? 1 : 0;
 	}
 
 };

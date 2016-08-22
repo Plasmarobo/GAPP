@@ -13,6 +13,9 @@
 #define Carry8b(dst,src) ((dst + src) >= 0x100)
 #define Borrow8b(dst,src) ((src & 0xFF) > (dst & 0xFF))
 
+#define PushWide(value) StackPush((value >> 8) & 0xFF);StackPush(value & 0xFF)
+#define PopWide(value) value = StackPop(); value += (StackPop() << 8)
+
 const std::string location_names[NUM_LOCATIONS] = {
 	"NONE",
 	"B",
@@ -128,8 +131,7 @@ void GBCPU::StackPush(unsigned char byte)
 void GBCPU::PushPC()
 {
 	unsigned short pc = m_regs.PC();
-	StackPush(pc);
-	StackPush(pc >> 8);
+	PushWide(pc);
 }
 
 unsigned char GBCPU::StackPop()
@@ -141,17 +143,15 @@ unsigned char GBCPU::StackPop()
 
 void GBCPU::PopPC()
 {
-	unsigned short pc = m_regs.PC();
-	pc = StackPop();
-	pc = StackPop() + (pc << 8); //LSB
-
+	unsigned short pc;
+	PopWide(pc);
 }
 
 InstructionPacket GBCPU::DecodeInstruction()
 {
 	InstructionPacket packet;
 	HandleInterrupts();
-	if (!m_halted)
+	if ((!m_halted) && (!m_stopped))
 	{
 		//Fetches addresses inline
 		//Immediates must be fetched by execution
@@ -690,7 +690,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			break;
 			//ROT LEFT
 		case 0x17: //Rotate A left through carry flag
-			packet.instruction = Instruction::RLC;
+			packet.instruction = Instruction::RL;
 			packet.source = Location::A;
 			packet.dest = Location::A;
 			break;
@@ -701,7 +701,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			break;
 			//ROT RIGHT
 		case 0x1F: //Rotate A right through carry flag
-			packet.instruction = Instruction::RRC;
+			packet.instruction = Instruction::RR;
 			packet.source = Location::A;
 			packet.dest = Location::A;
 			break;
@@ -715,18 +715,21 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.instruction = Instruction::LOAD;
 			packet.source = Location::WIDE_IMM;
 			packet.dest = Location::PC;
+			m_cycles += 4;
 			break;
 		case 0xE9: //MEM(HL)
 			packet.instruction = Instruction::LOAD;
-			packet.source = Location::HL;
+			packet.source = Location::MEM;
+			packet.address = m_regs.HL();
 			packet.dest = Location::PC;
+			m_cycles -= 4;
 			break;
 			//JUMP IF
 		case 0xC2: //Z reset
 			packet.source = Location::WIDE_IMM;
 			packet.dest = Location::PC;
 			if (!m_regs.Zero())
-			{
+			{	
 				m_cycles += 4;
 				packet.instruction = Instruction::LOAD;
 			}
@@ -785,9 +788,9 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x20: //NZ: Z reset, IMM signed
 			packet.source = Location::IMM;
 			packet.dest = Location::PC;
-			m_cycles += 4;
 			if (!m_regs.Zero())
 			{
+				m_cycles += 4;
 				packet.instruction = Instruction::ADD;
 			}
 			else
@@ -798,9 +801,9 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x28: //Z set. IMM signed
 			packet.source = Location::IMM;
 			packet.dest = Location::PC;
-			m_cycles += 4;
 			if (m_regs.Zero())
 			{
+				m_cycles += 4;
 				packet.instruction = Instruction::ADD;
 			}
 			else
@@ -811,9 +814,9 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x30: //C reset, IMM signed
 			packet.source = Location::IMM;
 			packet.dest = Location::PC;
-			m_cycles += 4;
 			if (!m_regs.Carry())
 			{
+				m_cycles += 4;
 				packet.instruction = Instruction::ADD;
 			}
 			else
@@ -824,9 +827,9 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x38: //C set, IMM signed
 			packet.source = Location::IMM;
 			packet.dest = Location::PC;
-			m_cycles += 4;
 			if (m_regs.Carry())
 			{
+				m_cycles += 4;
 				packet.instruction = Instruction::ADD;
 			}
 			else
@@ -836,7 +839,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 			break;
 			//CALL
 		case 0xCD: //WIDE-IMM
-			PushPC();
+			PushWide(m_regs.PC() + 2);
 			packet.instruction = Instruction::LOAD;
 			packet.dest = Location::PC;
 			packet.source = Location::WIDE_IMM;
@@ -844,52 +847,55 @@ InstructionPacket GBCPU::DecodeInstruction()
 			break;
 			//CALL IF
 		case 0xC4: //Z reset
-			PushPC();
 			packet.source = Location::WIDE_IMM;
 			packet.dest = Location::PC;
 			if (!m_regs.Zero())
 			{
-				m_cycles += 4;
+				PushWide(m_regs.PC() + 2);
 				packet.instruction = Instruction::LOAD;
+				m_cycles += 4;
 			}
 			else
 			{
 				packet.instruction = Instruction::NOP;
 			}
+			break;
 		case 0xCC: //Z set
-			PushPC();
 			packet.source = Location::WIDE_IMM;
 			packet.dest = Location::PC;
 			if (m_regs.Zero())
 			{
-				m_cycles += 4;
+				PushWide(m_regs.PC() + 2);
 				packet.instruction = Instruction::LOAD;
+				m_cycles += 4;
 			}
 			else
 			{
 				packet.instruction = Instruction::NOP;
 			}
+			break;
 		case 0xD4: //C reset
-			PushPC();
 			packet.source = Location::WIDE_IMM;
 			packet.dest = Location::PC;
 			if (!m_regs.Carry())
 			{
-				m_cycles += 4;
+				PushWide(m_regs.PC() + 2);
 				packet.instruction = Instruction::LOAD;
+				m_cycles += 4;
 			}
 			else
 			{
 				packet.instruction = Instruction::NOP;
 			}
+			break;
 		case 0xDC: //C set
-			PushPC();
 			packet.source = Location::WIDE_IMM;
 			packet.dest = Location::PC;
 			if (m_regs.Carry())
 			{
-				m_cycles += 4;
+				PushWide(m_regs.PC() + 2);
 				packet.instruction = Instruction::LOAD;
+				m_cycles += 4;
 			}
 			else
 			{
@@ -914,42 +920,67 @@ InstructionPacket GBCPU::DecodeInstruction()
 			break;
 			//RET
 		case 0xC9: //pop two bytes and jump to that address
-			PopPC();
-			packet.instruction = Instruction::NOP;
+			packet.source = Location::STACK;
+			packet.dest = Location::PC;
+			packet.instruction = Instruction::POP;
+			m_cycles += 4;
 			break;
 			//RET IF
-		case 0xC0: //Z set
+		case 0xC8: //Z set
+			packet.source = Location::STACK;
+			packet.dest = Location::PC;
 			if (m_regs.Zero())
 			{
-				PopPC();
+				m_cycles += 8;
+				packet.instruction = Instruction::POP;
+			} else {
+				m_cycles += 4;
+				packet.instruction = Instruction::NOP;
 			}
-			packet.instruction = Instruction::NOP;
 			break;
-		case 0xC8: //Z reset
+		case 0xC0: //Z reset
+			packet.source = Location::STACK;
+			packet.dest = Location::PC;
 			if (!m_regs.Zero())
 			{
-				PopPC();
+				m_cycles += 8;
+				packet.instruction = Instruction::POP;
+			} else {
+				m_cycles += 4;
+				packet.instruction = Instruction::NOP;
 			}
-			packet.instruction = Instruction::NOP;
 			break;
-		case 0xD0: //C set
+		case 0xD8: //C set
+			packet.source = Location::STACK;
+			packet.dest = Location::PC;
 			if (m_regs.Carry())
 			{
-				PopPC();
+				m_cycles += 8;
+				packet.instruction = Instruction::POP;
+			} else {
+				m_cycles += 4;
+				packet.instruction = Instruction::NOP;
 			}
-			packet.instruction = Instruction::NOP;
 			break;
-		case 0xD8: //C reset
+		case 0xD0: //C reset
+			packet.source = Location::STACK;
+			packet.dest = Location::PC;
 			if (!m_regs.Carry())
 			{
-				PopPC();
+				m_cycles += 8;
+				packet.instruction = Instruction::POP;
+			} else {
+				m_cycles += 4;
+				packet.instruction = Instruction::NOP;
 			}
-			packet.instruction = Instruction::NOP;
 			break;
 			//RETI
-		case 0xD9: //pop two bytes and dump to that address, then enable interrupts
-			PopPC();
-			packet.instruction = Instruction::EI;
+		case 0xD9: //pop two bytes and jump to that address, then enable interrupts
+			packet.source = Location::STACK;
+			packet.dest = Location::PC;
+			packet.instruction = Instruction::POP;
+			m_cycles += 4;
+			this->m_interrupt_enable = true;
 			break;
 		default:
 			Logger::RaiseError("CPU", "Unknown Opcode");
@@ -1520,7 +1551,7 @@ Location GBCPU::RegisterTable(unsigned char index, InstructionPacket &packet)
 
 int GBCPU::ReadLocation(Location l, InstructionPacket &packet)
 {
-	unsigned int value;
+	unsigned int value = 0;
 	switch (l)
 	{
 	case Location::NONE:
@@ -1579,6 +1610,7 @@ int GBCPU::ReadLocation(Location l, InstructionPacket &packet)
 		break;
 	case Location::PORT:
 	case Location::STACK:
+		break;
 	default:
 		Logger::RaiseError("GBCPU", "Attempted read from unknown location");
 		break;
@@ -1657,9 +1689,10 @@ void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 	switch (packet.instruction)
 	{
 	case Instruction::NON:
-		Logger::RaiseError("GBCPU", "No Instruction!");
+		//Consistent with a stopped or halted processor
 		break;
 	case Instruction::NOP:
+		ReadLocation(packet.source, packet);
 		break;
 	case Instruction::LOAD:
 		{
@@ -1796,44 +1829,46 @@ void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 		break;
 	case Instruction::RLC:
 		{
-			//Rotate Left, including carry flag
+			//Rotate Left, not including carry flag
 			unsigned char r = ReadLocation(packet.dest, packet);
-			bool carry = m_regs.Carry();
-			m_regs.SetFlags(false, false, false, r & 0x80);
+			bool carry = r & 0x80;
 			r = r << 1;
 			if (carry) r += 1;
+			m_regs.SetFlags(r == 0, false, false, carry);
 			WriteLocation(packet.dest, packet, r);
 		}
 		break;
 	case Instruction::RL:
 		{
-			//Rotate Left, set, but don't rotate carry flag
+			//Rotate Left, including carry flag
 			unsigned char r = ReadLocation(packet.dest, packet);
-			m_regs.SetFlags(false, false, false, r & 0x80);
+			bool carry = r & 0x80;
 			r = r << 1;
 			if (m_regs.Carry()) r += 1;
+			m_regs.SetFlags(r == 0, false, false, carry);
 			WriteLocation(packet.dest, packet, r);
 		}
 		break;
 	case Instruction::RRC:
 		{
-			//Rotate Right, including carry flag
+			//Rotate Right, not including carry flag
 			unsigned char r = ReadLocation(packet.dest, packet);
-			bool carry = m_regs.Carry();
-			m_regs.SetFlags(false, false, false, r & 0x01);
+			bool carry = r & 0x01;
 			r = r >> 1;
 			if (carry) r += 0x80;
+			m_regs.SetFlags(r == 0, false, false, carry);
 			WriteLocation(packet.dest, packet, r);
 		}
 		break;
 	case Instruction::RR:
 		{
-			//Rotate right, set, but don't rotate carry flag
+			//Rotate right, including carry flag
 			unsigned char r = ReadLocation(packet.dest, packet);
-			m_regs.SetFlags(false, false, false, r & 0x01);
+			bool carry = r & 0x01;
 			r = r >> 1;
 			if (m_regs.Carry()) r += 0x80;
-			WriteLocation(packet.dest, packet, r);
+			m_regs.SetFlags(r == 0, false, false, carry);
+			WriteLocation(packet.dest, packet, carry);
 		}
 		break;
 	case Instruction::SRS: //Shift right signed
@@ -1887,38 +1922,28 @@ void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 		break;
 	case Instruction::DAA:
 		{	
-			unsigned char n = 0;
-			unsigned char h = 0;
-			unsigned char c = 0;
-			unsigned char b3 = 0;
-			unsigned char b5 = 0;
-			unsigned char z = 0;
+			unsigned short a = m_regs.A();
+			if (!m_regs.Subtract()) {
+				if (m_regs.Half() || ((a & 0xF) > 9)) {
+					a += 0x06;
+				}
 
-			if (m_regs.A() > 0x99 || m_regs.Carry())
-			{
-				n |= 0x60;
+				if (m_regs.Carry() || (a > 0x9F)) {
+					a += 0x60;
+				}
+			}
+			else {
+				if (m_regs.Half()) {
+					a = (a - 6) & 0xFF;
+				}
+
+				if (m_regs.Carry()) {
+					a -= 0x60;
+				}
 			}
 
-			if (((m_regs.A() & 0x0F) > 0x09) || m_regs.Half())
-			{
-				n |= 0x06;
-			}
-
-			h = (m_regs.A() >> 4) & 1;
-			if (m_regs.Nonzero())
-			{
-				m_regs.A(m_regs.A() - n);
-			}
-			else
-			{
-				m_regs.A(m_regs.A() + n);
-			}
-			h = (h ^ (m_regs.A() >> 4)) & 1;
-
-			c = n >> 6;
-
-			z = m_regs.A() == 0;
-			m_regs.SetFlags(z, m_regs.Nonzero(), h, c);
+			m_regs.SetFlags(a == 0, m_regs.Subtract(), false, (a > 0x100));
+			m_regs.A(a & 0xFF);
 		}
 		break;
 	case Instruction::CPL:
@@ -1940,16 +1965,14 @@ void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 	case Instruction::POP:
 		{
 			unsigned short val;
-			val = StackPop(); //LSB
-			val = val + (StackPop() << 8); //MSB
+			PopWide(val);
 			WriteLocation(packet.dest, packet, val);
 		}
 		break;
 	case Instruction::PUSH:
 		{
-			unsigned short val = ReadLocation(packet.source, packet);
-			StackPush(val >> 8); //MSB
-			StackPush(val & 0xFF); //LSB	
+			unsigned short val = ReadLocation(packet.source, packet) + packet.offset;
+			PushWide(val);
 		}
 		break;
 	case Instruction::DI:
@@ -2007,6 +2030,8 @@ GBCPU::GBCPU()
 {
 	m_mem = new Memory();
 	m_cycles = 0;
+	m_stopped = true;
+	m_halted = true;
 }
 
 GBCPU::~GBCPU()
@@ -2057,6 +2082,7 @@ void GBCPU::Start()
     m_mem->IE(0x00);
 	m_mem->IF(0);
 	m_halted = false;
+	m_stopped = false;
 }
 
 
@@ -2096,7 +2122,7 @@ void GBCPU::HandleInterrupts()
 				break;
 			}
 		}
-		
+		this->PushPC();
 		switch(int_code)
 		{
 			case VBLANK_INT:
@@ -2108,6 +2134,9 @@ void GBCPU::HandleInterrupts()
 			case TIME_INT:
 				m_regs.PC(TIMER_ROUTINE);
 				break;
+			case SERIAL_INT:
+				m_regs.PC(SERIAL_ROUTINE);
+				break;
 			case INPUT_INT:
 				m_regs.PC(INPUT_ROUTINE);
 				break;
@@ -2117,7 +2146,6 @@ void GBCPU::HandleInterrupts()
 				return;
 				break;
 		}
-		this->PushPC();
 		this->m_interrupt_enable = false;
 		m_mem->IF(0);
 	}

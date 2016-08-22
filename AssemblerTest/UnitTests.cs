@@ -675,6 +675,7 @@ namespace AssemblerTest
             protected Dictionary<GBLocations, Int16> regs; //Expected REG states after EXEC
             protected long cycles; //Expected Timing, cycles to run
             protected bool interrupts; //Interrupt flag on
+            protected bool test_end; //Terminate test
 
             public GBTestExpections()
             {
@@ -682,6 +683,7 @@ namespace AssemblerTest
                 regs = new Dictionary<GBLocations, short>();
                 cycles = -1;
                 interrupts = false;
+                test_end = false;
             }
 
             public GBTestExpections(String line)
@@ -690,7 +692,13 @@ namespace AssemblerTest
                 regs = new Dictionary<GBLocations, short>();
                 cycles = -1;
                 interrupts = false;
+                test_end = false;
                 PreprocessLine(line);
+            }
+
+            public bool EOT()
+            {
+                return test_end;
             }
 
             public void PreprocessLine(String line)
@@ -766,6 +774,10 @@ namespace AssemblerTest
                                 case "INTERRUPTS":
                                     l = GBLocations.NONE;
                                     interrupts = (value == 1);
+                                    break;
+                                case "END":
+                                    l = GBLocations.NONE;
+                                    test_end = (value == 1);
                                     break;
                                 default:
                                     break;
@@ -870,7 +882,9 @@ namespace AssemblerTest
                 int pc = sys.Inspect((int)GBLocations.PC, 0);
                 long starting_cycles = 0;
                 int line_no;
-                while (pc < rom.Count)
+                bool eot = false;
+                sys.Start();
+                while ((pc < rom.Count) && (!eot))
                 {
                     line_no = assembler.GetLineNoFromPC(pc);
                     Debug.WriteLine("At Line: " + (line_no + 1));
@@ -883,8 +897,12 @@ namespace AssemblerTest
                         expectation.CheckFlags(sys.InterruptFlag());
                         expectation.CheckRegs(sys);
                         expectation.CheckRam(sys);
+                        eot = expectation.EOT();
                     }
-                    else sys.Step();
+                    else
+                    {
+                        sys.Step();
+                    }
                     pc = sys.Inspect((int)GBLocations.PC, 0);
                 }
             }
@@ -928,6 +946,18 @@ namespace AssemblerTest
         public void HaltTest()
         {
             GBAnnotatedAssemblyTest.RunWithDelayInterrupt(@"..\..\..\test\test_configs\halt.aat",4);
+        }
+
+        [TestMethod]
+        public void JumpTest()
+        {
+            GBAnnotatedAssemblyTest.Run(@"..\..\..\test\test_configs\jump.aat");
+        }
+
+        [TestMethod]
+        public void CallTest()
+        {
+            GBAnnotatedAssemblyTest.Run(@"..\..\..\test\test_configs\call.aat");
         }
     }
 }
