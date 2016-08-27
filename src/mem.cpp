@@ -758,14 +758,15 @@ void Memory::Step()
 
 void Memory::SetKeyStates(unsigned char bits)
 {
-	if (P15())
+	//Translate input into memory map
+	if (!P15())
 	{
-		P1((bits >> 4) | 0x20);
+		P1((bits >> 4) | 0x10);
 		
 	}
-	else if (P14())
+	else if (!P14())
 	{
-		P1((bits & 0x0F) | 0x10);
+		P1((bits & 0x0F) | 0x20);
 	}
 	else
 	{

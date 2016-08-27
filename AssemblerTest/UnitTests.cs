@@ -669,6 +669,20 @@ namespace AssemblerTest
             NUM_LOCATIONS
         };
 
+        //  Annotated Assembly Test Format (*.aat)
+        public enum GBButtons //MUST MATCH ENUM DEFINED IN input.h
+        {
+            BTNA = 0,
+            BTNB,
+            START,
+            SELECT,
+            UP,
+            DOWN,
+            LEFT,
+            RIGHT,
+            BUTTONS_COUNT
+        };
+
         protected class GBTestExpections
         {
             protected Dictionary<short, Byte> ram;  //Expected RAM after EXEC
@@ -842,18 +856,72 @@ namespace AssemblerTest
                 }
             }
         }
+
+        protected class GBTestEvent
+        {
+            GBButtons button;
+            bool down;
+
+            public GBTestEvent()
+            {
+                button = GBButtons.BUTTONS_COUNT;
+                down = false;
+            }
+
+            public GBTestEvent(String line)
+            {
+                button = GBButtons.BUTTONS_COUNT;
+                down = false;
+                PreprocessLine(line);
+            }
+
+            public void PreprocessLine(String line)
+            {
+
+                String[] expected = line.Split(' ');
+                for (int index = 0; index < expected.Length; ++index)
+                {
+                    switch(expected[index])
+                    {
+                        case "PRESS_A":
+                            down = true;
+                            button = GBButtons.BTNA;
+                            break;
+                        case "RELEASE_A":
+                            down = false;
+                            button = GBButtons.BTNA;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            public void Execute(GBLib sys)
+            {
+                if (down) {
+                    sys.Keydown((uint)button);
+                } else {
+                    sys.Keyup((uint)button);
+                }
+            }
+
+
+        }
         //GBLib
         public class GBAnnotatedAssemblyTest
         {
             private static Assembler assembler;
             private static GBLib sys;
             private static Dictionary<int, GBTestExpections> lineExpectations;
+            private static Dictionary<int, GBTestEvent> lineEvents;
             private static List<Byte> rom;
 
             static public void LoadAAT(String filename)
             {
                 assembler = new Assembler();
                 lineExpectations = new Dictionary<int, GBTestExpections>();
+                lineEvents = new Dictionary<int, GBTestEvent>();
                 System.IO.StreamReader file = new System.IO.StreamReader(filename);
                 int lno = 0;
                 while (!file.EndOfStream)
@@ -864,6 +932,10 @@ namespace AssemblerTest
                     if ((parts.Length == 2) && parts[1].StartsWith("EXPECT:"))
                     {
                         lineExpectations[lno] = new GBTestExpections(parts[1].Substring(8));
+                    }
+                    if ((parts.Length == 2) && parts[1].StartsWith("EVENTS:"))
+                    {
+                        lineEvents[lno] = new GBTestEvent(parts[1].Substring(8));
                     }
                     ++lno;
                 }
@@ -888,6 +960,7 @@ namespace AssemblerTest
                 {
                     line_no = assembler.GetLineNoFromPC(pc);
                     Debug.WriteLine("At Line: " + (line_no + 1));
+                   
                     if (lineExpectations.ContainsKey(line_no))
                     {
                         GBTestExpections expectation = lineExpectations[line_no];
@@ -903,28 +976,11 @@ namespace AssemblerTest
                     {
                         sys.Step();
                     }
-                    pc = sys.Inspect((int)GBLocations.PC, 0);
-                }
-            }
-
-            static public void RunWithDelayInterrupt(String filename, long cycle_delay)
-            {
-                LoadAAT(filename);
-
-                int pc = sys.Inspect((int)GBLocations.PC, 0);
-                long starting_cycles = 0;
-                while (pc < rom.Count)
-                {
-                    String s = assembler.GetAsmLine(pc);
-                    GBTestExpections expectation = new GBTestExpections(s);
-                    starting_cycles = sys.GetCycles();
-                    if(starting_cycles == cycle_delay)
+                    // Having this after step allows us to trigger interrupts for STOP and HALT
+                    if (lineEvents.ContainsKey(line_no))
                     {
-                        sys.ForceInterrupt(4); //INPUT INTERRUPT
+                        lineEvents[line_no].Execute(sys);
                     }
-                    sys.Step();
-                    expectation.CheckCycles(sys.GetCycles() - starting_cycles);
-                    expectation.CheckFlags(sys.InterruptFlag());
                     pc = sys.Inspect((int)GBLocations.PC, 0);
                 }
             }
@@ -939,13 +995,13 @@ namespace AssemblerTest
         [TestMethod]
         public void StopTest()
         {
-            GBAnnotatedAssemblyTest.RunWithDelayInterrupt(@"..\..\..\test\test_configs\stop.aat",4);
+            GBAnnotatedAssemblyTest.Run(@"..\..\..\test\test_configs\stop.aat");
         }
 
         [TestMethod]
         public void HaltTest()
         {
-            GBAnnotatedAssemblyTest.RunWithDelayInterrupt(@"..\..\..\test\test_configs\halt.aat",4);
+            GBAnnotatedAssemblyTest.Run(@"..\..\..\test\test_configs\halt.aat");
         }
 
         [TestMethod]

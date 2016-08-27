@@ -35,8 +35,6 @@ namespace GBLibWrapper {
 
 	public:
 
-		
-
 		GBLib();
 		
 		event OnDisplayUpdate ^ onDisplayUpdate;

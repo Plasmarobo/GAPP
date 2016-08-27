@@ -177,7 +177,6 @@ struct InstructionPacket
 	short offset;
 	unsigned short cycles;
 	Instruction instruction;
-	Flags flag_mask;
 
 	InstructionPacket()
 	{
@@ -188,7 +187,6 @@ struct InstructionPacket
 		offset = 0;
 		cycles = 0;
 		instruction = Instruction::NON;
-		flag_mask.value = 0;
 	}
 
 	InstructionPacket(const InstructionPacket &rhs)
@@ -200,7 +198,6 @@ struct InstructionPacket
 		offset = rhs.offset;
 		cycles = rhs.cycles;
 		instruction = rhs.instruction;
-		flag_mask.value = rhs.flag_mask.value;
 	}
 
 	InstructionPacket operator=(const InstructionPacket &rhs)
@@ -212,7 +209,6 @@ struct InstructionPacket
 		offset = rhs.offset;
 		cycles = rhs.cycles;
 		instruction = rhs.instruction;
-		flag_mask.value = rhs.flag_mask.value;
 
 		return (*this);
 	}

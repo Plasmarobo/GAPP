@@ -5,12 +5,12 @@
 enum Interrupt
 {
 	
-	VBLANK_INT = 0,
-	LCDC_INT, //Hblank int
-	TIME_INT,
-	SERIAL_INT,
-	INPUT_INT,
-	NUM_INTS
+	VBLANK_INT = 0x1,
+	LCDC_INT = 0x2, //Hblank int
+	TIME_INT = 0x4,
+	SERIAL_INT = 0x8,
+	INPUT_INT = 0x10,
+	MAX_INT = 0x20,
 };
 
 class Interruptable

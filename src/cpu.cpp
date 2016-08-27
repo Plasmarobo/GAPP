@@ -370,7 +370,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.source = Location::SP;
 			packet.dest = Location::HL;
 			packet.offset = FetchPC();
-			packet.flag_mask.value = 0x0C;
 			packet.cycles += 4;
 			break;
 			//LOAD SP
@@ -422,7 +421,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			SetIfNone(packet.source, Location::IMM);
 			packet.instruction = Instruction::ADD;
 			packet.dest = Location::A;
-			packet.flag_mask.value = 0x0D;
 			break;
 			//ADC -> Add X plus carry to A
 		case 0x88: //B
@@ -439,7 +437,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			SetIfNone(packet.source, Location::IMM);
 			packet.dest = Location::A;
 			packet.offset = m_regs.Carry() ? 1 : 0;
-			packet.flag_mask.value = 0x0D;
 			break;
 			//SUB from A
 		case 0x90: //B
@@ -455,7 +452,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.instruction = Instruction::SUB;
 			SetIfNone(packet.source, Location::IMM);
 			packet.dest = Location::A;
-			packet.flag_mask.value = 0x0F;
 			break;
 			//SBC -> Sub X plus carry from A
 		case 0xDE: // IMM
@@ -472,7 +468,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			SetIfNone(packet.source, RegisterTable(op - 0x98, packet));
 			packet.offset = m_regs.Carry() ? 1 : 0;
 			packet.dest = Location::A;
-			packet.flag_mask.value = 0x0F;
 			break;
 			//AND with A
 		case 0xA0: //B
@@ -488,7 +483,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			SetIfNone(packet.source, Location::IMM);
 			packet.instruction = Instruction::AND;
 			packet.dest = Location::A;
-			packet.flag_mask.value = 0x05;
 			break;
 			//OR with A
 		case 0xB0: //B
@@ -504,7 +498,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			SetIfNone(packet.source, Location::IMM);
 			packet.instruction = Instruction::OR;
 			packet.dest = Location::A;
-			packet.flag_mask.value = 0x01;
 			break;
 			//XOR with A
 		case 0xA8: //B
@@ -520,7 +513,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			SetIfNone(packet.source, Location::IMM);
 			packet.instruction = Instruction::XOR;
 			packet.dest = Location::A;
-			packet.flag_mask.value = 0x01;
 			break;
 			//COMPARE
 		case 0xB8: //B
@@ -536,7 +528,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			SetIfNone(packet.source, Location::IMM);
 			packet.instruction = Instruction::CP;
 			packet.dest = Location::A;
-			packet.flag_mask.value = 0x0F;
 			break;
 			//INC
 		case 0x04: //B
@@ -562,7 +553,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.offset = 1;
 			packet.source = packet.dest;
 			packet.instruction = Instruction::LOAD;
-			packet.flag_mask.value = 0x05;
 			break;
 			//DEC
 		case 0x05: //B
@@ -588,7 +578,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.offset = -1;
 			packet.source = packet.dest;
 			packet.instruction = Instruction::LOAD;
-			packet.flag_mask.value = 0x07;
 			break;
 			//ADD 16
 			//ADD TO HL
@@ -602,7 +591,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			SetIfNone(packet.source, Location::SP);
 			packet.dest = Location::HL;
 			packet.instruction = Instruction::ADD;
-			packet.flag_mask.value = 0x0C;
 			packet.cycles += 4;
 			break;
 			//ADD SP
@@ -610,7 +598,6 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.dest = Location::SP;
 			packet.source = Location::IMM;
 			packet.instruction = Instruction::ADD;
-			packet.flag_mask.value = 0x0C;
 			packet.cycles += 8;
 			break;
 			//INC16
@@ -1011,7 +998,6 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 			packet.source = RegisterTable(op - 0x30, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::SWAP;
-			packet.flag_mask.value = 0x01;
 			break;
 			//ROT LEFT, bit 7 to carry
 		case 0x00: //B
@@ -1025,7 +1011,6 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 			packet.source = RegisterTable(op - 0x00, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::RLC;
-			packet.flag_mask.value = 0x03;
 			break;
 			//ROT LEFT through carry flag
 		case 0x10: //B
@@ -1039,7 +1024,6 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 			packet.source = RegisterTable(op - 0x10, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::RL;
-			packet.flag_mask.value = 0x03;
 			break;
 			//ROT RIGHT, 0 bit to carry
 		case 0x08: //B
@@ -1053,7 +1037,6 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 			packet.source = RegisterTable(op - 0x08, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::RRC;
-			packet.flag_mask.value = 0x03;
 			break;
 			//ROT RIGHT, through carry
 		case 0x18: //B
@@ -1067,7 +1050,6 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 			packet.source = RegisterTable(op - 0x18, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::RR;
-			packet.flag_mask.value = 0x03;
 			break;
 			//SLA - Shift left into carry
 		case 0x20: //B
@@ -1078,10 +1060,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x25: //L
 		case 0x26: //MEM(HL)
 		case 0x27: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0x20, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::SL;
-			packet.flag_mask.value = 0x03;
 			break;
 			//SRA - Shift right into carry, replicate MSB
 		case 0x28: //B
@@ -1092,10 +1073,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x2D: //L
 		case 0x2E: //MEM(HL)
 		case 0x2F: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0x28, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::SRS;
-			packet.flag_mask.value = 0x03;
 			break;
 			//SRL - shift righ into carry, set msb to 0
 		case 0x38: //B
@@ -1106,10 +1086,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x3D: //L
 		case 0x3E: //MEM(HL)
 		case 0x3F: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0x38, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::SR;
-			packet.flag_mask.value = 0x03;
 			break;
 			//BIT 0
 		case 0x40: //B
@@ -1120,10 +1099,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x45: //L
 		case 0x46: //MEM(HL)
 		case 0x47: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0x40, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::BIT;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 0;
 			break;
 			//BIT 1
@@ -1135,10 +1113,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x4D: //L
 		case 0x4E: //MEM(HL)
 		case 0x4F: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0x48, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::BIT;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 1;
 			break;
 			//BIT 2
@@ -1150,10 +1127,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x55: //L
 		case 0x56: //MEM(HL)
 		case 0x57: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0x50, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::BIT;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 2;
 			break;
 			//BIT 3
@@ -1165,10 +1141,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x5D: //L
 		case 0x5E: //MEM(HL)
 		case 0x5F: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0x58, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::BIT;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 3;
 			break;
 			//BIT 4
@@ -1180,10 +1155,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x65: //L
 		case 0x66: //MEM(HL)
 		case 0x67: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0x60, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::BIT;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 4;
 			break;
 			//BIT 5
@@ -1195,10 +1169,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x6D: //L
 		case 0x6E: //MEM(HL)
 		case 0x6F: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0x68, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::BIT;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 5;
 			break;
 			//BIT 6
@@ -1210,10 +1183,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x75: //L
 		case 0x76: //MEM(HL)
 		case 0x77: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0x70, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::BIT;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 6;
 			break;
 			//BIT 7
@@ -1225,10 +1197,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x7D: //L
 		case 0x7E: //MEM(HL)
 		case 0x7F: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0x78, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::BIT;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 7;
 			break;
 			//RESET b
@@ -1241,10 +1212,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x85: //L
 		case 0x86: //MEM(HL)
 		case 0x87: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0x80, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::RES;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 0;
 			break;
 			//BIT 1
@@ -1256,10 +1226,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x8D: //L
 		case 0x8E: //MEM(HL)
 		case 0x8F: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0x88, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::RES;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 1;
 			break;
 			//BIT 2
@@ -1271,10 +1240,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x95: //L
 		case 0x96: //MEM(HL)
 		case 0x97: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0x90, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::RES;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 2;
 			break;
 			//BIT 3
@@ -1286,10 +1254,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0x9D: //L
 		case 0x9E: //MEM(HL)
 		case 0x9F: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0x98, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::RES;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 3;
 			break;
 			//BIT 4
@@ -1301,10 +1268,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0xA5: //L
 		case 0xA6: //MEM(HL)
 		case 0xA7: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0xA0, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::RES;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 4;
 			break;
 			//BIT 5
@@ -1316,10 +1282,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0xAD: //L
 		case 0xAE: //MEM(HL)
 		case 0xAF: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0xA8, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::RES;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 5;
 			break;
 			//BIT 6
@@ -1331,10 +1296,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0xB5: //L
 		case 0xB6: //MEM(HL)
 		case 0xB7: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0xB0, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::RES;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 6;
 			break;
 			//BIT 7
@@ -1346,10 +1310,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0xBD: //L
 		case 0xBE: //MEM(HL)
 		case 0xBF: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0xB8, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::RES;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 7;
 			break;
 			//SET 
@@ -1362,10 +1325,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0xC5: //L
 		case 0xC6: //MEM(HL)
 		case 0xC7: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0xC0, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::SET;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 0;
 			break;
 			//BIT 1
@@ -1377,10 +1339,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0xCD: //L
 		case 0xCE: //MEM(HL)
 		case 0xCF: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0xC8, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::SET;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 1;
 			break;
 			//BIT 2
@@ -1392,10 +1353,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0xD5: //L
 		case 0xD6: //MEM(HL)
 		case 0xD7: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0xD0, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::SET;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 2;
 			break;
 			//BIT 3
@@ -1407,10 +1367,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0xDD: //L
 		case 0xDE: //MEM(HL)
 		case 0xDF: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0xD8, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::SET;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 3;
 			break;
 			//BIT 4
@@ -1422,10 +1381,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0xE5: //L
 		case 0xE6: //MEM(HL)
 		case 0xE7: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0xE0, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::SET;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 4;
 			break;
 			//BIT 5
@@ -1437,10 +1395,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0xED: //L
 		case 0xEE: //MEM(HL)
 		case 0xEF: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0xE8, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::SET;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 5;
 			break;
 			//BIT 6
@@ -1452,10 +1409,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0xF5: //L
 		case 0xF6: //MEM(HL)
 		case 0xF7: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0xF0, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::SET;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 6;
 			break;
 			//BIT 7
@@ -1467,10 +1423,9 @@ void GBCPU::DecodeCB(InstructionPacket &packet)
 		case 0xFD: //L
 		case 0xFE: //MEM(HL)
 		case 0xFF: //A
-			packet.source = RegisterTable(op - 0x08, packet);
+			packet.source = RegisterTable(op - 0xF8, packet);
 			packet.dest = packet.source;
 			packet.instruction = Instruction::SET;
-			packet.flag_mask.value = 0x03;
 			packet.offset = 7;
 			break;
 		default:
@@ -1769,10 +1724,12 @@ void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 		m_stopped = true;
 		break;
 	case Instruction::HALT:
-		m_halted = true;
-		if (m_interrupt_enable == false)
-		{
-			FetchPC(); //Eat next command, should be noop
+		//PC will point at HALT
+		//We must advance to store the instruction after HALT
+		//If interrupts are not enabled, we eat the instruction
+		m_regs.IncPC();
+		if (m_interrupt_enable) {
+			m_halted = true;
 		}
 		break;
 	case Instruction::AND:
@@ -1994,25 +1951,25 @@ void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 	case Instruction::BIT:
 		{
 			unsigned char val = ReadLocation(packet.source, packet);
-			bool test = (val >> packet.offset) & 0x1;
-			m_regs.SetFlags(test, false, true, m_regs.Carry());
+			val &= (1 << packet.offset);
+			if (packet.source == Location::MEM) {
+				// Shadow writeback?
+				packet.cycles += 4;
+			}
+			m_regs.SetFlags(val == 0, false, true, m_regs.Carry());
 		}
 		break;
 	case Instruction::RES:
 		{
 			unsigned char val = ReadLocation(packet.source, packet);
-			unsigned char res = 1;
-			res = res >> packet.offset;
-			val &= ~res;
+			val &= ~(1 << packet.offset);
 			WriteLocation(packet.dest, packet, val);
 		}
 		break;
 	case Instruction::SET:
 		{
 			unsigned char val = ReadLocation(packet.source, packet);
-			unsigned char res = 1;
-			res = res >> packet.offset;
-			val |= res;
+			val |= (1 << packet.offset);
 			WriteLocation(packet.dest, packet, val);
 		}
 		break;
@@ -2022,6 +1979,7 @@ void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 			unsigned char tmp = val >> 4;
 			val = (val << 4) | tmp;
 			WriteLocation(packet.dest, packet, val);
+			m_regs.SetFlags(val == 0, false, false, false);
 		}
 		break;
 	default:
@@ -2091,7 +2049,6 @@ void GBCPU::Start()
 	m_stopped = false;
 }
 
-
 unsigned long GBCPU::Step()
 {
 	unsigned long start_cycles = m_cycles;
@@ -2107,12 +2064,12 @@ unsigned long GBCPU::Step()
 	return m_cycles - start_cycles;
 }
 
-
 void GBCPU::Int(Interrupt int_code)
 {
-	unsigned char int_flags = m_mem->IF();
-	int_flags |= (0x1 >> int_code);
-	m_mem->IF(int_flags);
+	m_mem->IF(int_code);
+	if (int_code == INPUT_INT) {
+		m_stopped = false;
+	}
 }
 
 void GBCPU::HandleInterrupts()
@@ -2121,9 +2078,9 @@ void GBCPU::HandleInterrupts()
 	
 	if(this->m_interrupt_enable && (m_mem->IF() != 0))
 	{
-		for(int_code = VBLANK_INT; int_code < NUM_INTS; ++int_code)
+		for(int_code = VBLANK_INT; int_code < MAX_INT; int_code <<= 1)
 		{
-			if (((m_mem->IE() >> int_code) & 0x1) && ((m_mem->IF() >> int_code) & 0x1))
+			if ((m_mem->IE() & int_code) && (m_mem->IF() & int_code))
 			{
 				break;
 			}
@@ -2147,11 +2104,10 @@ void GBCPU::HandleInterrupts()
 				m_regs.PC(INPUT_ROUTINE);
 				break;
 			default:
-				Logger::RaiseError("GBCPU", "Unrecognized interrupt");
-				m_mem->IF(0);
 				return;
 				break;
 		}
+		this->m_halted = false;
 		this->m_interrupt_enable = false;
 		m_mem->IF(0);
 	}

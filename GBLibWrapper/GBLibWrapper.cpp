@@ -79,6 +79,7 @@ void GBLib::Keyup(unsigned int key)
 void GBLib::Step()
 {
 	input->Step();
+	gbcpu->GetMem()->SetKeyStates(input->GetBits());
 	gbcpu->Step();
 	display->Step();
 	if (display->GetState() == DisplayStates::VBLANK)
