@@ -112,16 +112,6 @@ bool InstructionPacket::IsDestWide()
 	}
 }
 
-void InstructionPacket::Print(std::ostream &stream)
-{
-	stream << "+++++++++++++++++++++++Instruction Packet+++++++++++++++++++++++" << std::endl;
-	stream << "Instruction: " << instruction_names[instruction] << std::endl;
-	stream << "Address: " << std::hex << "0x" << address << std::endl;
-	stream << "Source: " << location_names[source] << std::endl;
-	stream << "Destination: " << location_names[dest] << std::endl;
-	stream << "+++++++++++++++++++++++    End Packet    +++++++++++++++++++++++" << std::endl;
-}
-
 void GBCPU::StackPush(unsigned char byte)
 {
 	m_regs.DecSP();
@@ -766,19 +756,21 @@ InstructionPacket GBCPU::DecodeInstruction()
 			break;
 			//JUMP REL
 		case 0x18: //signed IMM
-			packet.source = Location::IMM;
+			packet.source = Location::PC;
 			packet.dest = Location::PC;
-			packet.instruction = Instruction::ADD;
+			packet.instruction = Instruction::LOAD;
+			packet.offset = ((char)FetchPC()) - 2;
 			m_cycles += 4;
 			break;
 			//JUMP REL IF
 		case 0x20: //NZ: Z reset, IMM signed
-			packet.source = Location::IMM;
+			packet.source = Location::PC;
 			packet.dest = Location::PC;
+			packet.offset = ((char)FetchPC()) - 2;
 			if (!m_regs.Zero())
 			{
 				m_cycles += 4;
-				packet.instruction = Instruction::ADD;
+				packet.instruction = Instruction::LOAD;
 			}
 			else
 			{
@@ -786,12 +778,13 @@ InstructionPacket GBCPU::DecodeInstruction()
 			}
 			break;
 		case 0x28: //Z set. IMM signed
-			packet.source = Location::IMM;
+			packet.source = Location::PC;
 			packet.dest = Location::PC;
+			packet.offset = ((char)FetchPC()) - 2;
 			if (m_regs.Zero())
 			{
 				m_cycles += 4;
-				packet.instruction = Instruction::ADD;
+				packet.instruction = Instruction::LOAD;
 			}
 			else
 			{
@@ -799,12 +792,13 @@ InstructionPacket GBCPU::DecodeInstruction()
 			}
 			break;
 		case 0x30: //C reset, IMM signed
-			packet.source = Location::IMM;
+			packet.source = Location::PC;
 			packet.dest = Location::PC;
+			packet.offset = ((char)FetchPC()) - 2;
 			if (!m_regs.Carry())
 			{
 				m_cycles += 4;
-				packet.instruction = Instruction::ADD;
+				packet.instruction = Instruction::LOAD;
 			}
 			else
 			{
@@ -812,12 +806,13 @@ InstructionPacket GBCPU::DecodeInstruction()
 			}
 			break;
 		case 0x38: //C set, IMM signed
-			packet.source = Location::IMM;
+			packet.source = Location::PC;
 			packet.dest = Location::PC;
+			packet.offset = ((char)FetchPC()) - 2;
 			if (m_regs.Carry())
 			{
 				m_cycles += 4;
-				packet.instruction = Instruction::ADD;
+				packet.instruction = Instruction::LOAD;
 			}
 			else
 			{
@@ -2052,13 +2047,7 @@ void GBCPU::Start()
 unsigned long GBCPU::Step()
 {
 	unsigned long start_cycles = m_cycles;
-#ifdef _DEBUG
-	std::cout << "Current PC: " << std::hex << "0x" << (int)m_regs.PC() << std::endl;
-#endif
 	InstructionPacket packet = DecodeInstruction();
-#ifdef _DEBUG
-	packet.Print(std::cout);
-#endif
 	ExecuteInstruction(packet);
 	m_mem->Step();
 	return m_cycles - start_cycles;

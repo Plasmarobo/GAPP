@@ -49,28 +49,28 @@ namespace GAPPDebugger
             {
                 emu = new GBLib();
                 gbdisplay.GBemu = emu;
+                emu.onDisplayUpdate += new OnDisplayUpdate(this.gbdisplay.OnDisplayUpdate);
                 emu.LoadRom(dialog.FileName);
+                emu.Start();
                 DispatcherTimer t = new DispatcherTimer();
-                t.Interval = new TimeSpan(0, 0, 0, 16);
+                Int64 ticks_per_mhz = 10;
+                t.Interval = new TimeSpan(ticks_per_mhz);
                 t.Tick += HandleTick;
+                t.Start();
             }
         }
 
         private void HandleTick(object sender, object e)
         {
-            //1048576 ticks per second
-            //1/60 seconds
-            //17477 ticks
-            for(int tick = 0; tick < 17477; ++tick)
-            {
-                emu.Step();
-            }
-
+            //Each tick is 100 ns
+            //This should fire once every 10 ticks
+            emu.Step();
         }
 
         private void Step(object sender, RoutedEventArgs e)
         {
             emu.DebugStep();
         }
+
     }
 }

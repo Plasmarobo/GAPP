@@ -115,6 +115,8 @@ MBC3Cart::MBC3Cart(unsigned char *rom, unsigned int rom_size, unsigned int ram_s
 	m_counter = 0;
 	m_counter_latch = 0;
 	m_write_enable = false;
+	m_rom_pointer = &(m_rom[0]);
+	//m_mode = 
 }
 
 void MBC3Cart::WriteMemory(unsigned short addr, unsigned char data)
@@ -254,7 +256,7 @@ unsigned char MBC3Cart::ReadMemory(unsigned short addr)
 	}
 	else if (addr >= 0x4000 && addr <= 0x7FFF)
 	{
-		val = m_rom_pointer[addr];
+		val = m_rom_pointer[addr - 0x4000];
 	}
 	else if (addr >= 0xA000 && addr <= 0xBFFF)
 	{
