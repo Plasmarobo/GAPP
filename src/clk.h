@@ -5,6 +5,8 @@ unsigned long const cpu_frequency =      4194304; //Hz
 unsigned long const machine_frequency =  1048576; //Hz
 unsigned long const hsync_frequency =    9198000; //Hz
 unsigned long const vsync_frequency =    60; //Hz, actually 59.73
+unsigned long const serial_frequency =	 8192; //Hz
+unsigned long const max_serial_freqency = 50000; //Hz
 unsigned long const mbc3_rtc_frequency = 32768; //Hz
 unsigned long const timer_frequencies[] = {
     4096, 
@@ -29,7 +31,10 @@ unsigned long const timer_cycle_intervals[] = {
     16,
     4
 }; //Cycles til tick
+
+// With respect to machine frequency (steps)
 unsigned long const div_cycles = 64;
+unsigned long const serial_cycles = 128;
 
 unsigned long GetUtc(); //Compiles differently on windows vs linux
 

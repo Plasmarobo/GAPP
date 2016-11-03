@@ -57,6 +57,7 @@ GBLib::GBLib()
 	gbcpu = new GBCPU();
 	display = new Display(gbcpu->GetMem(), gbcpu);
 	input = new Input(gbcpu, gbcpu->GetMem());
+	serial_transfer = false;
 }
 
 GBLib::~GBLib()
@@ -81,6 +82,14 @@ void GBLib::Step()
 	input->Step();
 	gbcpu->GetMem()->SetKeyStates(input->GetBits());
 	gbcpu->Step();
+	if (gbcpu->GetMem()->SerialTransferRequested()) {
+		if (serial_transfer == false) {
+			onSerialDataReady(gbcpu->GetMem()->SerialTransfer(0x00, 500000));
+			serial_transfer = true;
+		}
+	} else if (serial_transfer) {
+		serial_transfer = false;
+	}
 	display->Step();
 	if (display->GetState() == DisplayStates::VBLANK)
 	{
@@ -109,7 +118,7 @@ List<Byte>^ GBLib::DumpMemory()
 	return b;
 }
 
-Int32 GBLib::Inspect(int location, Int16 addr)
+Int32 GBLib::Inspect(int location, UInt16 addr)
 {
 	Int32 value = -1; //ERROR, can't be represented by an int 16
 	Memory* m = gbcpu->GetMem();
@@ -237,4 +246,8 @@ void GBLib::ForceInterrupt(int code)
 void GBLib::Start()
 {
 	gbcpu->Start();
+}
+
+bool GBLib::Stopped() {
+	return gbcpu->Stopped();
 }

@@ -7,24 +7,22 @@
 
 #define AddrIn(addr,x,y) ((addr>=x)&&(addr<y))
 
-static unsigned char nintendo_graphic[0x30] = {
-	0xCE, 0xED, 0x66, 0x66, 0xCC, 0x0D, 0x00, 0x0B, 0x03, 0x73, 0x00, 0x83, 0x00, 0x0C, 0x00, 0x0D,
-	0x00, 0x08, 0x11, 0x1F, 0x88, 0x89, 0x00, 0x0E, 0xDC, 0xCC, 0x6E, 0xE6, 0xDD, 0xDD, 0xD9, 0x99,
-	0xBB, 0xBB, 0x67, 0x63, 0x6E, 0x0E, 0xEC, 0xCC, 0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E,
-};
-
 Cart::Cart()
 {
 	m_rom = NULL;
 	m_ram = NULL;
 	m_rom_size = 0;
 	m_ram_size = 0;
+	m_rom_bank = 0;
+	m_ram_bank = 0;
 }
 
 Cart::Cart(unsigned char *rom, unsigned int rom_size, unsigned int ram_size)
 {
 	m_rom = rom;
 	m_rom_size = rom_size;
+	m_rom_bank = 0;
+	m_ram_bank = 0;
 	if (ram_size > 0)
 	{
 		m_ram = new unsigned char[ram_size];
@@ -54,6 +52,16 @@ void Cart::WriteMemory(unsigned short addr, unsigned char data)
 	if (m_rom != NULL)
 	{
 		//The cart has no ram, drop the write
+		if (addr >= 0x2000 && addr < CART_BANK_X) {
+			m_rom_bank = data;
+		} else if (m_ram != NULL) {
+			if (addr >= RAM_BANK_X && addr < INTERNAL_RAM_0) {
+				unsigned int bank_addr = (INTERNAL_RAM_0 - RAM_BANK_X) * m_ram_bank;
+				m_ram[(addr - RAM_BANK_X) + bank_addr] = data;
+			} else {
+				Logger::RaiseError("Cart", "Ram Address out of range");
+			}
+		}
 	}
 	else
 	{
@@ -66,12 +74,17 @@ unsigned char Cart::ReadMemory(unsigned short addr)
 	unsigned char val;
 	if (m_rom != NULL)
 	{
-		if (addr < m_rom_size)
+		if (addr < CART_BANK_X)
 		{
 			val = m_rom[addr];
 		}
-		else
-		{
+		else if (addr < VRAM) {
+			unsigned int bank_addr = (VRAM - CART_BANK_X) * m_rom_bank;
+			val = m_rom[(addr - CART_BANK_X) + bank_addr];
+		} else if (addr >= RAM_BANK_X && addr < INTERNAL_RAM_0) {
+			unsigned int bank_addr = (INTERNAL_RAM_0 - RAM_BANK_X) * m_ram_bank;
+			val = m_ram[(addr - RAM_BANK_X) + bank_addr];
+		} else {
 			Logger::RaiseError("Cart", "Address out of bounds");
 		}
 	}
@@ -82,26 +95,20 @@ unsigned char Cart::ReadMemory(unsigned short addr)
 	return val;
 }
 
-void Cart::WriteRamState(std::string file) {}
-void Cart::ReadRamState(std::string file) {}
+void Cart::SaveRamState(std::string file) {}
+void Cart::LoadRamState(std::string file) {}
 
 MBC1Cart::MBC1Cart() : Cart()
 {
-	m_rom_pointer = NULL;
-	m_ram_pointer = NULL;
 }
 
 
 MBC1Cart::MBC1Cart(unsigned char *rom, unsigned int rom_size, unsigned int ram_size) : Cart(rom, rom_size, ram_size)
 {
-	m_rom_pointer = NULL;
-	m_ram_pointer = NULL;
 }
 
 MBC1Cart::~MBC1Cart()
 {
-	m_rom_pointer = NULL;
-	m_ram_pointer = NULL;
 }
 
 MBC3Cart::MBC3Cart() : MBC1Cart()
@@ -115,150 +122,148 @@ MBC3Cart::MBC3Cart(unsigned char *rom, unsigned int rom_size, unsigned int ram_s
 	m_counter = 0;
 	m_counter_latch = 0;
 	m_write_enable = false;
-	m_rom_pointer = &(m_rom[0]);
-	//m_mode = 
 }
 
 void MBC3Cart::WriteMemory(unsigned short addr, unsigned char data)
 {
-	if (addr >= 0 && addr <= 0x1FFF)
+	if (m_rom != NULL)
 	{
-		if ((data & 0xF) == 0x0A)
+		if (addr >= 0 && addr < 0x2000)
 		{
-			m_write_enable = true;
-		}
-		else
-		{
-			m_write_enable = false;
-		}
-	}
-	else if (addr >= 2000 && addr <= 0x3FFF)
-	{
-		if (data == 0)
-		{
-			data = 1;
-		}
-		else if (data <= 0x7F)
-		{
-			unsigned int offset = data * 0x4000;
-			m_rom_pointer = m_rom + offset;
-		}
-		
-	}
-	else if (addr >= 0x4000 && addr <= 0x5FFF)
-	{
-		switch (data)
-		{
-		case 0x00:
-			m_ram_status = BANK_0;
-			m_ram_pointer = m_ram;
-			break;
-		case 0x01:
-			m_ram_status = BANK_1;
-			m_ram_pointer = m_ram + 0x2000;
-			break;
-		case 0x02:
-			m_ram_status = BANK_2;
-			m_ram_pointer = m_ram + 0x4000; 
-			break;
-		case 0x03:
-			m_ram_status = BANK_3;
-			m_ram_pointer = m_ram + 0x6000;
-			break;
-
-		case 0x08:
-			m_ram_status = SECONDS;
-			break;
-		case 0x09:
-			m_ram_status = MINUTES;
-			break;
-		case 0x0A:
-			m_ram_status = HOURS;
-			break;
-		case 0x0B:
-			m_ram_status = DAY_L;
-			break;
-		case 0x0C:
-			m_ram_status = DAY_U;
-			break;
-		default:
-			Logger::RaiseError("MBC3", "Unknown Ram Bank selection");
-			break;
-		}
-	}
-	else if (addr >= 0x6000 && addr <= 0x7FFF)
-	{
-		//Finite State Machine
-		if (m_rtc.latch == LatchState::UNLATCHED && data == 0)
-		{
-			m_rtc.latch = LatchState::LATCHING;
-		}
-		else if (m_rtc.latch == LatchState::LATCHING && data == 1)
-		{
-			m_rtc.latch = LatchState::LATCHED;
-			m_counter_latch = m_counter;
-		}
-		else if (m_rtc.latch == LatchState::LATCHED && data == 0)
-		{
-			m_rtc.latch = LatchState::UNLATCHING;
-		}
-		else if (m_rtc.latch == LatchState::UNLATCHING && data == 1)
-		{
-			//This could go wrong if we "power down" while processing
-			//However this is a Don't Care Condition, since a reload will resync to UTC anyway
-			//We aren't worried about slight differences in rtc
-			m_rtc.latch = LatchState::UNLATCHED;
-			unsigned long missed = (m_counter - m_counter_latch) %	mbc3_rtc_cycles;
-			while(missed > 0)
+			if ((data & 0xF) == 0x0A)
 			{
-				--missed;
-				UpdateTime();
+				m_write_enable = true;
+			}
+			else
+			{
+				m_write_enable = false;
+			}
+		} else if (addr < 0x4000 && data <= 0x7F) {
+			m_rom_bank = data == 0 ? 1 : data;
+		}
+		else if (addr < 0x6000) {
+			switch (data)
+			{
+			case 0x00:
+				m_ram_status = BANK_0;
+				m_ram_bank = 0;
+				break;
+			case 0x01:
+				m_ram_status = BANK_1;
+				m_ram_bank = 1;
+				break;
+			case 0x02:
+				m_ram_status = BANK_2;
+				m_ram_bank = 2;
+				break;
+			case 0x03:
+				m_ram_status = BANK_3;
+				m_ram_bank = 3;
+				break;
+
+			case 0x08:
+				m_ram_status = SECONDS;
+				break;
+			case 0x09:
+				m_ram_status = MINUTES;
+				break;
+			case 0x0A:
+				m_ram_status = HOURS;
+				break;
+			case 0x0B:
+				m_ram_status = DAY_L;
+				break;
+			case 0x0C:
+				m_ram_status = DAY_U;
+				break;
+			default:
+				Logger::RaiseError("MBC3", "Unknown Ram Bank selection");
+				break;
+			}
+		} else if (addr < VRAM) {
+			//Finite State Machine
+			if (m_rtc.latch == LatchState::UNLATCHED && data == 0)
+			{
+				m_rtc.latch = LatchState::LATCHING;
+			}
+			else if (m_rtc.latch == LatchState::LATCHING && data == 1)
+			{
+				m_rtc.latch = LatchState::LATCHED;
+				m_counter_latch = m_counter;
+			}
+			else if (m_rtc.latch == LatchState::LATCHED && data == 0)
+			{
+				m_rtc.latch = LatchState::UNLATCHING;
+			}
+			else if (m_rtc.latch == LatchState::UNLATCHING && data == 1)
+			{
+				//This could go wrong if we "power down" while processing
+				//However this is a Don't Care Condition, since a reload will resync to UTC anyway
+				//We aren't worried about slight differences in rtc
+				m_rtc.latch = LatchState::UNLATCHED;
+				unsigned long missed = (m_counter - m_counter_latch) % mbc3_rtc_cycles;
+				while (missed > 0)
+				{
+					--missed;
+					UpdateTime();
+				}
 			}
 		}
-	}
-	else if (addr >= 0xA000 && addr <= 0xBFFF && m_write_enable)
-	{
-		switch (m_ram_status)
+		else if (addr >= RAM_BANK_X && addr < INTERNAL_RAM_0 && m_write_enable)
 		{
-		case BANK_0:
-		case BANK_1:
-		case BANK_2:
-		case BANK_3:
-			m_ram_pointer[addr - 0xA000] = data;
-			break;
-		case SECONDS:
-			m_rtc.seconds = data;
-			break;
-		case MINUTES:
-			m_rtc.minutes = data;
-			break;
-		case HOURS:
-			m_rtc.hours = data;
-			break;
-		case DAY_L:
-			m_rtc.day_l = data;
-			break;
-		case DAY_U:
-			m_rtc.day_h.value = data;
-			break;
-		default:
-			break;
+			switch (m_ram_status)
+			{
+			case BANK_0:
+			case BANK_1:
+			case BANK_2:
+			case BANK_3:
+				{
+					int internal_addr = (INTERNAL_RAM_0 - RAM_BANK_X) * m_ram_bank;
+					m_ram[(addr - RAM_BANK_X) + internal_addr] = data;
+				}
+				break;
+			case SECONDS:
+				m_rtc.seconds = data;
+				break;
+			case MINUTES:
+				m_rtc.minutes = data;
+				break;
+			case HOURS:
+				m_rtc.hours = data;
+				break;
+			case DAY_L:
+				m_rtc.day_l = data;
+				break;
+			case DAY_U:
+				m_rtc.day_h.value = data;
+				break;
+			default:
+				break;
+			}
+		} else {
+			Logger::RaiseError("Cart", "Ram Address out of range");
 		}
+	}
+	else
+	{
+		Logger::RaiseError("Cart", "Cart data is NULL");
 	}
 }
 
 unsigned char MBC3Cart::ReadMemory(unsigned short addr)
 {
+
 	unsigned char val;
-	if (addr >= 0 && addr <= 0x3FFF)
+	if (addr >= CART_BANK_0 && addr < CART_BANK_X)
 	{
 		val = m_rom[addr];
 	}
-	else if (addr >= 0x4000 && addr <= 0x7FFF)
+	else if (addr >= CART_BANK_X && addr < VRAM)
 	{
-		val = m_rom_pointer[addr - 0x4000];
+		int internal_address = (VRAM - CART_BANK_0) * m_rom_bank;
+		val = m_rom[(addr - CART_BANK_X) + internal_address];
 	}
-	else if (addr >= 0xA000 && addr <= 0xBFFF)
+	else if (addr >= RAM_BANK_X && addr < INTERNAL_RAM_0)
 	{
 		switch (m_ram_status)
 		{
@@ -266,7 +271,10 @@ unsigned char MBC3Cart::ReadMemory(unsigned short addr)
 		case BANK_1:
 		case BANK_2:
 		case BANK_3:
-			val = m_ram_pointer[addr - 0xA000];
+			{
+				int internal_address = (INTERNAL_RAM_0 - RAM_BANK_X) * m_ram_bank;
+				val = m_ram[(addr - RAM_BANK_X) + internal_address];
+			}
 			break;
 		case SECONDS:
 			val = m_rtc.seconds;
@@ -346,9 +354,22 @@ void MBC3Cart::UpdateTime()
 	}
 }
 
-Memory::Memory()
+Memory::Memory(bool use_bios)
 {
 	m_cart = NULL;
+	if (use_bios) {
+		std::ifstream file("dmg-01.bin", std::ios::binary);
+		if (file.is_open())
+		{
+			file.read((char*)&(m_bootstrap[0]), 0x100);
+			file.close();
+		}
+		else {
+			Logger::RaiseError("Memory", "Could not load bootstrap file: dmg-01.bin");
+		}
+	} else {
+		DisableBootstrap();
+	}
 }
 
 Memory::~Memory()
@@ -518,7 +539,9 @@ void Memory::Inc(unsigned short addr)
 unsigned char Memory::Read(unsigned short addr)
 {
 	unsigned char val;
-	if (AddrIn(addr, MemoryMap::CART, MemoryMap::VRAM) ||
+	if (m_bootstrap_en && AddrIn(addr, MemoryMap::BOOSTRAP_START, MemoryMap::BOOTSTRAP_END)) {
+		val = m_bootstrap[addr];
+	} else if (AddrIn(addr, MemoryMap::CART, MemoryMap::VRAM) ||
 		AddrIn(addr, MemoryMap::RAM_BANK_X, MemoryMap::INTERNAL_RAM_0))
 	{
 		if (m_cart != NULL)
@@ -575,7 +598,9 @@ unsigned char Memory::Read(unsigned short addr)
 
 void Memory::Write(unsigned short addr, unsigned char byte)
 {
-	if (AddrIn(addr, MemoryMap::CART, MemoryMap::VRAM) ||
+	if (m_bootstrap_en && addr == MemoryMap::BOOTSTRAP_TOGGLE) {
+		if (byte == 1) DisableBootstrap();
+	} else if (AddrIn(addr, MemoryMap::CART, MemoryMap::VRAM) ||
 		AddrIn(addr, MemoryMap::RAM_BANK_X, MemoryMap::INTERNAL_RAM_0))
 	{
 		if (m_cart != NULL)
@@ -615,8 +640,16 @@ void Memory::Write(unsigned short addr, unsigned char byte)
 	{
 		switch (addr)
 		{
+		case SR_SC:
+			m_internal_memory.sections.io_ports[0x01] = byte;
+			if (byte & 0x80) {
+				m_serial_transfer_request = true;
+			} else {
+				m_serial_transfer_request = false;
+			}
+			break;
 		case SR_DIV:
-			m_internal_memory.sections.io_ports[0x00] = 0;
+			m_internal_memory.sections.io_ports[0x04] = 0;
 			break;
 		//case SR_TIMA: //Not required, writes normally
 		//case SR_TMA: // Not required, writes normally
@@ -716,23 +749,16 @@ void Memory::StepTimer()
 		switch (timer)
 		{
 		case 0x00:
-			timer_mod = Timer00_Hz;
-			break;
 		case 0x01:
-			timer_mod = Timer01_Hz;
-			break;
 		case 0x02:
-			timer_mod = Timer10_Hz;
-			break;
 		case 0x03:
-			timer_mod = Timer11_Hz;
+			timer_mod = timer_cycle_intervals[timer];
 			break;
 		default:
 			Logger::RaiseError("Timer", "Unknown frequency");
 			break;
 		}
-		// Div 4 to convert to cycles from hz
-		if (m_timer_counter % (timer_mod / 4))
+		if (m_timer_counter % (timer_mod ))
 		{
 			Inc(SR_TIMA);
 			if (Read(SR_TIMA) == 0)
@@ -746,6 +772,34 @@ void Memory::StepTimer()
 		}
 	}
 }
+unsigned char Memory::SerialTransfer(unsigned char in, unsigned long hz) {
+	m_external_serial_buffer = in;
+	m_steps_per_serial_bit = machine_frequency / hz;
+	m_bits_left = 8;
+	return SB();
+}
+
+bool Memory::SerialTransferRequested() {
+	return m_serial_transfer_request;
+}
+
+void Memory::StepSerial() {
+	++m_serial_counter;
+	if ((m_serial_counter >= m_steps_per_serial_bit) && (m_bits_left > 0)) {
+		m_serial_counter = 0;
+		// 16 bit buffer rotation
+		unsigned char serial_buffer = SB();
+		SB((serial_buffer >> 1) | ((m_external_serial_buffer & 0x01) << 7));
+		m_external_serial_buffer = (m_external_serial_buffer >> 1) | ((serial_buffer & 0x01) << 7);
+
+		--m_bits_left;
+		if (m_bits_left == 0) {
+			m_interrupt_target->Int(Interrupt::SERIAL_INT);
+			SC(SC() & 0x7F); // Reset transfer bit
+			m_serial_transfer_request = false;
+		}
+	}
+}
 
 void Memory::Step()
 {
@@ -754,8 +808,11 @@ void Memory::Step()
 		m_cart->Step();
 	}
 	//Update TIMER
+	StepTimer();
 	//Update DIV
+	StepDiv();
 	//Update SB (serial buffer)
+	StepSerial();
 }
 
 void Memory::SetKeyStates(unsigned char bits)
@@ -774,4 +831,12 @@ void Memory::SetKeyStates(unsigned char bits)
 	{
 		P1(0);
 	}
+}
+
+void Memory::EnableBootstrap() {
+	m_bootstrap_en = true;
+}
+
+void Memory::DisableBootstrap() {
+	m_bootstrap_en = false;
 }

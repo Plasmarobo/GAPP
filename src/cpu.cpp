@@ -13,8 +13,14 @@
 #define Carry8b(dst,src) ((dst + src) >= 0x100)
 #define Borrow8b(dst,src) ((src & 0xFF) > (dst & 0xFF))
 
+// Stored High, Low
 #define PushWide(value) StackPush((value >> 8) & 0xFF);StackPush(value & 0xFF)
-#define PopWide(value) value = StackPop(); value += (StackPop() << 8)
+// Read Low, High
+#define PopWide(value) value = StackPop(); value |= (StackPop() << 8)
+
+// Jump from just after JR
+// Compensate for reading data byte
+#define CalcRelJump (static_cast<char> (FetchPC()))
 
 const std::string location_names[NUM_LOCATIONS] = {
 	"NONE",
@@ -759,14 +765,14 @@ InstructionPacket GBCPU::DecodeInstruction()
 			packet.source = Location::PC;
 			packet.dest = Location::PC;
 			packet.instruction = Instruction::LOAD;
-			packet.offset = ((char)FetchPC()) - 2;
+			packet.offset = CalcRelJump;
 			m_cycles += 4;
 			break;
 			//JUMP REL IF
 		case 0x20: //NZ: Z reset, IMM signed
 			packet.source = Location::PC;
 			packet.dest = Location::PC;
-			packet.offset = ((char)FetchPC()) - 2;
+			packet.offset = CalcRelJump;
 			if (!m_regs.Zero())
 			{
 				m_cycles += 4;
@@ -780,7 +786,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x28: //Z set. IMM signed
 			packet.source = Location::PC;
 			packet.dest = Location::PC;
-			packet.offset = ((char)FetchPC()) - 2;
+			packet.offset = CalcRelJump;
 			if (m_regs.Zero())
 			{
 				m_cycles += 4;
@@ -794,7 +800,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x30: //C reset, IMM signed
 			packet.source = Location::PC;
 			packet.dest = Location::PC;
-			packet.offset = ((char)FetchPC()) - 2;
+			packet.offset = CalcRelJump;
 			if (!m_regs.Carry())
 			{
 				m_cycles += 4;
@@ -808,7 +814,7 @@ InstructionPacket GBCPU::DecodeInstruction()
 		case 0x38: //C set, IMM signed
 			packet.source = Location::PC;
 			packet.dest = Location::PC;
-			packet.offset = ((char)FetchPC()) - 2;
+			packet.offset = CalcRelJump;
 			if (m_regs.Carry())
 			{
 				m_cycles += 4;
@@ -1443,8 +1449,9 @@ unsigned char GBCPU::FetchPC()
 
 unsigned short GBCPU::FetchPC16()
 {
+	//Memory stored in Low, High Order
 	unsigned short bytes = FetchPC();
-	bytes = (bytes << 8) + FetchPC();
+	bytes |= (((unsigned short)FetchPC()) << 8);
 #ifdef _DEBUG
 	std::cout << "FetchPC16 returned 0x" << std::hex << (int)bytes << std::endl;
 #endif
@@ -1988,6 +1995,7 @@ void GBCPU::ExecuteInstruction(InstructionPacket& packet)
 GBCPU::GBCPU()
 {
 	m_mem = new Memory();
+	m_mem->SetInterruptTarget(this);
 	m_cycles = 0;
 	m_stopped = true;
 	m_halted = true;
@@ -1998,47 +2006,50 @@ GBCPU::~GBCPU()
 	delete m_mem;
 }
 
-void GBCPU::Start()
+void GBCPU::Start(bool use_bios)
 {
 	//Ignore startup sequence (we don't need no stinkin BIOS!)
-	m_regs.PC(0x100);
-	m_regs.AF(0x01);
-	m_regs.F(0xB0);
-	m_regs.BC(0x0013);
-	m_regs.DE(0x00D8);
-	m_regs.HL(0x014D);
-	m_regs.SP(0xFFFE);
-	m_mem->TIMA(0x00);
-	m_mem->TMA(0x00);
-	m_mem->TAC(0x00);
-	m_mem->NR10(0x80);
-	m_mem->NR11(0xBF);
-	m_mem->NR12(0xF3);
-	m_mem->NR14(0xBF);
-	m_mem->NR21(0x3F);
-    m_mem->NR22(0x00);
-    m_mem->NR24(0xBF);
-    m_mem->NR30(0x7F);
-    m_mem->NR31(0xFF);
-    m_mem->NR32(0x9F);
-    m_mem->NR33(0xBF);
-    m_mem->NR41(0xFF);
-    m_mem->NR42(0x00);
-    m_mem->NR43(0x00);
-    m_mem->NR44(0xBF);
-    m_mem->NR50(0x77);
-    m_mem->NR51(0xF3);
-    m_mem->NR52(0xF1);
-    m_mem->LCDC(0x91);
-    m_mem->SCY(0x00);
-    m_mem->SCX(0x00);
-    m_mem->LYC(0x00);
-    m_mem->BGP(0xFC);
-    m_mem->OBP0(0xFF);
-    m_mem->OBP1(0xFF);
-    m_mem->WY(0x00);
-    m_mem->WX(0x00);
-    m_mem->IE(0x00);
+	if (!use_bios) {
+		m_regs.PC(0x00);
+		m_regs.AF(0x01);
+		m_regs.F(0xB0);
+		m_regs.BC(0x0013);
+		m_regs.DE(0x00D8);
+		m_regs.HL(0x014D);
+		m_regs.SP(0xFFFE);
+		m_mem->TIMA(0x00);
+		m_mem->TMA(0x00);
+		m_mem->TAC(0x00);
+		m_mem->NR10(0x80);
+		m_mem->NR11(0xBF);
+		m_mem->NR12(0xF3);
+		m_mem->NR14(0xBF);
+		m_mem->NR21(0x3F);
+		m_mem->NR22(0x00);
+		m_mem->NR24(0xBF);
+		m_mem->NR30(0x7F);
+		m_mem->NR31(0xFF);
+		m_mem->NR32(0x9F);
+		m_mem->NR33(0xBF);
+		m_mem->NR41(0xFF);
+		m_mem->NR42(0x00);
+		m_mem->NR43(0x00);
+		m_mem->NR44(0xBF);
+		m_mem->NR50(0x77);
+		m_mem->NR51(0xF3);
+		m_mem->NR52(0xF1);
+		m_mem->LCDC(0x91);
+		m_mem->SCY(0x00);
+		m_mem->SCX(0x00);
+		m_mem->LYC(0x00);
+		m_mem->BGP(0xFC);
+		m_mem->OBP0(0xFF);
+		m_mem->OBP1(0xFF);
+		m_mem->WY(0x00);
+		m_mem->WX(0x00);
+	}
+
+	m_mem->IE(0x00);
 	m_mem->IF(0);
 	m_halted = false;
 	m_stopped = false;
@@ -2055,7 +2066,7 @@ unsigned long GBCPU::Step()
 
 void GBCPU::Int(Interrupt int_code)
 {
-	m_mem->IF(int_code);
+	m_mem->IF(m_mem->IF() | int_code);
 	if (int_code == INPUT_INT) {
 		m_stopped = false;
 	}
@@ -2131,4 +2142,8 @@ unsigned long GBCPU::GetCycles()
 bool GBCPU::GetInterruptFlag()
 {
 	return m_interrupt_enable;
+}
+
+bool GBCPU::Stopped() {
+	return m_stopped;
 }

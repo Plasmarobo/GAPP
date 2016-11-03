@@ -88,6 +88,7 @@ Display::Display(Memory *pmem, GBCPU *pcpu)
 	m_cpu = pcpu;
 	
 	m_vsync_counter = 0;
+	m_hsync_counter = 0;
 	m_display_state = LINE_SPRITES;
 	m_scanline = 0;
 }

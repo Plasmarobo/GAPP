@@ -23,6 +23,7 @@ namespace GBLibWrapper {
 
 	};
 	
+	public delegate void OnSerialDataReady(Byte data);
 	public delegate void OnDisplayUpdate(array<unsigned char>^ image, unsigned int width, unsigned int height);
 	public delegate void OnBreakpoint(unsigned long lineNo, unsigned int instruction);
 
@@ -32,11 +33,13 @@ namespace GBLibWrapper {
 		Display *display;
 		GBCPU *gbcpu;
 		Input *input;
+		bool serial_transfer;
 
 	public:
 
 		GBLib();
 		
+		event OnSerialDataReady ^ onSerialDataReady;
 		event OnDisplayUpdate ^ onDisplayUpdate;
 		event OnBreakpoint ^ onBreakpoint;
 
@@ -47,7 +50,7 @@ namespace GBLibWrapper {
 		Int64 GetCycles();
 		bool InterruptFlag();
 		List<Byte>^ DumpMemory();
-		Int32 Inspect(int location, Int16 addr);
+		Int32 Inspect(int location, UInt16 addr);
 		List<Byte>^ Assemble(List<String^> ^text);
 		List<String^>^ Decompile(Queue<Byte> ^rom);
 		void LoadRom(String ^ filename);
@@ -55,5 +58,6 @@ namespace GBLibWrapper {
 		virtual ~GBLib();
 		void ForceInterrupt(int code);
 		void Start();
+		bool Stopped();
 	};
 }

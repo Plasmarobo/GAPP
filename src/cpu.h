@@ -248,7 +248,7 @@ protected:
 public:
 	GBCPU();
 	~GBCPU();
-	void Start();
+	void Start(bool use_bios = false);
 	unsigned long Step();
 	virtual void Int(Interrupt int_code);
 	void LoadGBFile(std::string rom_file);
@@ -259,6 +259,7 @@ public:
 	RegFile *GetRegs();
 	unsigned long GetCycles();
 	bool GetInterruptFlag();
+	bool Stopped();
 };
 
 

@@ -5,13 +5,14 @@
 #include "cpu.h"
 
 
-enum DisplayStates
+typedef enum 
 {
+	IDLE = -1,
 	VBLANK = 0,
 	LINE_SPRITES,
 	LINE_VRAM,
 	LINE_BLANK
-};
+} DisplayStates;
 
 const unsigned char white_color = 255;
 const unsigned char light_color = 192;

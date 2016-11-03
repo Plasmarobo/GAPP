@@ -30,7 +30,7 @@ namespace AssemblerTest
 			{"LD C,0x02",			"0x0E 0x02"},
 			{"RRCA",				"0x0F"},
 			{"STOP 0",				"0x10"},
-			{"LD DE,0x10FF",		"0x11 0x10 0xFF"},
+			{"LD DE,0x10FF",		"0x11 0xFF 0x10"},
 			{"LD (DE),A",			"0x12"},
 			{"INC DE",				"0x13"},
 			{"INC D",				"0x14"},
@@ -46,7 +46,7 @@ namespace AssemblerTest
 			{"LD E,2Ah",			"0x1E 0x2A"},
 			{"RRA",					"0x1F"},
 			{"JR NZ,$A2",			"0x20 0xA2"},
-			{"LD HL,0x10",			"0x21 0x00 0x10"},
+			{"LD HL,0x10",			"0x21 0x10 0x00"},
 			{"LD (HL+),A",			"0x22"},
 			{"INC HL",				"0x23"},
 			{"INC H",				"0x24"},
@@ -62,7 +62,7 @@ namespace AssemblerTest
 			{"LD L,0xF1",			"0x2E 0xF1"},
 			{"CPL",					"0x2F"},
 			{"JR NC,0x001F",		"0x30 0x1F"},
-			{"LD SP,1000H",			"0x31 0x10 0x00"},
+			{"LD SP,1000H",			"0x31 0x00 0x10"},
 			{"LD (HL-),A",			"0x32"},
 			{"INC SP",				"0x33"},
 			{"INC (HL)",			"0x34"},
@@ -208,29 +208,29 @@ namespace AssemblerTest
 			{"RET NZ",				"0xC0"},
 			{"POP BC",				"0xC1"},
 			{"JP NZ,00h",			"0xC2 0x00 0x00"},
-			{"JP 1",				"0xC3 0x00 0x01"},
-			{"CALL NZ,21",			"0xC4 0x00 0x15"},
+			{"JP 1",				"0xC3 0x01 0x00"},
+			{"CALL NZ,21",			"0xC4 0x15 0x00"},
 			{"PUSH BC",				"0xC5"},
 			{"ADD A,32",			"0xC6 0x20"},
 			{"RST 00H",				"0xC7"},
 			{"RET Z",				"0xC8"},
 			{"RET",					"0xC9"},
-			{"JP Z,800",			"0xCA 0x03 0x20"}, 
+			{"JP Z,800",			"0xCA 0x20 0x03"}, 
 			//{"PREFIX CB",			"0xCB
-			{"CALL Z,1001h",		"0xCC 0x10 0x01"},
-			{"CALL $1001",			"0xCD 0x10 0x01"},
+			{"CALL Z,1001h",		"0xCC 0x01 0x10"},
+			{"CALL $1001",			"0xCD 0x01 0x10"},
 			{"ADC A,1",				"0xCE 0x01"},
 			{"RST 08H",				"0xCF"},
 			{"RET NC",				"0xD0"},
 			{"POP DE",				"0xD1"},
 			{"JP NC,0",				"0xD2 0x00 0x00"},
-			{"CALL NC,0x200",		"0xD4 0x02 0x00"},
+			{"CALL NC,0x200",		"0xD4 0x00 0x02"},
 			{"PUSH DE",				"0xD5"},
 			{"SUB 10",				"0xD6 0x0A"},
 			{"RST 10H",				"0xD7"},
 			{"RET C",				"0xD8"},
 			{"RETI",				"0xD9"},
-			{"JP C,0x1000", 		"0xDA 0x10 0x00"},
+			{"JP C,0x1000", 		"0xDA 0x00 0x10"},
 			{"CALL C,0x1010",		"0xDC 0x10 0x10"},
 			{"SBC A,1",				"0xDE 0x01"},
 			{"RST 18H",				"0xDF"},
@@ -242,7 +242,7 @@ namespace AssemblerTest
 			{"AND 01",				"0xE6 0x01"},
 			{"ADD SP,10",			"0xE8 0x0A"},
 			{"JP (HL)",				"0xE9"},
-			{"LD (100),A",			"0xEA 0x00 0x64"},
+			{"LD (100),A",			"0xEA 0x64 0x00"},
 			{"XOR 1",				"0xEE 0x01"},
 			{"RST 28H",				"0xEF"},
 			{"LDH A,(128)",		    "0xF0 0x80"},
@@ -548,10 +548,10 @@ namespace AssemblerTest
             Assert.AreEqual("0x0E 0x10", assembler.GetByteString(2));
             Assert.AreEqual("0x0E 0x0A", assembler.GetByteString(3));
             assembler.AssembleString("JP 0x1\nJP 0x10\nJP 0x100\nJP 0x1000");
-            Assert.AreEqual("0xC3 0x00 0x01", assembler.GetByteString(0));
-            Assert.AreEqual("0xC3 0x00 0x10", assembler.GetByteString(1));
-            Assert.AreEqual("0xC3 0x01 0x00", assembler.GetByteString(2));
-            Assert.AreEqual("0xC3 0x10 0x00", assembler.GetByteString(3));
+            Assert.AreEqual("0xC3 0x01 0x00", assembler.GetByteString(0));
+            Assert.AreEqual("0xC3 0x10 0x00", assembler.GetByteString(1));
+            Assert.AreEqual("0xC3 0x00 0x01", assembler.GetByteString(2));
+            Assert.AreEqual("0xC3 0x00 0x10", assembler.GetByteString(3));
             assembler.AssembleString("JR -1\nJR -0x1\nJR -$2A\nJR-127");
             Assert.AreEqual("0x18 0xFF", assembler.GetByteString(0));
             Assert.AreEqual("0x18 0xFF", assembler.GetByteString(1));
@@ -568,7 +568,7 @@ namespace AssemblerTest
             assembler.AssembleString("ZERO: JP ZERO");
             Assert.AreEqual("0xC3 0x00 0x00", assembler.GetByteString(0));
             assembler.AssembleString("JP NINE\nNOP\nNOP\nNOP\nNOP\nNOP\nNOP\nNINE:NOP");
-            Assert.AreEqual("0xC3 0x00 0x09", assembler.GetByteString(0));
+            Assert.AreEqual("0xC3 0x09 0x00", assembler.GetByteString(0));
             for(int i = 1; i < 8; ++i)
             {
                 Assert.AreEqual("0x00", assembler.GetByteString(i));
@@ -685,16 +685,16 @@ namespace AssemblerTest
 
         protected class GBTestExpections
         {
-            protected Dictionary<short, Byte> ram;  //Expected RAM after EXEC
-            protected Dictionary<GBLocations, Int16> regs; //Expected REG states after EXEC
+            protected Dictionary<ushort, Byte> ram;  //Expected RAM after EXEC
+            protected Dictionary<GBLocations, UInt16> regs; //Expected REG states after EXEC
             protected long cycles; //Expected Timing, cycles to run
             protected bool interrupts; //Interrupt flag on
             protected bool test_end; //Terminate test
 
             public GBTestExpections()
             {
-                ram = new Dictionary<short, byte>();
-                regs = new Dictionary<GBLocations, short>();
+                ram = new Dictionary<ushort, byte>();
+                regs = new Dictionary<GBLocations, ushort>();
                 cycles = -1;
                 interrupts = false;
                 test_end = false;
@@ -702,8 +702,8 @@ namespace AssemblerTest
 
             public GBTestExpections(String line)
             {
-                ram = new Dictionary<short, byte>();
-                regs = new Dictionary<GBLocations, short>();
+                ram = new Dictionary<ushort, byte>();
+                regs = new Dictionary<GBLocations, ushort>();
                 cycles = -1;
                 interrupts = false;
                 test_end = false;
@@ -731,7 +731,7 @@ namespace AssemblerTest
                         Match m = r.Match(expected_parts[0]);
                         if (m.Length > 0)
                         {
-                            AddRamExpection(Convert.ToInt16(m.Groups[1].Value, 16), (Byte)value);
+                            AddRamExpection(Convert.ToUInt16(m.Groups[1].Value, 16), (Byte)value);
                         }
                         else
                         {
@@ -798,7 +798,7 @@ namespace AssemblerTest
                             }
                             if (l != GBLocations.NONE)
                             {
-                                AddRegExpection(l, (Int16)value);
+                                AddRegExpection(l, (UInt16)value);
                             }
 
 
@@ -813,12 +813,12 @@ namespace AssemblerTest
                 cycles = c;
             }
 
-            public void AddRamExpection(short addr, Byte expected_value)
+            public void AddRamExpection(ushort addr, Byte expected_value)
             {
                 ram.Add(addr, expected_value);
             }
 
-            public void AddRegExpection(GBLocations reg, short expected_value)
+            public void AddRegExpection(GBLocations reg, ushort expected_value)
             {
                 regs[reg] = expected_value;
             }
@@ -838,7 +838,7 @@ namespace AssemblerTest
 
             public void CheckRam(GBLib sys)
             {
-                foreach (short loc in ram.Keys)
+                foreach (ushort loc in ram.Keys)
                 {
                     byte inspected_value = (byte)sys.Inspect((int)GBLocations.MEM, loc);
                     byte expectation = (byte)ram[loc];
@@ -959,7 +959,7 @@ namespace AssemblerTest
                 while ((pc < rom.Count) && (!eot))
                 {
                     line_no = assembler.GetLineNoFromPC(pc);
-                    Debug.WriteLine("At Line: " + (line_no + 1));
+                    Debug.WriteLine("At Line: " + (line_no + 1) + ", PC: " + pc);
                    
                     if (lineExpectations.ContainsKey(line_no))
                     {
@@ -984,6 +984,12 @@ namespace AssemblerTest
                     pc = sys.Inspect((int)GBLocations.PC, 0);
                 }
             }
+        }
+
+        [TestMethod]
+        public void Startup()
+        {
+            GBAnnotatedAssemblyTest.Run(@"..\..\..\test\test_configs\startup.aat");
         }
 
         [TestMethod]
@@ -1014,6 +1020,73 @@ namespace AssemblerTest
         public void CallTest()
         {
             GBAnnotatedAssemblyTest.Run(@"..\..\..\test\test_configs\call.aat");
+        }
+
+        protected class GBRomTest
+        {
+            private static GBLib sys;
+            private static String fn;
+
+            static public void Run(String filename)
+            {
+                fn = filename;
+                sys = new GBLib();
+                //sys.onSerialDataReady += new OnSerialDataReady(CheckResult);
+                sys.LoadRom(filename);
+                sys.Start();
+                int test_status = sys.Inspect((int)GBLocations.MEM, (ushort)0xA000);
+                int pc = sys.Inspect((int)GBLocations.PC, 0);
+                //while (test_status == 0x80 || sys.Inspect((int)GBLocations.PC, 0) < 0x200)
+                while(true)
+                {
+                    //Debug.WriteLine("PC: {0}", sys.Inspect((int)GBLocations.PC, 0));
+                    sys.Step();
+                    test_status = sys.Inspect((int)GBLocations.MEM, (ushort)0xA000);
+                    pc = sys.Inspect((int)GBLocations.PC, 0);
+                    Debug.WriteLine("PC: 0x{0:X}", pc);
+                    Debug.WriteLine("Test Status: 0x{0:X}", test_status);
+                }
+                String result = "";
+                int character = '\0';
+                for(ushort start_addr = 0xA004; character != '\0'; ++start_addr)
+                {
+                    result += (char)character;
+                }
+                result += '\0';
+                Debug.WriteLine(result);
+                if (test_status != 0x00)
+                {
+                    Debug.WriteLine("Test " + fn + " Failed:");
+                    Assert.Fail();
+                }
+                else
+                {
+                    Debug.WriteLine("Test " + fn + " Passed:");
+                }
+            }
+
+            static protected void CheckResult(Byte result)
+            {
+                Debug.WriteLine("Serial: 0x{0:X}", result);
+            }
+
+
+        }
+
+        [TestMethod]
+        public void RomTest()
+        {
+           GBRomTest.Run(@"..\..\..\test\01-special.gb");
+           GBRomTest.Run(@"..\..\..\test\02-op sp,hl.gb");
+           GBRomTest.Run(@"..\..\..\test\03-op r,imm.gb");
+           GBRomTest.Run(@"..\..\..\test\04-op rp.gb");
+           GBRomTest.Run(@"..\..\..\test\05-ld r,r.gb");
+           GBRomTest.Run(@"..\..\..\test\06-jr,jp,call,ret,rst.gb");
+           GBRomTest.Run(@"..\..\..\test\07-misc instrs.gb");
+           GBRomTest.Run(@"..\..\..\test\08-op r,r.gb");
+           GBRomTest.Run(@"..\..\..\test\09-bit ops.gb");
+           GBRomTest.Run(@"..\..\..\test\10-op a,(hl).gb");
+           GBRomTest.Run(@"..\..\..\test\11-interrupts.gb");
         }
     }
 }

@@ -3,6 +3,7 @@
 
 #include <string>
 #include "base.h"
+#include "clk.h"
 
 
 class Cart;
@@ -29,6 +30,8 @@ typedef enum
 
 typedef enum
 {
+	BOOSTRAP_START = 0x0000,
+	BOOTSTRAP_END = 0x0100,
 	CART = 0x0000,
 	CART_BANK_0 = 0x0000,
 	CART_BANK_X = 0x4000,
@@ -40,6 +43,7 @@ typedef enum
 	UNUSED_0 = 0xFEA0,
 	IO = 0xFF00,
 	UNUSED_1 = 0xFF4C,
+	BOOTSTRAP_TOGGLE = 0xFF50,
 	INTERNAL_RAM_1 = 0xFF80,
 	INTERRUPT_ENABLE_REG = 0xFFFF,
 } MemoryMap;
@@ -62,14 +66,16 @@ protected:
 	unsigned char *m_ram; //Unused
 	unsigned int m_rom_size;
 	unsigned int m_ram_size;
+	unsigned char m_rom_bank;
+	unsigned char m_ram_bank;
 public:
 	Cart();
 	Cart(unsigned char *rom, unsigned int rom_size, unsigned int ram_size);
 	~Cart();
 	virtual void WriteMemory(unsigned short addr, unsigned char data);
 	virtual unsigned char ReadMemory(unsigned short addr);
-	virtual void WriteRamState(std::string file);
-	virtual void ReadRamState(std::string file);
+	virtual void SaveRamState(std::string file);
+	virtual void LoadRamState(std::string file);
 	virtual void Step() {};
 };
 
@@ -81,8 +87,6 @@ protected:
 	static const unsigned char MODE_4_32 = 1;
 	static const unsigned char mode_select_mask = 0x01; //Single select bit
 	static const unsigned char rom_select_mask = 0x1F;
-	unsigned char *m_rom_pointer; //Selected rom bank
-	unsigned char *m_ram_pointer; //Selected ram bank
 public:
 	MBC1Cart();
 	MBC1Cart(unsigned char *rom, unsigned int rom_size, unsigned int ram_size);
@@ -148,12 +152,6 @@ public:
 class Memory
 {
 protected:
-
-	const unsigned int Timer00_Hz = 4096;
-	const unsigned int Timer01_Hz = 262144;
-	const unsigned int Timer10_Hz = 65563;
-	const unsigned int Timer11_Hz = 16384;
-
 	struct {
 		union {
 			struct {
@@ -172,6 +170,8 @@ protected:
 	} m_internal_memory;
 	
 	enum {
+		SR_SB = 0xFF01,
+		SR_SC = 0xFF02,
 		SR_DIV = 0xFF04,
 		SR_TIMA = 0xFF05,
 		SR_TMA,
@@ -207,20 +207,30 @@ protected:
 		SR_WX,
 		SR_IE = 0xFFFF,
 	} softregs;
+
 	unsigned long m_div_counter;
 	unsigned long m_timer_counter;
+	unsigned long m_serial_counter;
+	unsigned char m_external_serial_buffer;
+	unsigned long m_steps_per_serial_bit;
+	unsigned char m_bits_left;
+	bool m_serial_transfer_request;
+
+	bool m_bootstrap_en;
+	static const unsigned int m_bootstrap_size = 0x100;
+	unsigned char m_bootstrap[m_bootstrap_size];
 	
 	void Inc(unsigned short addr);
 
 	void StepTimer();
-	void StepSerial(); //Stub for now
+	void StepSerial();
 	void StepDiv();
 
 	Cart* m_cart;
 	Interruptable* m_interrupt_target;
 
 public:
-	Memory();
+	Memory(bool use_bios = false);
 	~Memory();
 	unsigned char Read(unsigned short addr);
 	void Write(unsigned short addr, unsigned char byte);
@@ -230,6 +240,8 @@ public:
 	void SaveState(std::string filename);
 	void SetInterruptTarget(Interruptable* target) { m_interrupt_target = target; }
 	void Step();
+	void DisableBootstrap();
+	void EnableBootstrap();
 	//Softreg Functions
 	//P1 - INPUT softregs
 	unsigned char P1() { return m_internal_memory.sections.io_ports[0]; }
@@ -361,5 +373,7 @@ public:
 	unsigned char IE() { return m_internal_memory.sections.interrupt_enable; }
 	void IE(unsigned char val) { m_internal_memory.sections.interrupt_enable = val; }
 
+	unsigned char SerialTransfer(unsigned char in, unsigned long hz = serial_frequency);
+	bool SerialTransferRequested();
 };
 #endif
