@@ -203,11 +203,13 @@ namespace GBASMAssembler
         {
             if (src.isWide)
             {
-                rom.Add((Byte)(src.val >> 8));
+                //Store Low, High 
                 rom.Add((Byte)(src.val & 0xFF));
+                rom.Add((Byte)(src.val >> 8));
             }
             else
             {
+                //Store byte
                 rom.Add((Byte)src.val);
             }
         }
@@ -1039,7 +1041,7 @@ namespace GBASMAssembler
                 InsertLocationInfo(nullrom, dst);
             }
             offset.total = nullrom.Count;
-            return offset; ;
+            return offset;
         }
 
         

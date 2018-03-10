@@ -727,7 +727,7 @@ namespace GBASMAssembler
             l.startByte = rom.Count;
             l.isRelative = currentInst.op == Instructions.JR;
             
-            o = currentInst.GetCurrentOffset();
+            o = currentInst.GetCurrentOffset(); // Number of bytes added by instruction (2-3)
             l.labelOffset = l.startByte + o.total; //This will be 0 if no src is encoded
             l.endByte = l.labelOffset + ((l.isRelative) ? 1 : 2);
             l.byteStringIndex = byteLines.Count;
@@ -837,7 +837,7 @@ namespace GBASMAssembler
             if (info.isRelative)
             {
                 //Determine distance and direction
-                int delta = addr - info.startByte;
+                int delta = addr - info.endByte;
                 //We can't insert, because that would be destructive to all following labels and jumps
                 if (delta > 127 || delta < -128)
                 {
@@ -861,8 +861,8 @@ namespace GBASMAssembler
             }
             else
             {
-                rom[info.labelOffset] = (Byte)((addr >> 8) & 0xFF);
-                rom[info.labelOffset + 1] = (Byte)(addr & 0xFF);
+                rom[info.labelOffset] = (Byte)(addr & 0xFF);
+                rom[info.labelOffset + 1] = (Byte)((addr >> 8) & 0xFF);
             }
 
             String bs = "";

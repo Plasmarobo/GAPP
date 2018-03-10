@@ -227,6 +227,7 @@ protected:
 	bool m_stopped;
 
 	void HandleInterrupts();
+	void DoInterrupt(int int_code);
 	InstructionPacket DecodeInstruction();
 	void DecodeCB(InstructionPacket &packet);
 	void ExecuteInstruction(InstructionPacket &packet);

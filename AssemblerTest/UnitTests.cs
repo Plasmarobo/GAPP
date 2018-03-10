@@ -575,13 +575,13 @@ namespace AssemblerTest
             }
             //Relative labels
             assembler.AssembleString("JR X\nNOP\nNOP\nNOP\nNOP\nNOP\nNOP\nX: NOP");
-            Assert.AreEqual("0x18 0x08", assembler.GetByteString(0));
+            Assert.AreEqual("0x18 0x06", assembler.GetByteString(0));
             assembler.AssembleString("ZERO: NOP\nNOP\nNOP\nNOP\nNOP\nNOP\nNOP\nJR ZERO");
             for (int i = 0; i < 7; ++i)
             {
                 Assert.AreEqual("0x00", assembler.GetByteString(i));
             }
-            Assert.AreEqual("0x18 0xF9", assembler.GetByteString(7));
+            Assert.AreEqual("0x18 0xF7", assembler.GetByteString(7));
         }
 
        
@@ -685,10 +685,18 @@ namespace AssemblerTest
 
         protected class GBTestExpections
         {
+            public enum IntState
+            {
+                DONT_CARE = -1,
+                INT_DISABLED,
+                INT_ENABLED
+            };
+
             protected Dictionary<ushort, Byte> ram;  //Expected RAM after EXEC
             protected Dictionary<GBLocations, UInt16> regs; //Expected REG states after EXEC
             protected long cycles; //Expected Timing, cycles to run
-            protected bool interrupts; //Interrupt flag on
+           
+            protected IntState interrupts; //Interrupt flag on
             protected bool test_end; //Terminate test
 
             public GBTestExpections()
@@ -696,7 +704,7 @@ namespace AssemblerTest
                 ram = new Dictionary<ushort, byte>();
                 regs = new Dictionary<GBLocations, ushort>();
                 cycles = -1;
-                interrupts = false;
+                interrupts = IntState.DONT_CARE;
                 test_end = false;
             }
 
@@ -705,7 +713,7 @@ namespace AssemblerTest
                 ram = new Dictionary<ushort, byte>();
                 regs = new Dictionary<GBLocations, ushort>();
                 cycles = -1;
-                interrupts = false;
+                interrupts = IntState.DONT_CARE;
                 test_end = false;
                 PreprocessLine(line);
             }
@@ -787,7 +795,7 @@ namespace AssemblerTest
                                     break;
                                 case "INTERRUPTS":
                                     l = GBLocations.NONE;
-                                    interrupts = (value == 1);
+                                    interrupts = (IntState)value;
                                     break;
                                 case "END":
                                     l = GBLocations.NONE;
@@ -831,9 +839,12 @@ namespace AssemblerTest
                 }
             }
 
-            public void CheckFlags(bool interrupt_flag)
+            public void CheckFlags(IntState interrupt_flag)
             {
-                Assert.AreEqual(interrupts, interrupt_flag);
+                if (interrupts != IntState.DONT_CARE)
+                {
+                    Assert.AreEqual(interrupts, interrupt_flag);
+                }
             }
 
             public void CheckRam(GBLib sys)
@@ -854,6 +865,15 @@ namespace AssemblerTest
                     ushort expectation = (ushort)regs[reg];
                     Assert.AreEqual(expectation, inspected_value);
                 }
+            }
+
+            public void Check(GBLib sys, long starting_cycles, ref Boolean eot)
+            {
+                this.CheckCycles(sys.GetCycles() - starting_cycles);
+                this.CheckFlags(sys.InterruptFlag() ? IntState.INT_ENABLED : IntState.INT_DISABLED);
+                this.CheckRegs(sys);
+                this.CheckRam(sys);
+                eot = this.EOT();
             }
         }
 
@@ -966,11 +986,7 @@ namespace AssemblerTest
                         GBTestExpections expectation = lineExpectations[line_no];
                         starting_cycles = sys.GetCycles();
                         sys.Step();
-                        expectation.CheckCycles(sys.GetCycles() - starting_cycles);
-                        expectation.CheckFlags(sys.InterruptFlag());
-                        expectation.CheckRegs(sys);
-                        expectation.CheckRam(sys);
-                        eot = expectation.EOT();
+                        expectation.Check(sys, starting_cycles, ref eot);
                     }
                     else
                     {

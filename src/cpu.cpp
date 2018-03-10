@@ -2010,8 +2010,8 @@ void GBCPU::Start(bool use_bios)
 {
 	//Ignore startup sequence (we don't need no stinkin BIOS!)
 	if (!use_bios) {
-		m_regs.PC(0x00);
-		m_regs.AF(0x01);
+		m_regs.PC(0x100);
+		m_regs.AF(0x01); // CODE - Gameboy
 		m_regs.F(0xB0);
 		m_regs.BC(0x0013);
 		m_regs.DE(0x00D8);
@@ -2075,43 +2075,46 @@ void GBCPU::Int(Interrupt int_code)
 void GBCPU::HandleInterrupts()
 {
 	int int_code;
-	
-	if(this->m_interrupt_enable && (m_mem->IF() != 0))
-	{
-		for(int_code = VBLANK_INT; int_code < MAX_INT; int_code <<= 1)
-		{
-			if ((m_mem->IE() & int_code) && (m_mem->IF() & int_code))
-			{
-				break;
-			}
-		}
-		this->PushPC();
-		switch(int_code)
-		{
-			case VBLANK_INT:
-				m_regs.PC(VBLANK_ROUTINE);
-				break;
-			case LCDC_INT:
-				m_regs.PC(LCDC_ROUTINE);
-				break;
-			case TIME_INT:
-				m_regs.PC(TIMER_ROUTINE);
-				break;
-			case SERIAL_INT:
-				m_regs.PC(SERIAL_ROUTINE);
-				break;
-			case INPUT_INT:
-				m_regs.PC(INPUT_ROUTINE);
-				break;
-			default:
-				return;
-				break;
-		}
-		this->m_halted = false;
-		this->m_interrupt_enable = false;
-		m_mem->IF(0);
+
+	if (!this->m_interrupt_enable || m_mem->IF() == 0) {
+		return;
 	}
-	
+
+	for(int_code = VBLANK_INT; int_code < MAX_INT; int_code <<= 1)
+	{
+		if ((m_mem->IE() & int_code) && (m_mem->IF() & int_code))
+		{
+			DoInterrupt(int_code);
+			return;
+		}
+	}
+}
+
+void GBCPU::DoInterrupt(int int_code) {
+	this->m_halted = false;
+	this->m_interrupt_enable = false;
+	this->PushPC();
+	m_mem->IF(0);
+	switch (int_code)
+	{
+	case VBLANK_INT:
+		m_regs.PC(VBLANK_ROUTINE);
+		break;
+	case LCDC_INT:
+		m_regs.PC(LCDC_ROUTINE);
+		break;
+	case TIME_INT:
+		m_regs.PC(TIMER_ROUTINE);
+		break;
+	case SERIAL_INT:
+		m_regs.PC(SERIAL_ROUTINE);
+		break;
+	case INPUT_INT:
+		m_regs.PC(INPUT_ROUTINE);
+		break;
+	default:
+		break;
+	}
 }
 
 Memory *GBCPU::GetMem()
