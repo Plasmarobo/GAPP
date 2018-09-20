@@ -1061,6 +1061,8 @@ namespace AssemblerTest
                     pc = sys.Inspect((int)GBLocations.PC, 0);
                     Debug.WriteLine("PC: 0x{0:X}", pc);
                     Debug.WriteLine("Test Status: 0x{0:X}", test_status);
+                    if (test_status < 0x80)
+                        break;
                 }
                 String result = "";
                 int character = '\0';
